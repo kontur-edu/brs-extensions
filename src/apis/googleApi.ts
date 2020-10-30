@@ -1,6 +1,6 @@
-import { google } from 'googleapis';
-import { OAuth2Client } from 'googleapis-common';
-import * as googleAuth from './googleAuth';
+import { google } from "googleapis";
+import { OAuth2Client } from "googleapis-common";
+import * as googleAuth from "./googleAuth";
 
 let globalAuth: OAuth2Client | null = null;
 
@@ -12,7 +12,7 @@ export function openSpreadsheet(spreadsheetId: string): Spreadsheet {
   const auth = getGlobalAuth();
 
   async function readAsync(range: string) {
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = google.sheets({ version: "v4", auth });
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range,
@@ -21,8 +21,8 @@ export function openSpreadsheet(spreadsheetId: string): Spreadsheet {
   }
 
   function writeAsync(range: string, values: any[][], asEnteredByUser = false) {
-    const sheets = google.sheets({ version: 'v4', auth });
-    const valueInputOption = asEnteredByUser ? 'USER_ENTERED' : 'RAW';
+    const sheets = google.sheets({ version: "v4", auth });
+    const valueInputOption = asEnteredByUser ? "USER_ENTERED" : "RAW";
     const requestBody = {
       values,
     };
@@ -39,8 +39,8 @@ export function openSpreadsheet(spreadsheetId: string): Spreadsheet {
     values: any[][],
     asEnteredByUser = false
   ) {
-    const sheets = google.sheets({ version: 'v4', auth });
-    const valueInputOption = asEnteredByUser ? 'USER_ENTERED' : 'RAW';
+    const sheets = google.sheets({ version: "v4", auth });
+    const valueInputOption = asEnteredByUser ? "USER_ENTERED" : "RAW";
     const requestBody = {
       values,
     };
@@ -61,7 +61,7 @@ export function openSpreadsheet(spreadsheetId: string): Spreadsheet {
 
 function getGlobalAuth() {
   if (!globalAuth) {
-    throw new Error('Not authenticated. Use authorizeAsync to authenticate');
+    throw new Error("Not authenticated. Use authorizeAsync to authenticate");
   }
   return globalAuth;
 }
@@ -83,7 +83,7 @@ export interface Spreadsheet {
 }
 
 export interface ValueRange {
-  majorDimension?: string;
-  range?: string;
-  values?: any[][];
+  majorDimension?: string | null;
+  range?: string | null;
+  values?: any[][] | null;
 }
