@@ -1,6 +1,6 @@
 // Client ID and API key from the Developer Console
-const CLIENT_ID = '122993083593-pacve8csj86voko30ia65raeg0ncrtuv.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyCOtdLOGk-oED5KjkifDeiS7h6v57gwpFM';
+const CLIENT_ID = '';
+const API_KEY = '';
 // Array of API discovery doc URLs for APIs used by the quickstart
 const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
 // Authorization scopes required by the API; multiple scopes can be included, separated by spaces.
