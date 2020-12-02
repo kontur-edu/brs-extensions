@@ -1,13 +1,10 @@
 import React from 'react';
-import {BrsCheck} from "./BrsCheck";
-import {SpreadsheetForm} from "./SpreadsheetForm";
+import LoginPage from "./LoginPage";
 
 function App() {
     return (
-        <div className={"wrapper"}>
-            <BrsCheck/>
-            <br/>
-            <SpreadsheetForm/>
+        <div>
+            <LoginPage/>
         </div>
     )
 }

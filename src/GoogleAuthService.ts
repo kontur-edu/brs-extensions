@@ -1,24 +1,25 @@
-// Client ID and API key from the Developer Console
-const CLIENT_ID = '';
-const API_KEY = '';
-// Array of API discovery doc URLs for APIs used by the quickstart
+let CLIENT_ID: string;
+let API_KEY: string;
 const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
-// Authorization scopes required by the API; multiple scopes can be included, separated by spaces.
 const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
+let initialized = false;
 
-gapi.load('client:auth2', initClient);
-/**
- *  Called when the signed in status changes, to update the UI
- *  appropriately. After a sign-in, the API is called.
- */
-export const events: Events = {
-    onError: alert
+export function init(){
+    loadData();
+    gapi.load('client:auth2', initClient);
 }
 
-/**
- *  Initializes the API client library and sets up sign-in state
- *  listeners.
- */
+function loadData(){
+    const googleApiKey = localStorage.getItem('google_api_key');
+    if (!googleApiKey)
+        throw 'No google api key found';
+    API_KEY = googleApiKey;
+    const googleClientId = localStorage.getItem('google_client_id');
+    if (!googleClientId)
+        throw 'No google client id';
+    CLIENT_ID = googleClientId;
+}
+
 function initClient() {
     gapi.client.init({
         apiKey: API_KEY,
@@ -37,23 +38,25 @@ function initClient() {
     }, events.onError);
 }
 
-/**
- *  Sign in the user upon button click.
- */
 export function signIn() {
+    if (!initialized)
+        throw 'Not initialized';
     // @ts-ignore
     gapi.auth2.getAuthInstance().signIn();
 }
 
-/**
- *  Sign out the user upon button click.
- */
 export function signOut() {
+    if (!initialized)
+        throw 'Not initialized';
     // @ts-ignore
     gapi.auth2.getAuthInstance().signOut();
 }
 
-interface Events{
+interface Events {
     onSignInStatusChanged?: (isSignedIn: boolean) => void;
     onError?: (error: any) => void;
+}
+
+export const events: Events = {
+    onError: alert
 }

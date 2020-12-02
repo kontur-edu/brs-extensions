@@ -18,7 +18,8 @@ auth.events.onSignInStatusChanged = isSignedIn => {
 export function SpreadsheetForm() {
     return (
         <div className={"spreadsheet-form"}>
-            <button id="authorize_button" onClick={auth.signIn}>Authorize</button>
+            <button id="init" onClick={init}>Init</button>
+            <button id="authorize_button" onClick={auth.signIn} disabled={true}>Authorize</button>
             <button id="signout_button" onClick={auth.signOut} style={{display: "none"}}>Sign Out</button>
             <br/>
             <label>Spreadsheet id </label>
@@ -38,16 +39,22 @@ export function SpreadsheetForm() {
     )
 }
 
+function init() {
+    auth.init();
+    const authBtn = document.getElementById('authorize_button');
+    if (authBtn)
+        authBtn.removeAttribute('disabled');
+    const initBtn = document.getElementById('init');
+    if (initBtn)
+        initBtn.style.display = 'none';
+}
+
 function appendPre(message: string, table: HTMLElement | null) {
     const row = document.createElement('div');
     row.innerText = message;
     table && table.appendChild(row);
 }
 
-/**
- * Print the names and majors of students in a sample spreadsheet:
- * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
- */
 function listMajors() {
     // @ts-ignore
     console.log(`Load ${range} from ${sheetName} from ${spreadsheetId}`);
@@ -56,7 +63,7 @@ function listMajors() {
     gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: spreadsheetId,
         range: `${sheetName}!${range}`,
-        
+
     }).then((response: { result: any; }) => {
         const range = response.result;
         if (range.values.length > 0) {
