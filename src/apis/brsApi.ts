@@ -353,7 +353,7 @@ export async function authByConfigAsync(secretName: string) {
     globalLogin = credentials.sid ? secretName : credentials.login;
 }
 
-export async function authAsync(login: string, password: string): Promise<string> {
+export async function authAsync(login: string, password: string): Promise<string | null> {
     const response = await request({
         url: baseUrl + `/login`,
         method: 'POST',
@@ -365,7 +365,7 @@ export async function authAsync(login: string, password: string): Promise<string
         },
     });
     if (!('set-cookie' in response.headers))
-        throw new Error('Wrong credentials');
+        return null;
     const sessionCookie = response.headers['set-cookie']
         .filter((cookie: string) => cookie.startsWith('JSESSIONID='))[0];
     return (sessionCookie as string)
