@@ -3,20 +3,14 @@ import Button from '@material-ui/core/Button';
 import Container from '@material-ui/core/Container';
 import TextField from "@material-ui/core/TextField";
 import makeStyles from "@material-ui/core/styles/makeStyles";
-import * as brsApi from  './apis/brsApi'
-import {green} from "@material-ui/core/colors";
+import * as brsApi from './apis/brsApi'
+import {CircularProgress} from "@material-ui/core";
+import blue from "@material-ui/core/colors/blue";
+import Snackbar from "@material-ui/core/Snackbar";
+import Alert from "./Alert";
+import {Redirect} from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
-    paper: {
-        marginTop: theme.spacing(8),
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-    },
-    avatar: {
-        margin: theme.spacing(1),
-        backgroundColor: theme.palette.secondary.main,
-    },
     form: {
         width: '100%', // Fix IE 11 issue.
         marginTop: theme.spacing(1),
@@ -24,28 +18,63 @@ const useStyles = makeStyles((theme) => ({
     submit: {
         margin: theme.spacing(3, 0, 2),
     },
+    wrapper: {
+        margin: theme.spacing(1),
+        position: 'relative',
+    },
     buttonProgress: {
-        color: green[500],
+        color: blue["A700"],
         position: 'absolute',
-        top: '50%',
+        top: '55%',
         left: '50%',
         marginTop: -12,
         marginLeft: -12,
     }
 }));
 
-let username = ''
-let password = ''
-
-const credentials: Credentials = {
-    username: '',
-    password: ''
-}
-
 export default function LoginPage() {
     const classes = useStyles();
+    const [loading, setLoading] = React.useState(false);
+    const [open, setOpen] = React.useState(false);
+    const sid = localStorage.getItem('sid')
+    const [redirect, setRedirect] = React.useState(!!sid);
+
+    const credentials: Credentials = {
+        username: '',
+        password: ''
+    }
+
+    function onFieldChanged(e: React.ChangeEvent<HTMLInputElement>) {
+        const field = e.target
+        credentials[field.id] = field.value
+    }
+
+    async function onSubmit(e: FormEvent) {
+        e.preventDefault()
+        setLoading(true)
+        const loginSucceed = await login()
+        setLoading(false)
+        if (loginSucceed)
+            setRedirect(true)
+        setOpen(true)
+    }
+
+    async function login() {
+        const sid = await brsApi.authAsync(credentials.username, credentials.password)
+        if (!sid) {
+            return false
+        }
+        localStorage.setItem('sid', sid)
+        return true
+    }
+
+    function closeAlert() {
+        setOpen(false)
+    }
+
     return (
         <div>
+            {redirect && <Redirect to="/work"/>}
             <Container component="main" maxWidth="md">
                 <h1>Привет!</h1>
                 <h3>Как все работает</h3>
@@ -79,45 +108,41 @@ export default function LoginPage() {
                             autoComplete="current-password"
                             onChange={onFieldChanged}
                         />
-                        <Button
-                            type="submit"
-                            fullWidth
-                            variant="contained"
-                            color="primary"
-                            className={classes.submit}
-                        >
-                            Начать работу
-                        </Button>
+                        <div className={classes.wrapper}>
+                            <Button
+                                type="submit"
+                                fullWidth
+                                variant="contained"
+                                color="primary"
+                                className={classes.submit}
+                                disabled={loading}
+                            >
+                                Начать работу
+                            </Button>
+                            {
+                                loading &&
+                                <CircularProgress color="secondary" size={24} className={classes.buttonProgress}/>
+                            }
+                        </div>
                     </form>
                 </Container>
+                <Snackbar
+                    open={open}
+                    autoHideDuration={5000}
+                    anchorOrigin={{vertical: 'top', horizontal: 'center'}}
+                    onClose={closeAlert}>
+                    <Alert severity="error" onClose={closeAlert}>
+                        Неверные имя пользователя или пароль
+                    </Alert>
+                </Snackbar>
             </Container>
         </div>
     )
 }
 
-function onFieldChanged(e: React.ChangeEvent<HTMLInputElement>) {
-    const field = e.target
-    const credType: 'username' | 'password' = field.id
-    credentials[credType] = field.value
-}
+interface Credentials {
+    username: string
+    password: string
 
-async function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    alert(JSON.stringify(credentials))
-    return
-    if (!(await login(username, password)))
-        return
-}
-
-async function login(username: string, password: string){
-    const sid = await brsApi.authAsync(username, password)
-    if (!sid) {
-        alert('Неверные имя пользователя или пароль')
-        return false
-    }
-    return true
-}
-
-interface Credentials{
     [props: string]: string
 }
