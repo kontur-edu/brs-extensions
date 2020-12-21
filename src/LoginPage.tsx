@@ -1,143 +1,162 @@
 import React, {FormEvent} from 'react';
-import Button from '@material-ui/core/Button';
 import Container from '@material-ui/core/Container';
 import TextField from "@material-ui/core/TextField";
-import makeStyles from "@material-ui/core/styles/makeStyles";
-import * as brsApi from './apis/brsApi'
-import {CircularProgress} from "@material-ui/core";
-import blue from "@material-ui/core/colors/blue";
-import Snackbar from "@material-ui/core/Snackbar";
-import Alert from "./Alert";
 import {Redirect} from 'react-router-dom';
+import SubmitWithLoading from "./components/SubmitWithLoading";
+import BrsAuth from "./apis/brsAuth";
+import BrsUrlProvider from "./apis/brsUrlProvider";
+import CustomAlert from "./components/CustomAlert";
+import {Grid} from "@material-ui/core";
+import GoogleButton from "react-google-button";
+import Button from "@material-ui/core/Button";
+import googleAuth from "./apis/googleAuth";
+import "./login-page.css";
 
-const useStyles = makeStyles((theme) => ({
-    form: {
-        width: '100%', // Fix IE 11 issue.
-        marginTop: theme.spacing(1),
-    },
-    submit: {
-        margin: theme.spacing(3, 0, 2),
-    },
-    wrapper: {
-        margin: theme.spacing(1),
-        position: 'relative',
-    },
-    buttonProgress: {
-        color: blue["A700"],
-        position: 'absolute',
-        top: '55%',
-        left: '50%',
-        marginTop: -12,
-        marginLeft: -12,
-    }
-}));
+const brsAuth = new BrsAuth(new BrsUrlProvider(true));
 
-export default function LoginPage() {
-    const classes = useStyles();
-    const [loading, setLoading] = React.useState(false);
-    const [open, setOpen] = React.useState(false);
-    const sid = localStorage.getItem('sid')
-    const [redirect, setRedirect] = React.useState(!!sid);
+export default class LoginPage extends React.Component<{}, State> {
+    credentials: Credentials;
 
-    const credentials: Credentials = {
-        username: '',
-        password: ''
-    }
+    constructor(props: {}) {
+        super(props);
 
-    function onFieldChanged(e: React.ChangeEvent<HTMLInputElement>) {
-        const field = e.target
-        credentials[field.id] = field.value
-    }
-
-    async function onSubmit(e: FormEvent) {
-        e.preventDefault()
-        setLoading(true)
-        const loginSucceed = await login()
-        setLoading(false)
-        if (loginSucceed)
-            setRedirect(true)
-        setOpen(true)
-    }
-
-    async function login() {
-        const sid = await brsApi.authAsync(credentials.username, credentials.password)
-        if (!sid) {
-            return false
+        this.state = {
+            brsAuthorized: false,
+            googleAuthorized: false,
+            redirect: false,
+            submitLoading: false,
+            alertInfo: {open: false, message: '', type: 'error'}
         }
-        localStorage.setItem('sid', sid)
-        return true
+
+        this.credentials = {
+            username: '',
+            password: ''
+        }
+
+        this.onFieldChanged = this.onFieldChanged.bind(this);
+        this.onSubmit = this.onSubmit.bind(this);
+        this.login = this.login.bind(this);
+        this.closeAlert = this.closeAlert.bind(this);
+        this.loginGoogle = this.loginGoogle.bind(this);
+        this.startWork = this.startWork.bind(this);
     }
 
-    function closeAlert() {
-        setOpen(false)
+    async componentDidMount() {
+        await googleAuth.init();
+        this.setState({
+            brsAuthorized: brsAuth.checkAuth(),
+            googleAuthorized: googleAuth.checkAuth()
+        });
     }
 
-    return (
-        <div>
-            {redirect && <Redirect to="/work"/>}
-            <Container component="main" maxWidth="md">
-                <h1>Привет!</h1>
-                <h3>Как все работает</h3>
-                <p>Как-то все работает</p>
-                <h3>Правила хранения данных</h3>
-                <p>Данные хранятся в localstorage</p>
-                <hr/>
-                <p>Для начала работы, необходимо авторизоваться в БРС</p>
-                <Container maxWidth="xs">
-                    <form className={classes.form} onSubmit={onSubmit}>
-                        <TextField
-                            variant="outlined"
-                            margin="normal"
-                            required
-                            fullWidth
-                            id="username"
-                            label="Имя пользователя"
-                            name="username"
-                            autoFocus
-                            onChange={onFieldChanged}
-                        />
-                        <TextField
-                            variant="outlined"
-                            margin="normal"
-                            required
-                            fullWidth
-                            name="password"
-                            label="Пароль"
-                            type="password"
-                            id="password"
-                            autoComplete="current-password"
-                            onChange={onFieldChanged}
-                        />
-                        <div className={classes.wrapper}>
-                            <Button
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                color="primary"
-                                className={classes.submit}
-                                disabled={loading}
-                            >
-                                Начать работу
-                            </Button>
-                            {
-                                loading &&
-                                <CircularProgress color="secondary" size={24} className={classes.buttonProgress}/>
-                            }
-                        </div>
-                    </form>
+    onFieldChanged(e: React.ChangeEvent<HTMLInputElement>) {
+        const field = e.target
+        this.credentials[field.id] = field.value
+    }
+
+    async onSubmit(e: FormEvent) {
+        e.preventDefault();
+        this.setState({submitLoading: true});
+
+        const loginSucceed = await this.login();
+
+        this.setState({submitLoading: false})
+
+        if (loginSucceed) {
+            this.setState({
+                alertInfo: {
+                    message: 'Авторизация прошла успешно',
+                    open: true,
+                    type: 'success'
+                },
+                brsAuthorized: true
+            });
+        } else
+            this.setState({
+                alertInfo: {
+                    message: 'Неверные имя пользователя или пароль',
+                    open: true,
+                    type: 'error'
+                }
+            });
+    }
+
+    async login() {
+        return await brsAuth.authAsync(this.credentials.username, this.credentials.password);
+    }
+
+    closeAlert() {
+        this.setState({alertInfo: {open: false, message: '', type: 'error'}});
+    }
+
+    loginGoogle() {
+        googleAuth.signIn();
+    }
+
+    startWork() {
+        this.setState({redirect: true});
+    }
+
+    render() {
+        return (
+            <div className="login-page">
+                {this.state.redirect && <Redirect to="/brs-extensions/work"/>}
+                <Container component="main" maxWidth="md">
+                    <h1>Привет!</h1>
+                    <h3>Как все работает</h3>
+                    <p>Как-то все работает</p>
+                    <h3>Правила хранения данных</h3>
+                    <p>Данные хранятся в localstorage</p>
+                    <hr/>
+                    <p>Для начала работы, необходимо авторизоваться в БРС</p>
+                    <Grid container justify="space-around">
+                        <Grid item md={5} lg={5} sm={5} xs={10}>
+                            <form className="form" onSubmit={this.onSubmit}>
+                                <TextField
+                                    variant="outlined"
+                                    margin="normal"
+                                    required
+                                    fullWidth
+                                    id="username"
+                                    label="Имя пользователя"
+                                    name="username"
+                                    autoFocus
+                                    onChange={this.onFieldChanged}
+                                />
+                                <TextField variant="outlined"
+                                           margin="normal"
+                                           required
+                                           fullWidth
+                                           name="password"
+                                           label="Пароль"
+                                           type="password"
+                                           id="password"
+                                           autoComplete="current-password"
+                                           onChange={this.onFieldChanged}/>
+                                <SubmitWithLoading title="войти" loading={this.state.submitLoading}/>
+                            </form>
+                        </Grid>
+                        <Grid item className="align-center">
+                            <h3>А также</h3>
+                        </Grid>
+                        <Grid item className="align-center">
+                            <GoogleButton label="Войти в Google аккаунт" onClick={this.loginGoogle}/>
+                        </Grid>
+                    </Grid>
+                    <Container className="start-work-wrapper">
+                        <Button variant="contained"
+                                onClick={this.startWork}
+                                disabled={!this.state.brsAuthorized || !this.state.googleAuthorized}
+                                color="secondary">начать работу</Button>
+                    </Container>
+                    <CustomAlert open={this.state.alertInfo.open}
+                                 message={this.state.alertInfo.message}
+                                 type={this.state.alertInfo.type}
+                                 onClose={this.closeAlert}/>
                 </Container>
-                <Snackbar
-                    open={open}
-                    autoHideDuration={5000}
-                    anchorOrigin={{vertical: 'top', horizontal: 'center'}}
-                    onClose={closeAlert}>
-                    <Alert severity="error" onClose={closeAlert}>
-                        Неверные имя пользователя или пароль
-                    </Alert>
-                </Snackbar>
-            </Container>
-        </div>
-    )
+            </div>
+        );
+    }
 }
 
 interface Credentials {
@@ -145,4 +164,18 @@ interface Credentials {
     password: string
 
     [props: string]: string
+}
+
+interface AlertInfo {
+    open: boolean,
+    message: string,
+    type: "error" | "success";
+}
+
+interface State {
+    brsAuthorized: boolean;
+    googleAuthorized: boolean;
+    submitLoading: boolean;
+    redirect: boolean;
+    alertInfo: AlertInfo;
 }
