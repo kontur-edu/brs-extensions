@@ -27,7 +27,6 @@ export default class WorkPage extends React.Component<{}, State> {
         super(props);
 
         this.state = {
-            authorized: true,
             showControls: false,
             runWork: false,
             openUnauthorizedAlert: false,
@@ -46,7 +45,8 @@ export default class WorkPage extends React.Component<{}, State> {
     async componentDidMount() {
         await googleAuth.init();
         const authorized = brsAuth.checkAuth() && googleAuth.checkAuth();
-        this.setState({authorized});
+        if (!authorized)
+            this.handleUnauthorized();
     }
 
     handleDataLoaded(data: MarksData) {
@@ -66,7 +66,6 @@ export default class WorkPage extends React.Component<{}, State> {
     }
 
     handleUnauthorized() {
-        cache.clear('loginInfo');
         this.setState({openUnauthorizedAlert: true});
     }
 
@@ -81,7 +80,6 @@ export default class WorkPage extends React.Component<{}, State> {
     render() {
         return (
             <React.Fragment>
-                {!this.state.authorized && <Redirect to="/brs-extensions"/>}
                 {this.state.openUnauthorizedAlert && <UnauthorizedAlert open={this.state.openUnauthorizedAlert}/>}
                 {this.state.errorMessage && <CustomAlert open={!!this.state.errorMessage}
                                                          message={this.state.errorMessage}
@@ -128,7 +126,6 @@ export default class WorkPage extends React.Component<{}, State> {
 }
 
 interface State {
-    authorized: boolean
     showControls: boolean;
     openUnauthorizedAlert: boolean;
     errorMessage: string;

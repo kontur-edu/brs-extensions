@@ -7,10 +7,9 @@ import BrsAuth from "../apis/brsAuth";
 import BrsUrlProvider from "../apis/brsUrlProvider";
 import CustomAlert from "../components/CustomAlert";
 import {Grid} from "@material-ui/core";
-import GoogleButton from "react-google-button";
 import Button from "@material-ui/core/Button";
-import googleAuth from "../apis/googleAuth";
 import "./login-page.css";
+import GoogleLoginButton from "./GoogleLoginButton";
 
 const brsAuth = new BrsAuth(new BrsUrlProvider(true));
 
@@ -21,7 +20,7 @@ export default class LoginPage extends React.Component<{}, State> {
         super(props);
 
         this.state = {
-            brsAuthorized: false,
+            brsAuthorized: brsAuth.checkAuth(),
             googleAuthorized: false,
             redirect: false,
             submitLoading: false,
@@ -33,28 +32,21 @@ export default class LoginPage extends React.Component<{}, State> {
             password: ''
         }
 
-        this.onFieldChanged = this.onFieldChanged.bind(this);
-        this.onSubmit = this.onSubmit.bind(this);
+        this.handleFieldChanged = this.handleFieldChanged.bind(this);
+        this.handleBrsSubmit = this.handleBrsSubmit.bind(this);
         this.loginBrs = this.loginBrs.bind(this);
-        this.closeAlert = this.closeAlert.bind(this);
-        this.loginGoogle = this.loginGoogle.bind(this);
+        this.handleCloseAlert = this.handleCloseAlert.bind(this);
+        this.handleGoogleSignedIn = this.handleGoogleSignedIn.bind(this);
+        this.handleGoogleLoginFailed = this.handleGoogleLoginFailed.bind(this);
         this.startWork = this.startWork.bind(this);
     }
 
-    async componentDidMount() {
-        await googleAuth.init();
-        this.setState({
-            brsAuthorized: brsAuth.checkAuth(),
-            googleAuthorized: googleAuth.checkAuth()
-        });
-    }
-
-    onFieldChanged(e: React.ChangeEvent<HTMLInputElement>) {
+    handleFieldChanged(e: React.ChangeEvent<HTMLInputElement>) {
         const field = e.target
         this.credentials[field.id] = field.value
     }
 
-    async onSubmit(e: FormEvent) {
+    async handleBrsSubmit(e: FormEvent) {
         e.preventDefault();
         this.setState({submitLoading: true});
 
@@ -85,13 +77,24 @@ export default class LoginPage extends React.Component<{}, State> {
         return await brsAuth.authAsync(this.credentials.username, this.credentials.password);
     }
 
-    closeAlert() {
+    handleCloseAlert() {
         this.setState({alertInfo: {open: false, message: '', type: 'error'}});
     }
 
-    loginGoogle() {
-        googleAuth.signIn();
+    handleGoogleSignedIn() {
         this.setState({googleAuthorized: true});
+    }
+
+    handleGoogleLoginFailed(error: any) {
+        console.error(error);
+
+        this.setState({
+            alertInfo: {
+                open: true,
+                type: 'error',
+                message: 'Не удалось подключить ваш Google аккаунт :('
+            }
+        });
     }
 
     startWork() {
@@ -112,7 +115,7 @@ export default class LoginPage extends React.Component<{}, State> {
                     <p>Для начала работы, необходимо авторизоваться в БРС</p>
                     <Grid container justify="space-around">
                         <Grid item md={5} lg={5} sm={5} xs={10}>
-                            <form className="form" onSubmit={this.onSubmit}>
+                            <form className="form" onSubmit={this.handleBrsSubmit}>
                                 <TextField
                                     variant="outlined"
                                     margin="normal"
@@ -122,7 +125,7 @@ export default class LoginPage extends React.Component<{}, State> {
                                     label="Имя пользователя"
                                     name="username"
                                     autoFocus
-                                    onChange={this.onFieldChanged}
+                                    onChange={this.handleFieldChanged}
                                 />
                                 <TextField variant="outlined"
                                            margin="normal"
@@ -133,7 +136,7 @@ export default class LoginPage extends React.Component<{}, State> {
                                            type="password"
                                            id="password"
                                            autoComplete="current-password"
-                                           onChange={this.onFieldChanged}/>
+                                           onChange={this.handleFieldChanged}/>
                                 <SubmitWithLoading title="войти" loading={this.state.submitLoading}/>
                             </form>
                         </Grid>
@@ -141,7 +144,9 @@ export default class LoginPage extends React.Component<{}, State> {
                             <h3>А также</h3>
                         </Grid>
                         <Grid item className="align-center">
-                            <GoogleButton label="Войти в Google аккаунт" onClick={this.loginGoogle}/>
+                            <GoogleLoginButton onSignedIn={this.handleGoogleSignedIn}
+                                               onFailure={this.handleGoogleLoginFailed}/>
+                            <br/>
                         </Grid>
                     </Grid>
                     <Container className="start-work-wrapper">
@@ -153,7 +158,7 @@ export default class LoginPage extends React.Component<{}, State> {
                     <CustomAlert open={this.state.alertInfo.open}
                                  message={this.state.alertInfo.message}
                                  type={this.state.alertInfo.type}
-                                 onClose={this.closeAlert}/>
+                                 onClose={this.handleCloseAlert}/>
                 </Container>
             </div>
         );

@@ -8,6 +8,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Slide from '@material-ui/core/Slide';
 import {TransitionProps} from '@material-ui/core/transitions';
 import {Redirect} from 'react-router-dom';
+import * as cache from "../helpers/cache";
 
 const Transition = React.forwardRef(function Transition(
     props: TransitionProps & { children?: React.ReactElement<any, any> },
@@ -22,6 +23,7 @@ export default function UnauthorizedAlert(props: { open: boolean }) {
     const [redirect, setRedirect] = React.useState(false);
 
     const handleOk = () => {
+        cache.clear('loginInfo');
         setRedirect(true);
     };
 
