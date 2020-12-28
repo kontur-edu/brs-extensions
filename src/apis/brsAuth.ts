@@ -4,12 +4,12 @@ import * as cache from "../helpers/cache";
 
 export default class BrsAuth {
     private brsUrlProvider: BrsUrlProvider;
-    private _sid: string | null = null;
-    private _login: string | null = null;
 
     constructor(brsUrlProvider: BrsUrlProvider) {
         this.brsUrlProvider = brsUrlProvider;
     }
+
+    private _sid: string | null = null;
 
     get sid() {
         if (!this._sid)
@@ -17,18 +17,12 @@ export default class BrsAuth {
         return this._sid;
     }
 
+    private _login: string | null = null;
+
     get login() {
         if (!this._login)
             this.loadLoginInfo();
         return this._login;
-    }
-
-    private loadLoginInfo() {
-        const loginInfo = cache.read<{ sid: string, login: string }>('loginInfo');
-        if (!loginInfo)
-            throw new Error('BrsAuth unauthorized');
-        this._sid = loginInfo.sid;
-        this._login = loginInfo.login;
     }
 
     checkAuth() {
@@ -41,7 +35,25 @@ export default class BrsAuth {
     }
 
     async authAsync(login: string, password: string): Promise<boolean> {
-        const response = await request({
+        const response = await this.getSid(login, password);
+
+        if (!response || !('x-set-cookie' in response.headers)) {
+            return false;
+        }
+
+        const cookies = response.headers['x-set-cookie'] as string;
+        const result = cookies.match(/(?<=JSESSIONID=)\w+/);
+
+        if (!result)
+            return false;
+
+        cache.save('loginInfo', {sid: result[0], login});
+
+        return true;
+    }
+
+    async getSid(login: string, password: string) {
+        return await request({
             url: this.brsUrlProvider.baseUrl + `/login`,
             method: 'POST',
             body: `username=${login}&password=${password}`,
@@ -50,20 +62,14 @@ export default class BrsAuth {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
             },
-        });
-        if (!('set-cookie' in response.headers)) {
-            cache.save('loginInfo', {sid: '7EF7122088BA63A71BDC0DE022FC2C97', login});
-            return true;
-        }
-        const sessionCookie = response.headers['set-cookie']
-            .filter((cookie: string) => cookie.startsWith('JSESSIONID='))[0];
-        const sid = (sessionCookie as string)
-            .split(';')[0]
-            .substr('JSESSIONID='.length)
-            .trim();
+        }).then(x => x, () => null);
+    }
 
-        cache.save('loginInfo', {sid, login});
-
-        return true;
+    private loadLoginInfo() {
+        const loginInfo = cache.read<{ sid: string, login: string }>('loginInfo');
+        if (!loginInfo)
+            throw new Error('BrsAuth unauthorized');
+        this._sid = loginInfo.sid;
+        this._login = loginInfo.login;
     }
 }
