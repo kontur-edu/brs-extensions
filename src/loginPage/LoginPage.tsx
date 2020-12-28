@@ -2,14 +2,14 @@ import React, {FormEvent} from 'react';
 import Container from '@material-ui/core/Container';
 import TextField from "@material-ui/core/TextField";
 import {Redirect} from 'react-router-dom';
-import SubmitWithLoading from "./components/SubmitWithLoading";
-import BrsAuth from "./apis/brsAuth";
-import BrsUrlProvider from "./apis/brsUrlProvider";
-import CustomAlert from "./components/CustomAlert";
+import SubmitWithLoading from "../components/SubmitWithLoading";
+import BrsAuth from "../apis/brsAuth";
+import BrsUrlProvider from "../apis/brsUrlProvider";
+import CustomAlert from "../components/CustomAlert";
 import {Grid} from "@material-ui/core";
 import GoogleButton from "react-google-button";
 import Button from "@material-ui/core/Button";
-import googleAuth from "./apis/googleAuth";
+import googleAuth from "../apis/googleAuth";
 import "./login-page.css";
 
 const brsAuth = new BrsAuth(new BrsUrlProvider(true));
@@ -35,7 +35,7 @@ export default class LoginPage extends React.Component<{}, State> {
 
         this.onFieldChanged = this.onFieldChanged.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
-        this.login = this.login.bind(this);
+        this.loginBrs = this.loginBrs.bind(this);
         this.closeAlert = this.closeAlert.bind(this);
         this.loginGoogle = this.loginGoogle.bind(this);
         this.startWork = this.startWork.bind(this);
@@ -58,7 +58,7 @@ export default class LoginPage extends React.Component<{}, State> {
         e.preventDefault();
         this.setState({submitLoading: true});
 
-        const loginSucceed = await this.login();
+        const loginSucceed = await this.loginBrs();
 
         this.setState({submitLoading: false})
 
@@ -81,7 +81,7 @@ export default class LoginPage extends React.Component<{}, State> {
             });
     }
 
-    async login() {
+    async loginBrs() {
         return await brsAuth.authAsync(this.credentials.username, this.credentials.password);
     }
 
@@ -91,6 +91,7 @@ export default class LoginPage extends React.Component<{}, State> {
 
     loginGoogle() {
         googleAuth.signIn();
+        this.setState({googleAuthorized: true});
     }
 
     startWork() {

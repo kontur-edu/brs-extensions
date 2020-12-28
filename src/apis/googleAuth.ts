@@ -6,7 +6,7 @@ let onAuthStatusChangedEvent: (isSignedIn: boolean) => void;
 let onErrorEvent: (error: any) => void;
 
 const googleAuth = {
-    async init(onAuthStatusChanged?: (isSignedIn: boolean) => void, onError?: (error: any) => void){
+    async init(onAuthStatusChanged?: (isSignedIn: boolean) => void, onError?: (error: any) => void) {
         if (onAuthStatusChanged)
             onAuthStatusChangedEvent = onAuthStatusChanged;
         if (onError)

@@ -1,7 +1,7 @@
 export default class BrsUrlProvider {
     private readonly withProxy: boolean;
-    private readonly brsProxy = "https://brs-proxy.herokuapp.com";
     private readonly brsUrl = 'https://brs.urfu.ru/mrd';
+    private readonly corsProxy = 'https://kamikoto-cors-proxy.herokuapp.com';
 
     constructor(withProxy: boolean) {
         this.withProxy = withProxy;
@@ -9,7 +9,7 @@ export default class BrsUrlProvider {
 
     get baseUrl() {
         return this.withProxy ?
-            `${this.brsProxy}/brs/${this.brsUrl}` :
+            `${this.corsProxy}/${this.brsUrl}` :
             this.brsUrl;
     }
 }

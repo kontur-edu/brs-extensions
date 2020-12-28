@@ -6,7 +6,7 @@ import SpreadsheetFetch from "./SpreadsheetFetch";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import Collapse from "@material-ui/core/Collapse";
-import RunWorkDialog from "./RunWorkDialog";
+import WorkerDialog from "./WorkerDialog";
 import {MarksData} from "../functions/buildMarksAutoAsync";
 import BrsAuth from "../apis/brsAuth";
 import BrsUrlProvider from "../apis/brsUrlProvider";
@@ -36,7 +36,7 @@ export default class WorkPage extends React.Component<{}, State> {
         }
 
         this.handleDataLoaded = this.handleDataLoaded.bind(this);
-        this.tryRunWork = this.tryRunWork.bind(this);
+        this.runWorkSafe = this.runWorkSafe.bind(this);
         this.handleClosed = this.handleClosed.bind(this);
         this.handleUnauthorized = this.handleUnauthorized.bind(this);
         this.handleError = this.handleError.bind(this);
@@ -54,7 +54,7 @@ export default class WorkPage extends React.Component<{}, State> {
         this.setState({showControls: true});
     }
 
-    tryRunWork() {
+    runWorkSafe() {
         this.setState({
             runWork: true,
             workData: {save: false, marksData: this.marksData, brsApi}
@@ -70,11 +70,11 @@ export default class WorkPage extends React.Component<{}, State> {
         this.setState({openUnauthorizedAlert: true});
     }
 
-    handleError(errorMessage: string){
+    handleError(errorMessage: string) {
         this.setState({errorMessage});
     }
 
-    closeError(){
+    closeError() {
         this.setState({errorMessage: ''})
     }
 
@@ -99,7 +99,7 @@ export default class WorkPage extends React.Component<{}, State> {
                             <Grid container justify="space-around">
                                 <Grid item>
                                     <Button variant="contained"
-                                            onClick={this.tryRunWork}
+                                            onClick={this.runWorkSafe}
                                             color="primary">
                                         Попробуй сделать хорошо
                                     </Button>
@@ -114,11 +114,11 @@ export default class WorkPage extends React.Component<{}, State> {
                         </Collapse>
                         {
                             this.state.runWork &&
-                            <RunWorkDialog runWork={this.state.runWork}
-                                           workData={this.state.workData}
-                                           onUnauthorized={this.handleUnauthorized}
-                                           onError={this.handleError}
-                                           onClosed={this.handleClosed}/>
+                            <WorkerDialog runWork={this.state.runWork}
+                                          workData={this.state.workData}
+                                          onUnauthorized={this.handleUnauthorized}
+                                          onError={this.handleError}
+                                          onClosed={this.handleClosed}/>
                         }
                     </Container>
                 </div>

@@ -32,7 +32,7 @@ export default class SpreadsheetFetch extends React.Component<Props, State> {
         }
     }
 
-    prepareModuleGroup(marksData: MarksData): NestedListItem{
+    prepareModuleGroup(marksData: MarksData): NestedListItem {
         const groups = marksData.actualStudents.map(s => s.groupName);
         return {
             title: marksData.disciplineConfig.name,

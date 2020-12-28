@@ -6,7 +6,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Slide from '@material-ui/core/Slide';
-import { TransitionProps } from '@material-ui/core/transitions';
+import {TransitionProps} from '@material-ui/core/transitions';
 import {Redirect} from 'react-router-dom';
 
 const Transition = React.forwardRef(function Transition(
@@ -16,7 +16,7 @@ const Transition = React.forwardRef(function Transition(
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function UnauthorizedAlert(props: {open: boolean}) {
+export default function UnauthorizedAlert(props: { open: boolean }) {
     const {open} = props;
 
     const [redirect, setRedirect] = React.useState(false);

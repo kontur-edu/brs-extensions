@@ -1,30 +1,30 @@
-export class Logger{
-    private logProviders?: ((message: string) => void)[];
-    private errorProviders?: ((errorMessage: string) => void)[];
+export class Logger {
+    private logHandlers?: ((message: string) => void)[];
+    private errorHandler?: ((errorMessage: string) => void)[];
 
-    addLogProvider(logProvider: ((message: string) => void)){
-        if (!this.logProviders)
-            this.logProviders = [];
-        this.logProviders.push(logProvider);
+    addLogHandler(logHandler: ((message: string) => void)) {
+        if (!this.logHandlers)
+            this.logHandlers = [];
+        this.logHandlers.push(logHandler);
     }
 
-    addErrorProvider(errorProvider: (errorMessage: string) => void){
-        if (!this.errorProviders)
-            this.errorProviders = [];
-        this.errorProviders.push(errorProvider);
+    addErrorHandler(errorHandler: (errorMessage: string) => void) {
+        if (!this.errorHandler)
+            this.errorHandler = [];
+        this.errorHandler.push(errorHandler);
     }
 
-    log(message: string){
-        if (!this.logProviders)
+    log(message: string) {
+        if (!this.logHandlers)
             return;
-        for (const logProvider of this.logProviders)
-            logProvider(message);
+        for (const logHandler of this.logHandlers)
+            logHandler(message);
     }
 
-    error(errorMessage: string){
-        if (!this.errorProviders)
+    error(errorMessage: string) {
+        if (!this.errorHandler)
             return;
-        for (const errorProvider of this.errorProviders)
-            errorProvider(errorMessage);
+        for (const errorHandler of this.errorHandler)
+            errorHandler(errorMessage);
     }
 }

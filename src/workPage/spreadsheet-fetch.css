@@ -2,13 +2,16 @@
     display: inline-block;
     top: 10px;
 }
+
 .spreadsheet-fetch .tableUrl {
     margin-right: 10px;
     width: 85%;
 }
+
 .spreadsheet-fetch .header {
     margin-bottom: 10px;
 }
+
 .spreadsheet-fetch .form {
     margin-bottom: 20px;
 }

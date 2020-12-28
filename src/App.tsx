@@ -1,9 +1,9 @@
 import React from 'react';
-import { BrowserRouter, Switch, Route } from 'react-router-dom';
-import LoginPage from "./LoginPage";
+import {BrowserRouter, Route, Switch} from 'react-router-dom';
+import LoginPage from "./loginPage/LoginPage";
 import WorkPage from "./workPage/WorkPage";
 
-function App() {
+export default function App() {
     return (
         <BrowserRouter>
             <Switch>
@@ -13,5 +13,3 @@ function App() {
         </BrowserRouter>
     )
 }
-
-export default App;

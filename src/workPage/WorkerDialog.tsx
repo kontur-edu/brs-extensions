@@ -1,6 +1,5 @@
 import React from 'react';
-import {createStyles, Theme, withStyles} from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
+import {withStyles} from '@material-ui/core/styles';
 import Dialog from '@material-ui/core/Dialog';
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
@@ -13,36 +12,21 @@ import {MarksData, PutMarksOptions} from "../functions/buildMarksAutoAsync";
 import {Logger} from "../helpers/logger";
 import BrsApi from "../apis/brsApi";
 import putMarksToBrsAsync from "../functions/putMarksToBrsAsync";
-import {Redirect} from "react-router-dom";
 
-const styles = (theme: Theme) =>
-    createStyles({
-        root: {
-            margin: 0,
-            padding: theme.spacing(2),
-        },
-        closeButton: {
-            position: 'absolute',
-            right: theme.spacing(1),
-            top: theme.spacing(1),
-            color: theme.palette.grey[500],
-        },
-    });
-
-const DialogContent = withStyles((theme: Theme) => ({
+const DialogContent = withStyles(() => ({
     root: {
         padding: 0,
     },
 }))(MuiDialogContent);
 
-const DialogActions = withStyles((theme: Theme) => ({
+const DialogActions = withStyles(() => ({
     root: {
         display: 'flex',
-        justifyContent: 'space-between'
+        justifyContent: 'space-around'
     },
 }))(MuiDialogActions);
 
-export default class RunWorkDialog extends React.Component<Props, State> {
+export default class WorkerDialog extends React.Component<Props, State> {
     options: PutMarksOptions;
 
     constructor(props: Props) {
@@ -55,19 +39,16 @@ export default class RunWorkDialog extends React.Component<Props, State> {
         };
 
         this.state = {
-            okDisabled: true,
+            okLoading: true,
             cancelPending: false,
             logItems: [],
-            redirectToLoginPage: false,
-            alertMessage: ''
         };
 
         this.cancelWork = this.cancelWork.bind(this);
         this.startWork = this.startWork.bind(this);
         this.logMessage = this.logMessage.bind(this);
-        this.workFinished = this.workFinished.bind(this);
+        this.handleWorkFinished = this.handleWorkFinished.bind(this);
         this.showError = this.showError.bind(this);
-        this.closeAlert = this.closeAlert.bind(this);
     }
 
     componentDidMount() {
@@ -79,21 +60,19 @@ export default class RunWorkDialog extends React.Component<Props, State> {
         this.setState({});
     }
 
-    startWork() {
+    async startWork() {
         const logger = new Logger();
-        logger.addLogProvider(this.logMessage);
-        logger.addErrorProvider(this.showError);
+        logger.addLogHandler(this.logMessage);
+        logger.addErrorHandler(this.showError);
 
         const brsApi = this.props.workData.brsApi;
         const marksData = this.props.workData.marksData;
 
         if (!marksData)
             return;
-        new Promise(async res => {
-            await putMarksToBrsAsync(brsApi, logger, marksData, this.options);
-            this.workFinished();
-            res();
-        });
+
+        await putMarksToBrsAsync(brsApi, logger, marksData, this.options);
+        this.handleWorkFinished();
     }
 
     showError(errorMessage: string) {
@@ -105,10 +84,10 @@ export default class RunWorkDialog extends React.Component<Props, State> {
         this.props.onError(errorMessage);
     }
 
-    workFinished() {
+    handleWorkFinished() {
         this.setState({
             cancelPending: false,
-            okDisabled: false
+            okLoading: false
         });
     }
 
@@ -117,17 +96,13 @@ export default class RunWorkDialog extends React.Component<Props, State> {
         this.setState({cancelPending: true});
     }
 
-    closeAlert() {
-        this.setState({alertMessage: ''});
-    }
-
     render() {
         return (
             <React.Fragment>
                 <Dialog open={this.props.runWork} maxWidth="sm" fullWidth>
                     <MuiDialogTitle>Лог действий</MuiDialogTitle>
                     <DialogContent dividers>
-                        <List dense>
+                        <List dense style={{height: 300}}>
                             {this.state.logItems.map((item, index) => (
                                 <ListItem key={index}>
                                     <ListItemText primary={item}/>
@@ -136,11 +111,11 @@ export default class RunWorkDialog extends React.Component<Props, State> {
                         </List>
                     </DialogContent>
                     <DialogActions>
-                        <SubmitWithLoading loading={this.state.okDisabled}
+                        <SubmitWithLoading loading={this.state.okLoading}
                                            onClick={this.props.onClosed}
                                            title="ок"/>
                         <SubmitWithLoading loading={this.state.cancelPending}
-                                           disabled={!this.state.okDisabled}
+                                           disabled={!this.state.okLoading}
                                            onClick={this.cancelWork}
                                            title="отмена"/>
                     </DialogActions>
@@ -159,9 +134,7 @@ interface Props {
 }
 
 interface State {
-    okDisabled: boolean;
+    okLoading: boolean;
     cancelPending: boolean;
     logItems: string[];
-    redirectToLoginPage: boolean;
-    alertMessage: string;
 }
