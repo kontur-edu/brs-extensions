@@ -86,7 +86,7 @@ export default class MarksManager {
 
         if (this.options.save) {
             debugger
-            // await this.brsApi.updateAllMarksAsync(discipline);
+            await this.brsApi.updateAllMarksAsync(discipline);
         }
     }
 
@@ -162,14 +162,14 @@ export default class MarksManager {
             try {
                 if (this.options.save) {
                     debugger
-                    // await this.brsApi.putStudentMarkAsync(
-                    //     student.brs.studentUuid,
-                    //     controlAction.uuidWithoutPrefix,
-                    //     actualMark,
-                    //     discipline.groupHistoryId,
-                    //     student.brs.cardType,
-                    //     student.brs.disciplineLoad
-                    // );
+                    await this.brsApi.putStudentMarkAsync(
+                        student.brs.studentUuid,
+                        controlAction.uuidWithoutPrefix,
+                        actualMark,
+                        discipline.groupHistoryId,
+                        student.brs.cardType,
+                        student.brs.disciplineLoad
+                    );
                 }
                 updated++;
             } catch (error) {

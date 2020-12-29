@@ -44,7 +44,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
     }
 
     componentDidMount() {
-        this.props.runWork && this.startWork();
+        this.startWork();
     }
 
     logMessage(message: string) {

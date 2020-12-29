@@ -58,7 +58,7 @@ export default class WorkPage extends React.Component<{}, State> {
         this.setState({showControls: true});
     }
 
-    runWork(save = true) {
+    runWork(save: boolean) {
         const logger = new Logger();
         logger.addErrorHandler(this.handleError);
 
@@ -69,8 +69,12 @@ export default class WorkPage extends React.Component<{}, State> {
         this.setState({runWork: true});
     }
 
-    runWorkSafe(){
+    handleRunWorkSafe(){
         this.runWork(false);
+    }
+
+    handleRunWorkUnsafe(){
+        this.runWork(true);
     }
 
     handleClosed() {
@@ -114,13 +118,14 @@ export default class WorkPage extends React.Component<{}, State> {
                             <Grid container justify="space-around">
                                 <Grid item>
                                     <Button variant="contained"
-                                            onClick={this.runWorkSafe}
+                                            onClick={this.handleRunWorkSafe}
                                             color="primary">
                                         Попробуй сделать хорошо
                                     </Button>
                                 </Grid>
                                 <Grid item>
                                     <Button variant="contained"
+                                            onClick={this.handleRunWorkUnsafe}
                                             color="secondary">
                                         Сделай хорошо
                                     </Button>
