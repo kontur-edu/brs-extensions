@@ -1,5 +1,5 @@
 import {Discipline, TermType} from "../apis/brsApi";
-import {ControlActionConfig, DisciplineConfig, PutMarksOptions,} from "./putMarksToBrsAsync";
+import {ControlActionConfig, DisciplineConfig, PutMarksOptions,} from "./MarksManager";
 import * as readStudents from "./readStudentsAsync";
 import {ActualStudent} from "./readStudentsAsync";
 import * as googleApi from "../apis/googleApi";
@@ -9,7 +9,7 @@ export type {
     DisciplineConfig,
     ControlActionConfig,
     PutMarksOptions,
-} from "./putMarksToBrsAsync";
+} from "./MarksManager";
 
 export default async function buildMarksAutoAsync(
     spreadsheetId: string,

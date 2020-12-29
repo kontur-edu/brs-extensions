@@ -208,6 +208,7 @@ export default class BrsApi {
             `/mvc/mobile/view/mark/${disciplineLoad}/${groupPart}/teachers${modulePart}/${cardType}/${markType}`
         );
 
+        debugger
         const prefix = 'gridColumns = toTextArray(';
         const suffix = ');';
         const linesWithId = response
@@ -346,9 +347,6 @@ export default class BrsApi {
     ): Promise<T> {
         const response = await this.requestApiAsync<string>(uri, options, headers);
 
-        if (response.trimLeft().startsWith('<!DOCTYPE html>')) {
-            throw new Error(uri + ' is Forbidden');
-        }
         return JSON.parse(response);
     }
 
@@ -357,7 +355,7 @@ export default class BrsApi {
         options?: RequestOptions,
         headers?: RequestHeaders
     ): Promise<T> {
-        return request({
+        const response = await request({
             method: 'GET',
             ...options,
             url: this.brsUrlProvider.baseUrl + uri,
@@ -367,6 +365,12 @@ export default class BrsApi {
                 ...headers,
             },
         });
+
+        if (response.trimLeft().startsWith('<!DOCTYPE html>')) {
+            throw new Error(uri + ' is Forbidden');
+        }
+
+        return response;
     }
 }
 

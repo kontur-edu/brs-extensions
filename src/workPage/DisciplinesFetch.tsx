@@ -6,7 +6,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import SubmitWithLoading from "../components/SubmitWithLoading";
 import Collapse from "@material-ui/core/Collapse";
 import NestedList from "../components/NestedList";
-import React, {FormEvent} from "react";
+import React, {FormEvent, memo} from "react";
 import {createStyles, makeStyles} from "@material-ui/core";
 import BrsApi, {Discipline, TermType} from "../apis/brsApi";
 import {groupBy} from "../helpers/tools";
@@ -40,7 +40,7 @@ const useStyles = makeStyles(() =>
     }),
 );
 
-export default function DisciplinesFetch(props: Props) {
+function DisciplinesFetch(props: Props) {
     const classes = useStyles();
     const {brsApi, onUnauthorized} = props;
 
@@ -140,6 +140,8 @@ export default function DisciplinesFetch(props: Props) {
         </React.Fragment>
     );
 }
+
+export default memo(DisciplinesFetch);
 
 interface Props {
     brsApi: BrsApi;

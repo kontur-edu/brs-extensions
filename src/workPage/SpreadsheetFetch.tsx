@@ -1,4 +1,4 @@
-import React, {FormEvent} from "react";
+import React, {FormEvent, memo} from "react";
 import buildMarksAutoAsync, {MarksData} from "../functions/buildMarksAutoAsync";
 import NestedList, {NestedListItem} from "../components/NestedList";
 import Collapse from "@material-ui/core/Collapse";
@@ -6,7 +6,7 @@ import SubmitWithLoading from "../components/SubmitWithLoading";
 import TextField from "@material-ui/core/TextField";
 import './spreadsheet-fetch.css';
 
-export default class SpreadsheetFetch extends React.Component<Props, State> {
+class SpreadsheetFetch extends React.Component<Props, State> {
     tableUrl = '';
 
     constructor(props: Props) {
@@ -45,8 +45,10 @@ export default class SpreadsheetFetch extends React.Component<Props, State> {
         this.setState({loading: true});
 
         const spreadsheetInfo = await this.getSpreadsheetInfo();
-        if (!spreadsheetInfo)
+        if (!spreadsheetInfo) {
+            this.setState({loading: false});
             return;
+        }
 
         let marksData: MarksData;
         try {
@@ -76,7 +78,8 @@ export default class SpreadsheetFetch extends React.Component<Props, State> {
         }
         const spreadsheetId = result.groups.id;
 
-        try { // @ts-ignore
+        try {
+            // @ts-ignore
             const res = await gapi.client.sheets.spreadsheets.get({spreadsheetId});
             const sheetName = JSON.parse(res.body).sheets[0].properties.title;
             return {spreadsheetId, sheetName};
@@ -110,6 +113,8 @@ export default class SpreadsheetFetch extends React.Component<Props, State> {
         );
     }
 }
+
+export default memo(SpreadsheetFetch);
 
 interface Props {
     onDataLoaded: (data: MarksData) => void;

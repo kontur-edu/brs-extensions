@@ -6,17 +6,26 @@ let onAuthStatusChangedEvent: (isSignedIn: boolean) => void;
 let onErrorEvent: (error: any) => void;
 
 const googleAuth = {
-    async init(onAuthStatusChanged?: (isSignedIn: boolean) => void, onError?: (error: any) => void) {
-        if (onAuthStatusChanged)
-            onAuthStatusChangedEvent = onAuthStatusChanged;
-        if (onError)
-            onErrorEvent = onError;
-        await init();
-    },
-
-    signIn() {
+    async init() {
         // @ts-ignore
-        gapi.auth2.getAuthInstance().signIn();
+        if (gapi.auth2)
+            return;
+        await new Promise(res => {
+            gapi.load('client:auth2', async () => {
+                await gapi.client.init({
+                    clientId: CLIENT_ID,
+                    discoveryDocs: DISCOVERY_DOCS,
+                    scope: SCOPES
+                }).then(() => {
+                    if (!onAuthStatusChangedEvent)
+                        return;
+                    // @ts-ignore
+                    const signedIn = gapi.auth2.getAuthInstance().isSignedIn;
+                    signedIn.listen(onAuthStatusChangedEvent);
+                }, onErrorEvent);
+                res();
+            });
+        });
     },
 
     checkAuth() {
@@ -24,27 +33,5 @@ const googleAuth = {
         return gapi.auth2?.getAuthInstance()?.isSignedIn?.get();
     },
 };
-
-async function init() {
-    // @ts-ignore
-    if (gapi.auth2)
-        return;
-    await new Promise(res => {
-        gapi.load('client:auth2', async () => {
-            await gapi.client.init({
-                clientId: CLIENT_ID,
-                discoveryDocs: DISCOVERY_DOCS,
-                scope: SCOPES
-            }).then(() => {
-                if (!onAuthStatusChangedEvent)
-                    return;
-                // @ts-ignore
-                const signedIn = gapi.auth2.getAuthInstance().isSignedIn;
-                signedIn.listen(onAuthStatusChangedEvent);
-            }, onErrorEvent);
-            res();
-        });
-    });
-}
 
 export default googleAuth;

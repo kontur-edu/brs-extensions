@@ -42,7 +42,7 @@ export default function UnauthorizedAlert(props: { open: boolean }) {
                         Кажется, действие сессии БРС или Google истекло. Необходимо повторно авторизоваться.
                     </DialogContentText>
                 </DialogContent>
-                <DialogActions>
+                <DialogActions style={{display: 'flex', justifyContent: 'space-around'}}>
                     <Button onClick={handleOk} color="primary">Ок</Button>
                 </DialogActions>
             </Dialog>

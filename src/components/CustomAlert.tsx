@@ -13,7 +13,7 @@ export default function CustomAlert(props: Props) {
         <React.Fragment>
             <Snackbar
                 open={open}
-                autoHideDuration={5000}
+                autoHideDuration={10000}
                 anchorOrigin={{vertical: 'top', horizontal: 'center'}}
                 onClose={onClose}>
                 <Alert severity={type} onClose={onClose}>

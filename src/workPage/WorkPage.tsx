@@ -1,41 +1,44 @@
 import React from 'react';
 import {Container} from "@material-ui/core";
-import {Redirect} from 'react-router-dom';
 import DisciplinesFetch from "./DisciplinesFetch";
 import SpreadsheetFetch from "./SpreadsheetFetch";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import Collapse from "@material-ui/core/Collapse";
 import WorkerDialog from "./WorkerDialog";
-import {MarksData} from "../functions/buildMarksAutoAsync";
+import {MarksData, PutMarksOptions} from "../functions/buildMarksAutoAsync";
 import BrsAuth from "../apis/brsAuth";
 import BrsUrlProvider from "../apis/brsUrlProvider";
 import BrsApi from "../apis/brsApi";
 import UnauthorizedAlert from "./UnauthorizedAlert";
-import * as cache from "../helpers/cache";
 import CustomAlert from "../components/CustomAlert";
 import googleAuth from "../apis/googleAuth";
+import MarksManager from "../functions/MarksManager";
+import {Logger} from "../helpers/logger";
 
 const brsUrlProvider = new BrsUrlProvider(true);
 const brsAuth = new BrsAuth(brsUrlProvider);
 const brsApi = new BrsApi(brsAuth, brsUrlProvider);
 
 export default class WorkPage extends React.Component<{}, State> {
-    marksData?: MarksData;
+    marksData: MarksData;
+    marksManager: MarksManager
 
     constructor(props: {}) {
         super(props);
+
+        this.marksData = {} as any;
+        this.marksManager = {} as any;
 
         this.state = {
             showControls: false,
             runWork: false,
             openUnauthorizedAlert: false,
             errorMessage: '',
-            workData: {save: false, brsApi}
         }
 
         this.handleDataLoaded = this.handleDataLoaded.bind(this);
-        this.runWorkSafe = this.runWorkSafe.bind(this);
+        this.runWork = this.runWork.bind(this);
         this.handleClosed = this.handleClosed.bind(this);
         this.handleUnauthorized = this.handleUnauthorized.bind(this);
         this.handleError = this.handleError.bind(this);
@@ -44,6 +47,7 @@ export default class WorkPage extends React.Component<{}, State> {
 
     async componentDidMount() {
         await googleAuth.init();
+
         const authorized = brsAuth.checkAuth() && googleAuth.checkAuth();
         if (!authorized)
             this.handleUnauthorized();
@@ -54,11 +58,19 @@ export default class WorkPage extends React.Component<{}, State> {
         this.setState({showControls: true});
     }
 
-    runWorkSafe() {
-        this.setState({
-            runWork: true,
-            workData: {save: false, marksData: this.marksData, brsApi}
-        });
+    runWork(save = true) {
+        const logger = new Logger();
+        logger.addErrorHandler(this.handleError);
+
+        const options: PutMarksOptions = {save, verbose: true};
+
+        this.marksManager = new MarksManager(brsApi, logger, options);
+
+        this.setState({runWork: true});
+    }
+
+    runWorkSafe(){
+        this.runWork(false);
     }
 
     handleClosed() {
@@ -69,8 +81,13 @@ export default class WorkPage extends React.Component<{}, State> {
         this.setState({openUnauthorizedAlert: true});
     }
 
-    handleError(errorMessage: string) {
-        this.setState({errorMessage});
+    handleError(error: any) {
+        const errorMessage: string = error.message || JSON.stringify(error);
+
+        if (errorMessage.endsWith(' is Forbidden'))
+            this.handleUnauthorized();
+        else
+            this.setState({errorMessage});
     }
 
     closeError() {
@@ -113,9 +130,8 @@ export default class WorkPage extends React.Component<{}, State> {
                         {
                             this.state.runWork &&
                             <WorkerDialog runWork={this.state.runWork}
-                                          workData={this.state.workData}
-                                          onUnauthorized={this.handleUnauthorized}
-                                          onError={this.handleError}
+                                          marksData={this.marksData}
+                                          marksManager={this.marksManager}
                                           onClosed={this.handleClosed}/>
                         }
                     </Container>
@@ -130,5 +146,4 @@ interface State {
     openUnauthorizedAlert: boolean;
     errorMessage: string;
     runWork: boolean;
-    workData: { save: boolean, brsApi: BrsApi, marksData?: MarksData };
 }

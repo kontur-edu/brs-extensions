@@ -24,7 +24,9 @@ export default class LoginPage extends React.Component<{}, State> {
             googleAuthorized: false,
             redirect: false,
             submitLoading: false,
-            alertInfo: {open: false, message: '', type: 'error'}
+            openAlert: false,
+            alertMessage: '',
+            alertType: 'error'
         }
 
         this.credentials = {
@@ -56,20 +58,16 @@ export default class LoginPage extends React.Component<{}, State> {
 
         if (loginSucceed) {
             this.setState({
-                alertInfo: {
-                    message: 'Авторизация прошла успешно',
-                    open: true,
-                    type: 'success'
-                },
+                alertMessage: 'Авторизация прошла успешно',
+                openAlert: true,
+                alertType: 'success',
                 brsAuthorized: true
             });
         } else
             this.setState({
-                alertInfo: {
-                    message: 'Неверные имя пользователя или пароль',
-                    open: true,
-                    type: 'error'
-                }
+                alertMessage: 'Неверные имя пользователя или пароль',
+                openAlert: true,
+                alertType: 'error'
             });
     }
 
@@ -78,7 +76,7 @@ export default class LoginPage extends React.Component<{}, State> {
     }
 
     handleCloseAlert() {
-        this.setState({alertInfo: {open: false, message: '', type: 'error'}});
+        this.setState({openAlert: false});
     }
 
     handleGoogleSignedIn() {
@@ -89,11 +87,9 @@ export default class LoginPage extends React.Component<{}, State> {
         console.error(error);
 
         this.setState({
-            alertInfo: {
-                open: true,
-                type: 'error',
-                message: 'Не удалось подключить ваш Google аккаунт :('
-            }
+            openAlert: true,
+            alertType: 'error',
+            alertMessage: 'Не удалось подключить Ваш Google аккаунт :('
         });
     }
 
@@ -155,9 +151,9 @@ export default class LoginPage extends React.Component<{}, State> {
                                 disabled={!this.state.brsAuthorized || !this.state.googleAuthorized}
                                 color="secondary">начать работу</Button>
                     </Container>
-                    <CustomAlert open={this.state.alertInfo.open}
-                                 message={this.state.alertInfo.message}
-                                 type={this.state.alertInfo.type}
+                    <CustomAlert open={this.state.openAlert}
+                                 message={this.state.alertMessage}
+                                 type={this.state.alertType}
                                  onClose={this.handleCloseAlert}/>
                 </Container>
             </div>
@@ -172,16 +168,12 @@ interface Credentials {
     [props: string]: string
 }
 
-interface AlertInfo {
-    open: boolean,
-    message: string,
-    type: "error" | "success";
-}
-
 interface State {
     brsAuthorized: boolean;
     googleAuthorized: boolean;
     submitLoading: boolean;
     redirect: boolean;
-    alertInfo: AlertInfo;
+    openAlert: boolean,
+    alertMessage: string,
+    alertType: "error" | "success";
 }

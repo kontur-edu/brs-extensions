@@ -8,10 +8,8 @@ import SubmitWithLoading from "../components/SubmitWithLoading";
 import {List} from "@material-ui/core";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
-import {MarksData, PutMarksOptions} from "../functions/buildMarksAutoAsync";
-import {Logger} from "../helpers/logger";
-import BrsApi from "../apis/brsApi";
-import putMarksToBrsAsync from "../functions/putMarksToBrsAsync";
+import {MarksData} from "../functions/buildMarksAutoAsync";
+import MarksManager from "../functions/MarksManager";
 
 const DialogContent = withStyles(() => ({
     root: {
@@ -27,16 +25,12 @@ const DialogActions = withStyles(() => ({
 }))(MuiDialogActions);
 
 export default class WorkerDialog extends React.Component<Props, State> {
-    options: PutMarksOptions;
+    marksManager: MarksManager;
 
     constructor(props: Props) {
         super(props);
 
-        this.options = {
-            save: props.workData.save,
-            verbose: true,
-            cancelPending: false
-        };
+        this.marksManager = props.marksManager;
 
         this.state = {
             okLoading: true,
@@ -47,8 +41,6 @@ export default class WorkerDialog extends React.Component<Props, State> {
         this.cancelWork = this.cancelWork.bind(this);
         this.startWork = this.startWork.bind(this);
         this.logMessage = this.logMessage.bind(this);
-        this.handleWorkFinished = this.handleWorkFinished.bind(this);
-        this.showError = this.showError.bind(this);
     }
 
     componentDidMount() {
@@ -61,30 +53,10 @@ export default class WorkerDialog extends React.Component<Props, State> {
     }
 
     async startWork() {
-        const logger = new Logger();
-        logger.addLogHandler(this.logMessage);
-        logger.addErrorHandler(this.showError);
+        this.marksManager.logger.addLogHandler(this.logMessage);
 
-        const brsApi = this.props.workData.brsApi;
-        const marksData = this.props.workData.marksData;
+        await this.marksManager.putMarksToBrsAsync(this.props.marksData);
 
-        if (!marksData)
-            return;
-
-        await putMarksToBrsAsync(brsApi, logger, marksData, this.options);
-        this.handleWorkFinished();
-    }
-
-    showError(errorMessage: string) {
-        errorMessage = `${errorMessage}`;
-        if (errorMessage.endsWith(" is Forbidden")) {
-            this.props.onUnauthorized();
-            return;
-        }
-        this.props.onError(errorMessage);
-    }
-
-    handleWorkFinished() {
         this.setState({
             cancelPending: false,
             okLoading: false
@@ -92,7 +64,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
     }
 
     cancelWork() {
-        this.options.cancelPending = true;
+        this.marksManager?.cancel();
         this.setState({cancelPending: true});
     }
 
@@ -127,10 +99,9 @@ export default class WorkerDialog extends React.Component<Props, State> {
 
 interface Props {
     runWork: boolean;
-    workData: { save: boolean, brsApi: BrsApi, marksData?: MarksData };
+    marksManager: MarksManager;
+    marksData: MarksData;
     onClosed: () => void;
-    onError: (errorMessage: string) => void;
-    onUnauthorized: () => void;
 }
 
 interface State {
