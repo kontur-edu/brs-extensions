@@ -43,6 +43,8 @@ export default class WorkPage extends React.Component<{}, State> {
         this.handleUnauthorized = this.handleUnauthorized.bind(this);
         this.handleError = this.handleError.bind(this);
         this.closeError = this.closeError.bind(this);
+        this.handleRunWorkSafe = this.handleRunWorkSafe.bind(this);
+        this.handleRunWorkUnsafe = this.handleRunWorkUnsafe.bind(this);
     }
 
     async componentDidMount() {
