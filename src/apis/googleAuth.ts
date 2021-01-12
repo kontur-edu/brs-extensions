@@ -8,7 +8,7 @@ let onErrorEvent: (error: any) => void;
 const googleAuth = {
     async init() {
         // @ts-ignore
-        if (gapi.auth2)
+        if (gapi.client)
             return;
         await new Promise(res => {
             gapi.load('client:auth2', async () => {
