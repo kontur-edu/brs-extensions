@@ -6,7 +6,7 @@ import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import Collapse from "@material-ui/core/Collapse";
 import WorkerDialog from "./WorkerDialog";
-import {MarksData, PutMarksOptions} from "../functions/buildMarksAutoAsync";
+import {MarksData, PutMarksOptions} from "../functions/MarksManager";
 import BrsAuth from "../apis/brsAuth";
 import BrsUrlProvider from "../apis/brsUrlProvider";
 import BrsApi from "../apis/brsApi";

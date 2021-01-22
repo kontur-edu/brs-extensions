@@ -8,8 +8,7 @@ import SubmitWithLoading from "../components/SubmitWithLoading";
 import {List} from "@material-ui/core";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
-import {MarksData} from "../functions/buildMarksAutoAsync";
-import MarksManager from "../functions/MarksManager";
+import MarksManager, {MarksData} from "../functions/MarksManager";
 
 const DialogContent = withStyles(() => ({
     root: {
@@ -53,7 +52,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
     }
 
     async startWork() {
-        this.marksManager.logger.addLogHandler(this.logMessage);
+        this.marksManager.getLogger().addLogHandler(this.logMessage);
 
         await this.marksManager.putMarksToBrsAsync(this.props.marksData);
 

@@ -1,10 +1,11 @@
 import React, {FormEvent, memo} from "react";
-import buildMarksAutoAsync, {MarksData} from "../functions/buildMarksAutoAsync";
+import buildAutoMarksConfigAsync from "../functions/buildAutoMarksConfigAsync";
 import NestedList, {NestedListItem} from "../components/NestedList";
 import Collapse from "@material-ui/core/Collapse";
 import SubmitWithLoading from "../components/SubmitWithLoading";
 import TextField from "@material-ui/core/TextField";
 import './spreadsheet-fetch.css';
+import { MarksData } from "../functions/MarksManager";
 
 class SpreadsheetFetch extends React.Component<Props, State> {
     tableUrl = '';
@@ -52,7 +53,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
 
         let marksData: MarksData;
         try {
-            marksData = await buildMarksAutoAsync(spreadsheetInfo.spreadsheetId, spreadsheetInfo.sheetName);
+            marksData = await buildAutoMarksConfigAsync(spreadsheetInfo.spreadsheetId, spreadsheetInfo.sheetName);
         } catch (e) {
             this.setState({loading: false})
             this.props.onError(e.message || JSON.stringify(e));
