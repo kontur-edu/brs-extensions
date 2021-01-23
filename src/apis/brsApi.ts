@@ -4,24 +4,6 @@ import * as cache from '../helpers/cache';
 import BrsAuth from "./brsAuth";
 import BrsUrlProvider from "./brsUrlProvider";
 
-export enum StudentFailure {
-    /** -, дефис, все хорошо */ NoFailure = -1,
-    /** Не выбрана */ NotChosen = -19,
-    /** Не допущен (деканат) */ NotAllowedByDeansOffice = -18,
-    /** Не явился */ NotAppeared = 0,
-    /** Неуважительная */ DisrespectfulReason = 12,
-    /** Уважительная */ RespectfulReason = 13,
-    /** Не допущен */ NotAllowedByTeacher = 18,
-    /** Не должен сдавать */ ShouldNotPass = 19,
-    /** Академический отпуск */ AcademicLeave = 20,
-    /** Выбыл */ DroppedOut = 21,
-}
-
-export enum TermType {
-    Fall = 1,
-    Spring = 2,
-}
-
 export default class BrsApi {
     private readonly brsAuth: BrsAuth;
     private readonly brsUrlProvider: BrsUrlProvider;
@@ -373,31 +355,26 @@ export default class BrsApi {
     }
 }
 
-
-interface RequestOptions {
-    method?: string;
-    body?: object | string;
-    json?: boolean;
+export enum StudentFailure {
+    /** -, дефис, все хорошо */ NoFailure = -1,
+    /** Не выбрана */ NotChosen = -19,
+    /** Не допущен (деканат) */ NotAllowedByDeansOffice = -18,
+    /** Не явился */ NotAppeared = 0,
+    /** Неуважительная */ DisrespectfulReason = 12,
+    /** Уважительная */ RespectfulReason = 13,
+    /** Не допущен */ NotAllowedByTeacher = 18,
+    /** Не должен сдавать */ ShouldNotPass = 19,
+    /** Академический отпуск */ AcademicLeave = 20,
+    /** Выбыл */ DroppedOut = 21,
 }
 
-interface RequestHeaders {
-    'Content-Type'?: string;
+export enum TermType {
+    Fall = 1,
+    Spring = 2,
 }
 
 export type CardType = 'lecture' | 'laboratory' | 'practice' | 'additionalPractice';
 export type MarkType = 'intermediate' | 'current';
-
-interface Paging<T> {
-    content: T[];
-    last: boolean;
-    totalPages: number;
-    totalElements: number;
-    size: number;
-    number: number;
-    sort: any;
-    first: boolean;
-    numberOfElements: number;
-}
 
 export interface RegisterInfo {
     registerInfoStr: string;
@@ -463,4 +440,26 @@ export interface ControlAction {
     uuid: string;
     uuidWithoutPrefix: string;
     controlAction: string;
+}
+
+interface RequestOptions {
+    method?: string;
+    body?: object | string;
+    json?: boolean;
+}
+
+interface RequestHeaders {
+    'Content-Type'?: string;
+}
+
+interface Paging<T> {
+    content: T[];
+    last: boolean;
+    totalPages: number;
+    totalElements: number;
+    size: number;
+    number: number;
+    sort: any;
+    first: boolean;
+    numberOfElements: number;
 }
