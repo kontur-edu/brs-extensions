@@ -46,15 +46,20 @@ export default class WorkerDialog extends React.Component<Props, State> {
         this.startWork();
     }
 
+    componentWillUnmount() {
+        this.cancelWork();
+    }
+
     logMessage(message: string) {
-        this.state.logItems.push(message);
-        this.setState({});
+        this.setState({logItems: [...this.state.logItems, message]});
     }
 
     async startWork() {
         this.marksManager.getLogger().addLogHandler(this.logMessage);
 
         await this.marksManager.putMarksToBrsAsync(this.props.marksData);
+
+        this.marksManager.getLogger().removeLogHandler(this.logMessage);
 
         this.setState({
             cancelPending: false,
@@ -63,8 +68,8 @@ export default class WorkerDialog extends React.Component<Props, State> {
     }
 
     cancelWork() {
-        this.marksManager?.cancel();
         this.setState({cancelPending: true});
+        this.marksManager.cancel();
     }
 
     render() {

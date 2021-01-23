@@ -1,6 +1,6 @@
 export class Logger {
     private logHandlers?: ((message: string) => void)[];
-    private errorHandler?: ((errorMessage: string) => void)[];
+    private errorHandlers?: ((errorMessage: string) => void)[];
 
     addLogHandler(logHandler: ((message: string) => void)) {
         if (!this.logHandlers)
@@ -8,10 +8,22 @@ export class Logger {
         this.logHandlers.push(logHandler);
     }
 
+    removeLogHandler(logHandler: ((message: string) => void)) {
+        if (!this.logHandlers)
+            return;
+        this.logHandlers = this.logHandlers.filter(h => h !== logHandler);
+    }
+
     addErrorHandler(errorHandler: (errorMessage: string) => void) {
-        if (!this.errorHandler)
-            this.errorHandler = [];
-        this.errorHandler.push(errorHandler);
+        if (!this.errorHandlers)
+            this.errorHandlers = [];
+        this.errorHandlers.push(errorHandler);
+    }
+
+    removeErrorHandler(errorHandler: ((errorMessage: string) => void)) {
+        if (!this.errorHandlers)
+            return;
+        this.errorHandlers = this.errorHandlers.filter(h => h !== errorHandler);
     }
 
     log(message: string) {
@@ -22,9 +34,9 @@ export class Logger {
     }
 
     error(errorMessage: string) {
-        if (!this.errorHandler)
+        if (!this.errorHandlers)
             return;
-        for (const errorHandler of this.errorHandler)
+        for (const errorHandler of this.errorHandlers)
             errorHandler(errorMessage);
     }
 }
