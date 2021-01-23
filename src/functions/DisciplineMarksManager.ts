@@ -294,9 +294,14 @@ export default class DisciplineMarksManager {
             statusCounters[status]++;
         }
 
-        this.logger.log('Failures update statuses:');
-        for (const k of Object.keys(statusCounters)) {
-            this.logger.log(`- ${k} = ${statusCounters[k]}`);
+        const statusKeys = Object.keys(statusCounters);
+        if (statusKeys.length > 0) {
+            this.logger.log('Failures update statuses:');
+            for (const k of statusKeys) {
+                this.logger.log(`- ${k} = ${statusCounters[k]}`);
+            }
+        } else {
+            this.logger.log('No failures for skipped students');
         }
     }
 
@@ -333,8 +338,10 @@ export default class DisciplineMarksManager {
             ).substr(0, 30);
             const description =
                 status !== 'SKIPPED'
-                    ? `${StudentFailure[actualFailure]} from ${StudentFailure[brsFailureStatus]}`
-                    : StudentFailure[actualFailure];
+                    ? `${formatStudentFailure(
+                          actualFailure
+                      )} from ${formatStudentFailure(brsFailureStatus)}`
+                    : formatStudentFailure(actualFailure);
             this.logger.log(`${status} ${studentName} ${description}`);
         }
         return status;

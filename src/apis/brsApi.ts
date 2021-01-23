@@ -208,7 +208,6 @@ export default class BrsApi {
             `/mvc/mobile/view/mark/${disciplineLoad}/${groupPart}/teachers${modulePart}/${cardType}/${markType}`
         );
 
-        debugger
         const prefix = 'gridColumns = toTextArray(';
         const suffix = ');';
         const linesWithId = response

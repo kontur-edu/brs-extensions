@@ -178,11 +178,11 @@ function buildDisciplineConfig(
     };
 
     for (let i = 0; i < rows.length; i++) {
-        const key = rows[i][indices.disciplineKeyColumn].trim();
-        const value = rows[i][indices.disciplineValueColumn].trim();
+        const key = rows[i][indices.disciplineKeyColumn]?.trim();
         if (!key) {
             break;
         }
+        const value = rows[i][indices.disciplineValueColumn]?.trim();
         addDisciplineConfigParameter(result, key, value);
     }
 

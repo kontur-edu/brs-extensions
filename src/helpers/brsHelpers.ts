@@ -2,7 +2,7 @@ import { StudentFailure } from '../apis/brsApi';
 import { compareNormalized } from './tools';
 
 const failureMapping: { [key: string]: StudentFailure } = {
-    '': StudentFailure.NoFailure,
+    '-': StudentFailure.NoFailure,
     'Не выбрана': StudentFailure.NotChosen,
     'Не допущен (деканат)': StudentFailure.NotAllowedByDeansOffice,
     'Не явился': StudentFailure.NotAppeared,
@@ -36,10 +36,10 @@ export function formatStudentFailure(
     }
 
     for (let key of Object.keys(failureMapping)) {
-        if ((failureMapping[key], input)) {
+        if (failureMapping[key] === input) {
             return key;
         }
     }
 
-    return '';
+    return '-';
 }
