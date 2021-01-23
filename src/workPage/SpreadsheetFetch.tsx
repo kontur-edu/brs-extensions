@@ -69,20 +69,29 @@ class SpreadsheetFetch extends React.Component<Props, State> {
     }
 
     async getSpreadsheetInfo(): Promise<{ spreadsheetId: string, sheetName: string } | null> {
-        const result = this.tableUrl.match(/d\/(?<id>[a-zA-Z0-9-_]+)\/edit/);
-        if (!result?.groups || !result.groups.id) {
+        const result = this.tableUrl.match(/d\/(?<spreadsheetId>[a-zA-Z0-9-_]+)\/edit(#gid=(?<sheetId>[0-9]+))?/);
+        if (!result?.groups || !result.groups.spreadsheetId) {
             this.setState({
                 loading: false,
                 tableUrlError: {error: true, message: 'Неверный url-адрес.'}
             });
             return null;
         }
-        const spreadsheetId = result.groups.id;
+        const spreadsheetId = result.groups.spreadsheetId;
+        const maybeSheetId = result.groups.sheetId || null;
 
         try {
             // @ts-ignore
             const res = await gapi.client.sheets.spreadsheets.get({spreadsheetId});
-            const sheetName = JSON.parse(res.body).sheets[0].properties.title;
+            const sheets = JSON.parse(res.body).sheets as [{properties: {sheetId: number, title: string}}];
+            const maybeSheet = maybeSheetId
+                ? sheets.filter(s => s.properties.sheetId.toString() === maybeSheetId)[0]
+                : sheets[0];
+            if (!maybeSheet) {
+                this.props.onError('Sheet is not found');
+                return null;
+            }
+            const sheetName = maybeSheet.properties.title;
             return {spreadsheetId, sheetName};
         } catch (e) {
             this.props.onError(e.message || JSON.stringify(e));
