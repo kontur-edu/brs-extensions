@@ -217,7 +217,12 @@ function addDisciplineConfigParameter(
         }
     } else if (compareNormalized(key, 'Курс')) {
         if (value) {
-            config.course = parseInt(value.toLowerCase(), 10);
+            const lowerValue = value.toLowerCase().trim();
+            if (lowerValue === 'все курсы') {
+                config.course = 0;
+            } else {
+                config.course = parseInt(value.toLowerCase(), 10);
+            }
         }
     } else if (compareNormalized(key, 'Причина отсутствия по умолчанию')) {
         config.defaultStudentFailure =
