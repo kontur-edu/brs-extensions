@@ -70,13 +70,13 @@ export default class WorkerDialog extends React.Component<Props, State> {
     render() {
         return (
             <React.Fragment>
-                <Dialog open={this.props.runWork} maxWidth="sm" fullWidth>
+                <Dialog open={this.props.runWork} maxWidth="lg" fullWidth>
                     <MuiDialogTitle>Лог действий</MuiDialogTitle>
                     <DialogContent dividers>
-                        <List dense style={{height: 300}}>
+                        <List dense disablePadding style={{minHeight: 400}}>
                             {this.state.logItems.map((item, index) => (
-                                <ListItem key={index}>
-                                    <ListItemText primary={item}/>
+                                <ListItem key={index} style={{paddingTop: 0, paddingBottom: 0}}>
+                                    <ListItemText primary={item} style={{marginTop: 2, marginBottom: 2}}/>
                                 </ListItem>
                             ))}
                         </List>
