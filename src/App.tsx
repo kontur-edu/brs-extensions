@@ -1,17 +1,15 @@
 import React from 'react';
-import {BrsCheck} from "./BrsCheck";
-import {GoogleLoginButton} from './GoogleLoginButton';
+import {BrowserRouter, Route, Switch} from 'react-router-dom';
+import LoginPage from "./loginPage/LoginPage";
+import WorkPage from "./workPage/WorkPage";
 
-function App() {
+export default function App() {
     return (
-        <div className={"wrapper"}>
-            <BrsCheck/>
-            <br/>
-            <GoogleLoginButton/>
-            <p className={"spreadsheet-name"} id={"spreadsheet-name"}>Spreadsheet name</p>
-            <div className="response-field" id={"spreadsheet"}/>
-        </div>
+        <BrowserRouter>
+            <Switch>
+                <Route path="/brs-extensions/work" component={WorkPage}/>
+                <Route exact path="/brs-extensions" component={LoginPage}/>
+            </Switch>
+        </BrowserRouter>
     )
 }
-
-export default App;

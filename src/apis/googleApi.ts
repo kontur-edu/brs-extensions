@@ -1,89 +1,72 @@
-import { google } from "googleapis";
-import { OAuth2Client } from "googleapis-common";
-import * as googleAuth from "./googleAuth";
-
-let globalAuth: OAuth2Client | null = null;
-
-export async function authorizeAsync(policy: AuthorizePolicy) {
-  globalAuth = await googleAuth.authorizeAsync(policy);
+export async function authorizeAsync() {
+    // globalAuth = await googleAuth.authorizeAsync(policy);
 }
 
-export function openSpreadsheet(spreadsheetId: string): Spreadsheet {
-  const auth = getGlobalAuth();
+export function getSpreadsheet(spreadsheetId: string): Spreadsheet {
+    // @ts-ignore
+    const sheets = gapi.client.sheets;
 
-  async function readAsync(range: string) {
-    const sheets = google.sheets({ version: "v4", auth });
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range,
-    });
-    return response.data;
-  }
+    async function readAsync(range: string) {
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId,
+            range,
+        });
+        return response.result;
+    }
 
-  function writeAsync(range: string, values: any[][], asEnteredByUser = false) {
-    const sheets = google.sheets({ version: "v4", auth });
-    const valueInputOption = asEnteredByUser ? "USER_ENTERED" : "RAW";
-    const requestBody = {
-      values,
+    function writeAsync(range: string, values: any[][], asEnteredByUser = false) {
+        const valueInputOption = asEnteredByUser ? "USER_ENTERED" : "RAW";
+        const requestBody = {
+            values,
+        };
+        return sheets.spreadsheets.values.update({
+            spreadsheetId,
+            range,
+            valueInputOption,
+            requestBody,
+        });
+    }
+
+    function appendAsync(
+        range: string,
+        values: any[][],
+        asEnteredByUser = false
+    ) {
+        const valueInputOption = asEnteredByUser ? "USER_ENTERED" : "RAW";
+        const requestBody = {
+            values,
+        };
+        return sheets.spreadsheets.values.append({
+            spreadsheetId,
+            range,
+            valueInputOption,
+            requestBody,
+        });
+    }
+
+    return {
+        readAsync,
+        writeAsync,
+        appendAsync,
     };
-    return sheets.spreadsheets.values.update({
-      spreadsheetId,
-      range,
-      valueInputOption,
-      requestBody,
-    });
-  }
-
-  function appendAsync(
-    range: string,
-    values: any[][],
-    asEnteredByUser = false
-  ) {
-    const sheets = google.sheets({ version: "v4", auth });
-    const valueInputOption = asEnteredByUser ? "USER_ENTERED" : "RAW";
-    const requestBody = {
-      values,
-    };
-    return sheets.spreadsheets.values.append({
-      spreadsheetId,
-      range,
-      valueInputOption,
-      requestBody,
-    });
-  }
-
-  return {
-    readAsync,
-    writeAsync,
-    appendAsync,
-  };
 }
-
-function getGlobalAuth() {
-  if (!globalAuth) {
-    throw new Error("Not authenticated. Use authorizeAsync to authenticate");
-  }
-  return globalAuth;
-}
-
-export type AuthorizePolicy = googleAuth.AuthorizePolicy;
 
 export interface Spreadsheet {
-  readAsync: (range: string) => Promise<ValueRange>;
-  writeAsync: (
-    range: string,
-    values: any[][],
-    asEnteredByUser?: boolean
-  ) => void;
-  appendAsync: (
-    range: string,
-    values: any[][],
-    asEnteredByUser?: boolean
-  ) => void;
+    readAsync: (range: string) => Promise<ValueRange>;
+    writeAsync: (
+        range: string,
+        values: any[][],
+        asEnteredByUser?: boolean
+    ) => void;
+    appendAsync: (
+        range: string,
+        values: any[][],
+        asEnteredByUser?: boolean
+    ) => void;
 }
 
 export interface ValueRange {
-  majorDimension?: string | null;
-  range?: string | null;
-  values?: any[][] | null;
+    majorDimension?: string | null;
+    range?: string | null;
+    values?: any[][] | null;
 }

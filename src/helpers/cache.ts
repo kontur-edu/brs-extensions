@@ -1,48 +1,43 @@
-import * as fs from 'fs';
-
-const basePath = './.cache';
-
 const localCache: { [name: string]: object | string } = {};
 
 export function save(name: string, data: object | string) {
-  if (!data) {
-    return false;
-  }
+    if (!data) {
+        return false;
+    }
 
-  const json = JSON.stringify(data);
+    const json = JSON.stringify(data);
 
-  const cachePath = `${basePath}/${name}`;
-  if (!fs.existsSync(basePath)) {
-    fs.mkdirSync(basePath);
-  }
-  fs.writeFileSync(cachePath, json, { encoding: 'utf8' });
+    localStorage.setItem(name, json);
 
-  localCache[name] = typeof data === 'string' ? data : { ...data };
+    localCache[name] = data;
 
-  return true;
+    return true;
 }
 
 export function read<T extends object | string>(name: string) {
-  const localData = localCache[name];
-  if (localData) {
-    return localData as T;
-  }
+    const localData = localCache[name];
+    if (localData) {
+        return localData as T;
+    }
 
-  const cachePath = `${basePath}/${name}`;
-  if (!fs.existsSync(cachePath)) {
-    return null;
-  }
+    const content = localStorage.getItem(name);
+    if (!content) {
+        return null;
+    }
 
-  const content = fs.readFileSync(cachePath, 'utf8');
-  if (!content) {
-    return null;
-  }
+    const fileData = JSON.parse(content);
+    if (!fileData) {
+        return null;
+    }
 
-  const fileData = JSON.parse(content);
-  if (!fileData) {
-    return null;
-  }
+    localCache[name] = fileData;
+    return fileData as T;
+}
 
-  localCache[name] = fileData;
-  return fileData as T;
+export function clear(name: string) {
+    localStorage.removeItem(name);
+
+    delete localCache[name];
+
+    return true;
 }
