@@ -14,12 +14,15 @@ import GoogleLoginButton from "./GoogleLoginButton";
 const brsAuth = new BrsAuth(new BrsUrlProvider(true));
 
 export default class LoginPage extends React.Component<{}, State> {
-    credentials: Credentials;
-
     constructor(props: {}) {
         super(props);
 
         this.state = {
+            credentials: {
+                username: '',
+                password: '',
+                sid: ''
+            },
             brsAuthorized: brsAuth.checkAuth(),
             googleAuthorized: false,
             redirect: false,
@@ -29,12 +32,6 @@ export default class LoginPage extends React.Component<{}, State> {
             alertType: 'error'
         }
 
-        this.credentials = {
-            username: '',
-            password: ''
-        }
-
-        this.handleFieldChanged = this.handleFieldChanged.bind(this);
         this.handleBrsSubmit = this.handleBrsSubmit.bind(this);
         this.loginBrs = this.loginBrs.bind(this);
         this.handleCloseAlert = this.handleCloseAlert.bind(this);
@@ -43,9 +40,38 @@ export default class LoginPage extends React.Component<{}, State> {
         this.startWork = this.startWork.bind(this);
     }
 
-    handleFieldChanged(e: React.ChangeEvent<HTMLInputElement>) {
-        const field = e.target
-        this.credentials[field.id] = field.value
+    handleUsernameChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        this.setState({
+            credentials: {
+                ...this.state.credentials,
+                username: value,
+                sid: '',
+            },
+        });
+    }
+
+    handlePasswordChanged= (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        this.setState({
+            credentials: {
+                ...this.state.credentials,
+                password: value,
+                sid: '',
+            },
+        });
+    }
+
+    handleSidChanged= (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        this.setState({
+            credentials: {
+                ...this.state.credentials,
+                sid: value,
+                username: '',
+                password: '',
+            },
+        });
     }
 
     async handleBrsSubmit(e: FormEvent) {
@@ -72,7 +98,14 @@ export default class LoginPage extends React.Component<{}, State> {
     }
 
     async loginBrs() {
-        return await brsAuth.authAsync(this.credentials.username, this.credentials.password);
+        const {credentials} = this.state;
+        if (credentials.sid) {
+            return await brsAuth.authBySidAsync(credentials.sid);
+        }
+        if (credentials.username && credentials.password) {
+            return await brsAuth.authAsync(credentials.username, credentials.password);
+        }
+        return false;
     }
 
     handleCloseAlert() {
@@ -98,6 +131,7 @@ export default class LoginPage extends React.Component<{}, State> {
     }
 
     render() {
+        const {credentials} = this.state;
         return (
             <div className="login-page">
                 {this.state.redirect && <Redirect to="/brs-extensions/work"/>}
@@ -115,24 +149,34 @@ export default class LoginPage extends React.Component<{}, State> {
                                 <TextField
                                     variant="outlined"
                                     margin="normal"
-                                    required
                                     fullWidth
                                     id="username"
                                     label="Имя пользователя"
                                     name="username"
                                     autoFocus
-                                    onChange={this.handleFieldChanged}
+                                    value={credentials.username}
+                                    onChange={this.handleUsernameChanged}
                                 />
                                 <TextField variant="outlined"
                                            margin="normal"
-                                           required
                                            fullWidth
                                            name="password"
                                            label="Пароль"
                                            type="password"
                                            id="password"
                                            autoComplete="current-password"
-                                           onChange={this.handleFieldChanged}/>
+                                           value={credentials.password}
+                                           onChange={this.handlePasswordChanged}/>
+                                <p className="text-center">или</p>
+                                <TextField variant="outlined"
+                                           margin="normal"
+                                           fullWidth
+                                           name="sid"
+                                           label="JSESSIONID"
+                                           type="password"
+                                           id="sid"
+                                           value={credentials.sid}
+                                           onChange={this.handleSidChanged}/>
                                 <SubmitWithLoading title="войти" loading={this.state.submitLoading}/>
                             </form>
                         </Grid>
@@ -164,11 +208,12 @@ export default class LoginPage extends React.Component<{}, State> {
 interface Credentials {
     username: string
     password: string
-
+    sid: string
     [props: string]: string
 }
 
 interface State {
+    credentials: Credentials;
     brsAuthorized: boolean;
     googleAuthorized: boolean;
     submitLoading: boolean;

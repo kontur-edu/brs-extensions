@@ -52,6 +52,15 @@ export default class BrsAuth {
         return true;
     }
 
+    async authBySidAsync(sid: string): Promise<boolean> {
+        if (!sid)
+            return false;
+
+        cache.save('loginInfo', {sid: sid, login: 'SESSION'});
+
+        return true;
+    }
+
     async getSid(login: string, password: string) {
         return await request({
             url: this.brsUrlProvider.baseUrl + `/login`,
