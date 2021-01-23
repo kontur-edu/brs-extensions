@@ -1,7 +1,3 @@
-export async function authorizeAsync() {
-    // globalAuth = await googleAuth.authorizeAsync(policy);
-}
-
 export function getSpreadsheet(spreadsheetId: string): Spreadsheet {
     // @ts-ignore
     const sheets = gapi.client.sheets;

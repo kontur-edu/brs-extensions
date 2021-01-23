@@ -18,7 +18,6 @@ export async function fromSpreadsheetAsync(
     idIndex: number | null = null,
     failureIndex: number | null = null
 ) {
-    await googleApi.authorizeAsync();
     const sheet = googleApi.getSpreadsheet(spreadsheetId);
 
     const rows = (await sheet.readAsync(readRange)).values || [];
