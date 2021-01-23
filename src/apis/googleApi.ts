@@ -57,12 +57,12 @@ export interface Spreadsheet {
         range: string,
         values: any[][],
         asEnteredByUser?: boolean
-    ) => void;
+    ) => Promise<any>;
     appendAsync: (
         range: string,
         values: any[][],
         asEnteredByUser?: boolean
-    ) => void;
+    ) => Promise<any>;
 }
 
 export interface ValueRange {

@@ -8,8 +8,7 @@ import SubmitWithLoading from "../components/SubmitWithLoading";
 import {List} from "@material-ui/core";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
-import {MarksData} from "../functions/buildMarksAutoAsync";
-import MarksManager from "../functions/MarksManager";
+import MarksManager, {MarksData} from "../functions/MarksManager";
 
 const DialogContent = withStyles(() => ({
     root: {
@@ -47,15 +46,20 @@ export default class WorkerDialog extends React.Component<Props, State> {
         this.startWork();
     }
 
+    componentWillUnmount() {
+        this.cancelWork();
+    }
+
     logMessage(message: string) {
-        this.state.logItems.push(message);
-        this.setState({});
+        this.setState({logItems: [...this.state.logItems, message]});
     }
 
     async startWork() {
-        this.marksManager.logger.addLogHandler(this.logMessage);
+        this.marksManager.getLogger().addLogHandler(this.logMessage);
 
         await this.marksManager.putMarksToBrsAsync(this.props.marksData);
+
+        this.marksManager.getLogger().removeLogHandler(this.logMessage);
 
         this.setState({
             cancelPending: false,
@@ -64,20 +68,20 @@ export default class WorkerDialog extends React.Component<Props, State> {
     }
 
     cancelWork() {
-        this.marksManager?.cancel();
         this.setState({cancelPending: true});
+        this.marksManager.cancel();
     }
 
     render() {
         return (
             <React.Fragment>
-                <Dialog open={this.props.runWork} maxWidth="sm" fullWidth>
+                <Dialog open={this.props.runWork} maxWidth="lg" fullWidth>
                     <MuiDialogTitle>Лог действий</MuiDialogTitle>
                     <DialogContent dividers>
-                        <List dense style={{height: 300}}>
+                        <List dense disablePadding style={{minHeight: 400}}>
                             {this.state.logItems.map((item, index) => (
-                                <ListItem key={index}>
-                                    <ListItemText primary={item}/>
+                                <ListItem key={index} style={{paddingTop: 0, paddingBottom: 0}}>
+                                    <ListItemText primary={item} style={{marginTop: 2, marginBottom: 2}}/>
                                 </ListItem>
                             ))}
                         </List>
