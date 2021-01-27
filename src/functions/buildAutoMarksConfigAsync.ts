@@ -226,7 +226,7 @@ function addDisciplineConfigParameter(
         }
     } else if (compareNormalized(key, 'Причина отсутствия по умолчанию')) {
         config.defaultStudentFailure =
-            parseStudentFailure(value) || StudentFailure.NoFailure;
+            parseStudentFailure(value) ?? StudentFailure.NoFailure;
     }
 }
 
