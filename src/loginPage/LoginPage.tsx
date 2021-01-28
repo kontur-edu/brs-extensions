@@ -103,7 +103,7 @@ export default class LoginPage extends React.Component<{}, State> {
             return await brsAuth.authBySidAsync(credentials.sid);
         }
         if (credentials.username && credentials.password) {
-            return await brsAuth.authAsync(credentials.username, credentials.password);
+            return await brsAuth.loginAsync(credentials.username, credentials.password);
         }
         return false;
     }

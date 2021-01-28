@@ -13,7 +13,7 @@ export default class BrsAuth {
 
     get sid() {
         if (!this._sid)
-            this.loadLoginInfo();
+            this.loadLoginInfoFromCache();
         return this._sid;
     }
 
@@ -21,28 +21,23 @@ export default class BrsAuth {
 
     get login() {
         if (!this._login)
-            this.loadLoginInfo();
+            this.loadLoginInfoFromCache();
         return this._login;
     }
 
     checkAuth() {
-        try {
-            this.loadLoginInfo();
-            return true;
-        } catch {
-            return false;
-        }
+        return this._sid && this._login;
     }
 
-    async authAsync(login: string, password: string): Promise<boolean> {
-        const response = await this.getSid(login, password);
+    async loginAsync(login: string, password: string): Promise<boolean> {
+        const response = await this.requestSidAsync(login, password);
 
         if (!response || !('x-set-cookie' in response.headers)) {
             return false;
         }
 
-        const cookies = response.headers['x-set-cookie'] as string;
-        const result = cookies.match(/(?<=JSESSIONID=)\w+/);
+        const cookie = response.headers['x-set-cookie'] as string;
+        const result = cookie.match(/(?<=JSESSIONID=)\w+/);
 
         if (!result)
             return false;
@@ -61,7 +56,7 @@ export default class BrsAuth {
         return true;
     }
 
-    async getSid(login: string, password: string) {
+    async requestSidAsync(login: string, password: string) {
         return await request({
             url: this.brsUrlProvider.baseUrl + `/login`,
             method: 'POST',
@@ -74,11 +69,19 @@ export default class BrsAuth {
         }).then(x => x, () => null);
     }
 
-    private loadLoginInfo() {
+    private loadLoginInfoFromCache(){
+        if (!this.tryLoadLoginInfoFromCache())
+            throw new Error('BRS unauthorized');
+    }
+
+    private tryLoadLoginInfoFromCache() {
         const loginInfo = cache.read<{ sid: string, login: string }>('loginInfo');
         if (!loginInfo)
-            throw new Error('BrsAuth unauthorized');
+            return false;
+
         this._sid = loginInfo.sid;
         this._login = loginInfo.login;
+
+        return true;
     }
 }
