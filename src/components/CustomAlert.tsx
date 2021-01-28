@@ -2,10 +2,6 @@ import React from "react";
 import MuiAlert, {AlertProps} from '@material-ui/lab/Alert';
 import {Snackbar} from "@material-ui/core";
 
-function Alert(props: AlertProps) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
-
 export default function CustomAlert(props: Props) {
     const {open, message, type, onClose} = props;
 
@@ -22,6 +18,10 @@ export default function CustomAlert(props: Props) {
             </Snackbar>
         </React.Fragment>
     );
+}
+
+function Alert(props: AlertProps) {
+    return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
 interface Props {
