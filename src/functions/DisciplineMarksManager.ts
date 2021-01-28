@@ -174,11 +174,10 @@ export default class DisciplineMarksManager {
             }
         }
 
-        const brsFailureStatus = student.brs.failure
-            ? (student.brs.failure as StudentFailure)
-            : StudentFailure.NoFailure;
+        const brsFailureStatus =
+            (student.brs.failure as StudentFailure) ?? StudentFailure.NoFailure;
         const actualFailure =
-            student.actual.failure || StudentFailure.NoFailure;
+            student.actual.failure ?? StudentFailure.NoFailure;
         let failureStatus = '';
         if (actualFailure === brsFailureStatus) {
             failureStatus = `${formatStudentFailure(actualFailure)}`;
