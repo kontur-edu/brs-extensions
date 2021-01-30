@@ -1,7 +1,7 @@
 import React from 'react';
 import {Container} from "@material-ui/core";
 import DisciplinesFetch from "./DisciplinesFetch";
-import SpreadsheetFetch from "./SpreadsheetFetch";
+import SpreadsheetFetch from "../components/spreadsheetFetch";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import Collapse from "@material-ui/core/Collapse";
@@ -50,7 +50,7 @@ export default class WorkPage extends React.Component<{}, State> {
     async componentDidMount() {
         await googleAuth.init();
 
-        const authorized = brsAuth.checkAuth() && googleAuth.checkAuth();
+        const authorized = brsAuth.checkAuth() && googleAuth.checkAuthorized();
         if (!authorized)
             this.handleUnauthorized();
     }

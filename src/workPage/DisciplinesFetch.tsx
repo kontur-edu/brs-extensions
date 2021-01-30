@@ -3,7 +3,7 @@ import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
-import SubmitWithLoading from "../components/SubmitWithLoading";
+import SubmitWithLoading from "../components/submitWithLoading";
 import Collapse from "@material-ui/core/Collapse";
 import NestedList from "../components/NestedList";
 import React, {FormEvent, memo} from "react";
