@@ -26,7 +26,7 @@ export default class BrsAuth {
     }
 
     checkAuth() {
-        return this._sid && this._login;
+        return !!(this._sid && this._login);
     }
 
     async loginAsync(login: string, password: string): Promise<boolean> {
