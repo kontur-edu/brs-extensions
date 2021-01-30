@@ -11,8 +11,8 @@ import {
     FormControlLabel,
     Checkbox
 } from "@material-ui/core";
-import NestedList from "../components/NestedList";
-import SubmitWithLoading from "../components/submitWithLoading";
+import NestedList from "./NestedList";
+import SubmitWithLoading from "./submitWithLoading";
 import BrsApi, {Discipline, TermType} from "../apis/brsApi";
 import {groupBy} from "../helpers/tools";
 

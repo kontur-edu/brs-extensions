@@ -1,11 +1,11 @@
 import React, {FormEvent} from 'react';
 import {Grid, Button, Container, TextField} from "@material-ui/core";
 import {Redirect} from 'react-router-dom';
-import SubmitWithLoading from "../components/submitWithLoading";
-import BrsAuth from "../apis/brsAuth";
-import BrsUrlProvider from "../apis/brsUrlProvider";
-import CustomAlert from "../components/CustomAlert";
-import GoogleLoginButton from "../components/GoogleLoginButton";
+import SubmitWithLoading from "../submitWithLoading";
+import BrsAuth from "../../apis/brsAuth";
+import BrsUrlProvider from "../../apis/brsUrlProvider";
+import CustomAlert from "../CustomAlert";
+import GoogleLoginButton from "../GoogleLoginButton";
 import "./styles.css";
 
 const brsAuth = new BrsAuth(new BrsUrlProvider(true));

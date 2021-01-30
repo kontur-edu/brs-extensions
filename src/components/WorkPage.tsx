@@ -6,14 +6,14 @@ import {
     Grid,
 } from "@material-ui/core";
 import DisciplinesFetch from "./DisciplinesFetch";
-import SpreadsheetFetch from "../components/spreadsheetFetch";
+import SpreadsheetFetch from "./spreadsheetFetch";
 import WorkerDialog from "./WorkerDialog";
 import {MarksData, PutMarksOptions} from "../managers/MarksManager";
 import BrsAuth from "../apis/brsAuth";
 import BrsUrlProvider from "../apis/brsUrlProvider";
 import BrsApi from "../apis/brsApi";
 import UnauthorizedAlert from "./UnauthorizedAlert";
-import CustomAlert from "../components/CustomAlert";
+import CustomAlert from "./CustomAlert";
 import googleAuth from "../apis/googleAuth";
 import MarksManager from "../managers/MarksManager";
 import {Logger} from "../helpers/logger";

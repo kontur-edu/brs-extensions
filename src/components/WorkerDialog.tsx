@@ -4,7 +4,7 @@ import {Dialog, List, ListItem, ListItemText} from "@material-ui/core";
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
 import MuiDialogActions from '@material-ui/core/DialogActions';
-import SubmitWithLoading from "../components/submitWithLoading";
+import SubmitWithLoading from "./submitWithLoading";
 import MarksManager, {MarksData} from "../managers/MarksManager";
 
 const DialogContent = withStyles(() => ({

@@ -1,7 +1,7 @@
 import React from 'react';
 import {BrowserRouter, Route, Switch} from 'react-router-dom';
-import LoginPage from "./loginPage";
-import WorkPage from "./workPage/WorkPage";
+import LoginPage from "./components/loginPage";
+import WorkPage from "./components/WorkPage";
 
 export default function App() {
     return (
