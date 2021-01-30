@@ -29,12 +29,6 @@ export default class LoginPage extends React.Component<{}, State> {
             alertType: 'error'
         }
 
-        this.handleBrsSubmit = this.handleBrsSubmit.bind(this);
-        this.loginBrs = this.loginBrs.bind(this);
-        this.handleCloseAlert = this.handleCloseAlert.bind(this);
-        this.handleGoogleSignedIn = this.handleGoogleSignedIn.bind(this);
-        this.handleGoogleLoginFailed = this.handleGoogleLoginFailed.bind(this);
-        this.startWork = this.startWork.bind(this);
     }
 
     handleUsernameChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +65,7 @@ export default class LoginPage extends React.Component<{}, State> {
         });
     }
 
-    async handleBrsSubmit(e: FormEvent) {
+    handleBrsSubmit = async (e: FormEvent) => {
         e.preventDefault();
         this.setState({submitLoading: true});
 
@@ -94,7 +88,7 @@ export default class LoginPage extends React.Component<{}, State> {
             });
     }
 
-    async loginBrs() {
+    loginBrs = async () => {
         const {credentials} = this.state;
         if (credentials.sid) {
             return await brsAuth.authBySidAsync(credentials.sid);
@@ -105,15 +99,15 @@ export default class LoginPage extends React.Component<{}, State> {
         return false;
     }
 
-    handleCloseAlert() {
+    handleCloseAlert = () => {
         this.setState({openAlert: false});
     }
 
-    handleGoogleSignedIn() {
+    handleGoogleSignedIn = () => {
         this.setState({googleAuthorized: true});
     }
 
-    handleGoogleLoginFailed(error: any) {
+    handleGoogleLoginFailed = (error: any) => {
         console.error(error);
 
         this.setState({
@@ -123,7 +117,7 @@ export default class LoginPage extends React.Component<{}, State> {
         });
     }
 
-    startWork() {
+    startWork = () => {
         this.setState({redirect: true});
     }
 

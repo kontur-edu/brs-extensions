@@ -18,11 +18,9 @@ class SpreadsheetFetch extends React.Component<Props, State> {
             moduleGroups: []
         };
 
-        this.handleChange = this.handleChange.bind(this);
-        this.loadTable = this.loadTable.bind(this);
     }
 
-    handleChange(event: React.ChangeEvent<{ name?: string | undefined, value: unknown }>) {
+    handleChange = (event: React.ChangeEvent<{ name?: string | undefined, value: unknown }>) => {
         const target = event.target;
         switch (target.name) {
             case 'table-url':
@@ -40,7 +38,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
         }
     }
 
-    async loadTable(e: FormEvent) {
+     loadTable = async (e: FormEvent) => {
         e.preventDefault();
         this.setState({loading: true});
 

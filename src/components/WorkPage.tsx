@@ -1,21 +1,15 @@
 import React from 'react';
-import {
-    Container,
-    Collapse,
-    Button,
-    Grid,
-} from "@material-ui/core";
+import {Button, Collapse, Container, Grid,} from "@material-ui/core";
 import DisciplinesFetch from "./DisciplinesFetch";
 import SpreadsheetFetch from "./spreadsheetFetch";
 import WorkerDialog from "./WorkerDialog";
-import {MarksData, PutMarksOptions} from "../managers/MarksManager";
+import MarksManager, {MarksData, PutMarksOptions} from "../managers/MarksManager";
 import BrsAuth from "../apis/brsAuth";
 import BrsUrlProvider from "../apis/brsUrlProvider";
 import BrsApi from "../apis/brsApi";
 import UnauthorizedAlert from "./UnauthorizedAlert";
 import CustomAlert from "./CustomAlert";
 import googleAuth from "../apis/googleAuth";
-import MarksManager from "../managers/MarksManager";
 import {Logger} from "../helpers/logger";
 
 const brsUrlProvider = new BrsUrlProvider(true);
@@ -39,14 +33,6 @@ export default class WorkPage extends React.Component<{}, State> {
             errorMessage: '',
         }
 
-        this.handleDataLoaded = this.handleDataLoaded.bind(this);
-        this.runWork = this.runWork.bind(this);
-        this.handleClosed = this.handleClosed.bind(this);
-        this.handleUnauthorized = this.handleUnauthorized.bind(this);
-        this.handleError = this.handleError.bind(this);
-        this.closeError = this.closeError.bind(this);
-        this.handleRunWorkSafe = this.handleRunWorkSafe.bind(this);
-        this.handleRunWorkUnsafe = this.handleRunWorkUnsafe.bind(this);
     }
 
     async componentDidMount() {
@@ -57,12 +43,12 @@ export default class WorkPage extends React.Component<{}, State> {
             this.handleUnauthorized();
     }
 
-    handleDataLoaded(data: MarksData) {
+    handleDataLoaded = (data: MarksData) => {
         this.marksData = data;
         this.setState({showControls: true});
     }
 
-    runWork(save: boolean) {
+    runWork = (save: boolean) => {
         const logger = new Logger();
         logger.addErrorHandler(this.handleError);
 
@@ -73,23 +59,23 @@ export default class WorkPage extends React.Component<{}, State> {
         this.setState({runWork: true});
     }
 
-    handleRunWorkSafe(){
+    handleRunWorkSafe = () => {
         this.runWork(false);
     }
 
-    handleRunWorkUnsafe(){
+    handleRunWorkUnsafe = () => {
         this.runWork(true);
     }
 
-    handleClosed() {
+    handleClosed = () => {
         this.setState({runWork: false});
     }
 
-    handleUnauthorized() {
+    handleUnauthorized = () => {
         this.setState({openUnauthorizedAlert: true});
     }
 
-    handleError(error: any) {
+    handleError = (error: any) => {
         const errorMessage: string = error.message || JSON.stringify(error);
 
         if (errorMessage.endsWith(' is Forbidden'))
@@ -98,7 +84,7 @@ export default class WorkPage extends React.Component<{}, State> {
             this.setState({errorMessage});
     }
 
-    closeError() {
+    closeError = () => {
         this.setState({errorMessage: ''})
     }
 

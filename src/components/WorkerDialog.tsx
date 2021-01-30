@@ -34,9 +34,6 @@ export default class WorkerDialog extends React.Component<Props, State> {
             logItems: [],
         };
 
-        this.cancelWork = this.cancelWork.bind(this);
-        this.startWork = this.startWork.bind(this);
-        this.logMessage = this.logMessage.bind(this);
     }
 
     componentDidMount() {
@@ -47,11 +44,11 @@ export default class WorkerDialog extends React.Component<Props, State> {
         this.cancelWork();
     }
 
-    logMessage(message: string) {
+    logMessage = (message: string) => {
         this.setState({logItems: [...this.state.logItems, message]});
     }
 
-    async startWork() {
+    startWork = async () => {
         this.marksManager.getLogger().addLogHandler(this.logMessage);
 
         await this.marksManager.putMarksToBrsAsync(this.props.marksData);
@@ -64,7 +61,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
         });
     }
 
-    cancelWork() {
+    cancelWork = () => {
         this.setState({cancelPending: true});
         this.marksManager.cancel();
     }
