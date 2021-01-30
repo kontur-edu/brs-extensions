@@ -1,17 +1,20 @@
-import TextField from "@material-ui/core/TextField";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
-import MenuItem from "@material-ui/core/MenuItem";
-import SubmitWithLoading from "../components/submitWithLoading";
-import Collapse from "@material-ui/core/Collapse";
-import NestedList from "../components/NestedList";
 import React, {FormEvent, memo} from "react";
-import {createStyles, makeStyles} from "@material-ui/core";
+import {
+    createStyles,
+    makeStyles,
+    TextField,
+    Collapse,
+    MenuItem,
+    Select,
+    InputLabel,
+    FormControl,
+    FormControlLabel,
+    Checkbox
+} from "@material-ui/core";
+import NestedList from "../components/NestedList";
+import SubmitWithLoading from "../components/submitWithLoading";
 import BrsApi, {Discipline, TermType} from "../apis/brsApi";
 import {groupBy} from "../helpers/tools";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Checkbox from "@material-ui/core/Checkbox";
 
 const useStyles = makeStyles(() =>
     createStyles({

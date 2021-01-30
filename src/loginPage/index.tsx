@@ -1,15 +1,12 @@
 import React, {FormEvent} from 'react';
-import Container from '@material-ui/core/Container';
-import TextField from "@material-ui/core/TextField";
+import {Grid, Button, Container, TextField} from "@material-ui/core";
 import {Redirect} from 'react-router-dom';
 import SubmitWithLoading from "../components/submitWithLoading";
 import BrsAuth from "../apis/brsAuth";
 import BrsUrlProvider from "../apis/brsUrlProvider";
 import CustomAlert from "../components/CustomAlert";
-import {Grid} from "@material-ui/core";
-import Button from "@material-ui/core/Button";
-import "./styles.css";
 import GoogleLoginButton from "../components/GoogleLoginButton";
+import "./styles.css";
 
 const brsAuth = new BrsAuth(new BrsUrlProvider(true));
 
@@ -51,7 +48,7 @@ export default class LoginPage extends React.Component<{}, State> {
         });
     }
 
-    handlePasswordChanged= (e: React.ChangeEvent<HTMLInputElement>) => {
+    handlePasswordChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         this.setState({
             credentials: {
@@ -62,7 +59,7 @@ export default class LoginPage extends React.Component<{}, State> {
         });
     }
 
-    handleSidChanged= (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleSidChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         this.setState({
             credentials: {
@@ -209,6 +206,7 @@ interface Credentials {
     username: string
     password: string
     sid: string
+
     [props: string]: string
 }
 

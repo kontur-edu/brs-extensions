@@ -1,13 +1,14 @@
 import React from 'react';
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
-import ListSubheader from '@material-ui/core/ListSubheader';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import Collapse from '@material-ui/core/Collapse';
-import ExpandLess from '@material-ui/icons/ExpandLess';
-import ExpandMore from '@material-ui/icons/ExpandMore';
+import {
+    ListSubheader,
+    Collapse,
+    ListItemText,
+    ListItemIcon,
+    ListItem,
+    List
+} from '@material-ui/core';
+import {ExpandLess, ExpandMore} from '@material-ui/icons';
 import GroupIcon from '@material-ui/icons/Group';
 import ViewModuleIcon from '@material-ui/icons/ViewModule';
 

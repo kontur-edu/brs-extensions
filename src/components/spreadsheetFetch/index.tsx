@@ -1,11 +1,10 @@
 import React, {FormEvent, memo} from "react";
 import buildAutoMarksConfigAsync from "../../functions/buildAutoMarksConfigAsync";
 import NestedList, {NestedListItem} from "../NestedList";
-import Collapse from "@material-ui/core/Collapse";
+import {Collapse, TextField} from "@material-ui/core";
 import SubmitWithLoading from "../submitWithLoading";
-import TextField from "@material-ui/core/TextField";
-import './styles.css';
 import { MarksData } from "../../managers/MarksManager";
+import './styles.css';
 
 class SpreadsheetFetch extends React.Component<Props, State> {
     tableUrl = '';
