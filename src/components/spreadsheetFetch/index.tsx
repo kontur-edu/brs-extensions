@@ -5,7 +5,7 @@ import Collapse from "@material-ui/core/Collapse";
 import SubmitWithLoading from "../submitWithLoading";
 import TextField from "@material-ui/core/TextField";
 import './styles.css';
-import { MarksData } from "../../functions/MarksManager";
+import { MarksData } from "../../managers/MarksManager";
 
 class SpreadsheetFetch extends React.Component<Props, State> {
     tableUrl = '';

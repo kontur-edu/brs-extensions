@@ -8,7 +8,7 @@ import SubmitWithLoading from "../components/submitWithLoading";
 import {List} from "@material-ui/core";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
-import MarksManager, {MarksData} from "../functions/MarksManager";
+import MarksManager, {MarksData} from "../managers/MarksManager";
 
 const DialogContent = withStyles(() => ({
     root: {

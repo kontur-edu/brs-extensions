@@ -7,7 +7,7 @@ import {
 } from '../apis/brsApi';
 import { parseAnyFloat, compareNormalized } from '../helpers/tools';
 import * as fio from '../helpers/fio';
-import { ActualStudent } from './readStudentsAsync';
+import { ActualStudent } from '../functions/readStudentsAsync';
 import { formatStudentFailure } from '../helpers/brsHelpers';
 import { Logger } from '../helpers/logger';
 

@@ -1,11 +1,11 @@
 import { TermType, Discipline, StudentFailure } from '../apis/brsApi';
-import { MarksData, DisciplineConfig } from './MarksManager';
+import { MarksData, DisciplineConfig } from '../managers/MarksManager';
 import * as readStudents from './readStudentsAsync';
 import { ActualStudent } from './readStudentsAsync';
 import * as googleApi from '../apis/googleApi';
 import { normalizeString, compareNormalized } from '../helpers/tools';
 import { parseStudentFailure } from '../helpers/brsHelpers';
-import { ControlActionConfig } from './MarksManager';
+import { ControlActionConfig } from '../managers/MarksManager';
 
 export default async function buildAutoMarksConfigAsync(
     spreadsheetId: string,

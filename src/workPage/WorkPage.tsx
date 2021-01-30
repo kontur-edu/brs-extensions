@@ -6,14 +6,14 @@ import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import Collapse from "@material-ui/core/Collapse";
 import WorkerDialog from "./WorkerDialog";
-import {MarksData, PutMarksOptions} from "../functions/MarksManager";
+import {MarksData, PutMarksOptions} from "../managers/MarksManager";
 import BrsAuth from "../apis/brsAuth";
 import BrsUrlProvider from "../apis/brsUrlProvider";
 import BrsApi from "../apis/brsApi";
 import UnauthorizedAlert from "./UnauthorizedAlert";
 import CustomAlert from "../components/CustomAlert";
 import googleAuth from "../apis/googleAuth";
-import MarksManager from "../functions/MarksManager";
+import MarksManager from "../managers/MarksManager";
 import {Logger} from "../helpers/logger";
 
 const brsUrlProvider = new BrsUrlProvider(true);

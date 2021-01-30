@@ -1,7 +1,7 @@
 import BrsApi, { Discipline, StudentFailure } from '../apis/brsApi';
 import { compareNormalized } from '../helpers/tools';
 import { Logger } from '../helpers/logger';
-import { ActualStudent } from './readStudentsAsync';
+import { ActualStudent } from '../functions/readStudentsAsync';
 import DisciplineMarksManager, {
     ControlActionConfig,
     PutMarksOptions,
