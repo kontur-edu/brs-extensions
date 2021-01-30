@@ -69,7 +69,7 @@ export default class LoginPage extends React.Component<{}, State> {
         e.preventDefault();
         this.setState({submitLoading: true});
 
-        const loginSucceed = await this.loginBrs();
+        const loginSucceed = await this.loginBrsAsync();
 
         this.setState({submitLoading: false})
 
@@ -88,7 +88,7 @@ export default class LoginPage extends React.Component<{}, State> {
             });
     }
 
-    loginBrs = async () => {
+    loginBrsAsync = async () => {
         const {credentials} = this.state;
         if (credentials.sid) {
             return await brsAuth.authBySidAsync(credentials.sid);
