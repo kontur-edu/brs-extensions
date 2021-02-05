@@ -3,8 +3,9 @@ import buildAutoMarksConfigAsync from "../../functions/buildAutoMarksConfigAsync
 import NestedList, {NestedListItem} from "../NestedList";
 import {Collapse, TextField} from "@material-ui/core";
 import SubmitWithLoading from "../submitWithLoading";
-import { MarksData } from "../../marksActions/MarksManager";
+import {MarksData} from "../../marksActions/MarksManager";
 import './styles.css';
+import {getSpreadsheetProperties} from "../../apis/googleApi";
 
 class SpreadsheetFetch extends React.Component<Props, State> {
     tableUrl = '';
@@ -38,7 +39,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
         }
     }
 
-     loadTable = async (e: FormEvent) => {
+    loadTable = async (e: FormEvent) => {
         e.preventDefault();
         this.setState({loading: true});
 
@@ -78,17 +79,15 @@ class SpreadsheetFetch extends React.Component<Props, State> {
         const maybeSheetId = result.groups.sheetId || null;
 
         try {
-            // @ts-ignore
-            const res = await gapi.client.sheets.spreadsheets.get({spreadsheetId});
-            const sheets = JSON.parse(res.body).sheets as [{properties: {sheetId: number, title: string}}];
+            const spreadsheetProperties = await getSpreadsheetProperties(spreadsheetId);
             const maybeSheet = maybeSheetId
-                ? sheets.filter(s => s.properties.sheetId.toString() === maybeSheetId)[0]
-                : sheets[0];
+                ? spreadsheetProperties.filter(s => s.sheetId.toString() === maybeSheetId)[0]
+                : spreadsheetProperties[0];
             if (!maybeSheet) {
                 this.props.onError('Sheet is not found');
                 return null;
             }
-            const sheetName = maybeSheet.properties.title;
+            const sheetName = maybeSheet.title;
             return {spreadsheetId, sheetName};
         } catch (e) {
             this.props.onError(e.message || JSON.stringify(e));
