@@ -1,90 +1,37 @@
-import React, {FormEvent, memo} from "react";
-import {
-    createStyles,
-    makeStyles,
-    TextField,
-    Collapse,
-    MenuItem,
-    Select,
-    InputLabel,
-    FormControl,
-    FormControlLabel,
-    Checkbox
-} from "@material-ui/core";
-import NestedList from "./NestedList";
-import SubmitWithLoading from "./submitWithLoading";
+import React, {memo} from "react";
+import {Collapse, createStyles, makeStyles} from "@material-ui/core";
+import NestedList, {NestedListItem} from "./NestedList";
 import BrsApi, {Discipline, TermType} from "../apis/brsApi";
 import {groupBy} from "../helpers/tools";
+import DisciplinesFetchControls, {DisciplinesFetchData} from "./DisciplinesFetchControls";
 
 const useStyles = makeStyles(() =>
     createStyles({
-        termType: {
-            minWidth: 100,
-            marginRight: 10
-        },
-        year: {
-            width: 60,
-            marginRight: 10
-        },
-        course: {
-            width: 50,
-            marginRight: 10
-        },
-        submit: {
-            display: 'inline-block',
-            top: 5
-        },
-        isModule: {
-            marginTop: 15
-        },
         header: {
             marginBottom: 10
+        },
+        disciplinesList: {
+            marginTop: 25
         }
     }),
 );
 
-function DisciplinesFetch(props: Props) {
+function DisciplinesFetch({brsApi, onUnauthorized}: Props) {
     const classes = useStyles();
-    const {brsApi, onUnauthorized} = props;
 
-    let year = 0;
-    let termType: 'Осенний' | 'Весенний' = 'Осенний';
-    let course = 0;
-    let isModule = false;
     const [openDisciplines, setOpenDisciplines] = React.useState(false);
+    const [disciplines, setDisciplines] = React.useState([] as NestedListItem[]);
     const [loading, setLoading] = React.useState(false);
 
-    let disciplinesEmpty: { title: string, nestedItems: string[] }[] = [];
-    const [disciplines, setDisciplines] = React.useState(disciplinesEmpty);
-
-    function handleChange(event: React.ChangeEvent<{ name?: string | undefined, value: unknown }>) {
-        const target = event.target;
-        switch (target.name) {
-            case 'year':
-                year = target.value as number;
-                break;
-            case 'term-type':
-                termType = target.value as ('Осенний' | 'Весенний');
-                break;
-            case 'course':
-                course = target.value as number;
-                break;
-            case 'is-module':
-                // @ts-ignore
-                isModule = target.checked as boolean;
-                break;
-        }
-    }
-
-    async function loadDisciplines(e: FormEvent) {
-        e.preventDefault();
+    async function loadDisciplines(fetchData: DisciplinesFetchData) {
         setLoading(true);
 
-        const term = termType === 'Осенний' ? TermType.Fall : TermType.Spring;
+        const termType = fetchData.termType === 'Осенний' ? TermType.Fall : TermType.Spring;
+        const {year, course, isModule} = fetchData;
 
         let rawDisciplines;
         try {
-            rawDisciplines = await brsApi.getDisciplineCachedAsync(year, term, course, isModule);
+            rawDisciplines = await brsApi.getDisciplineCachedAsync(year, termType, course, isModule);
         } catch (e) {
             onUnauthorized();
             setLoading(false);
@@ -108,36 +55,8 @@ function DisciplinesFetch(props: Props) {
     return (
         <React.Fragment>
             <h3 className={classes.header}>Выбери параметры курса в БРС</h3>
-            <form onSubmit={loadDisciplines}>
-                <TextField name="year"
-                           className={classes.year}
-                           label="Год"
-                           type="number"
-                           onChange={handleChange}
-                           required/>
-                <FormControl className={classes.termType} required>
-                    <InputLabel id="term-label">Семестр</InputLabel>
-                    <Select name="term-type"
-                            onChange={handleChange}>
-                        <MenuItem value="Осенний">Осенний</MenuItem>
-                        <MenuItem value="Весенний">Весенний</MenuItem>
-                    </Select>
-                </FormControl>
-                <TextField name="course"
-                           className={classes.course}
-                           label="Курс"
-                           type="number"
-                           onChange={handleChange}
-                           required/>
-                <FormControlLabel label="Модуль"
-                                  className={classes.isModule}
-                                  control={<Checkbox name="is-module"
-                                                     color="primary"
-                                                     onChange={handleChange}/>}/>
-                <SubmitWithLoading title="вывести" loading={loading} className={classes.submit}/>
-            </form>
-            <br/>
-            <Collapse in={openDisciplines}>
+            <DisciplinesFetchControls loading={loading} onSubmit={loadDisciplines}/>
+            <Collapse in={openDisciplines} className={classes.disciplinesList}>
                 <NestedList title="Доступные дисциплины" items={disciplines}/>
             </Collapse>
         </React.Fragment>
