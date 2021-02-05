@@ -5,7 +5,7 @@ import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
 import MuiDialogActions from '@material-ui/core/DialogActions';
 import SubmitWithLoading from "./submitWithLoading";
-import MarksManager, {MarksData} from "../managers/MarksManager";
+import MarksManager, {MarksData} from "../marksActions/MarksManager";
 
 const DialogContent = withStyles(() => ({
     root: {

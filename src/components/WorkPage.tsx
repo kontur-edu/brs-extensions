@@ -3,7 +3,7 @@ import {Button, Collapse, Container, Grid,} from "@material-ui/core";
 import DisciplinesFetch from "./DisciplinesFetch";
 import SpreadsheetFetch from "./spreadsheetFetch";
 import WorkerDialog from "./WorkerDialog";
-import MarksManager, {MarksData, PutMarksOptions} from "../managers/MarksManager";
+import MarksManager, {MarksData, PutMarksOptions} from "../marksActions/MarksManager";
 import BrsAuth from "../apis/brsAuth";
 import BrsUrlProvider from "../apis/brsUrlProvider";
 import BrsApi from "../apis/brsApi";

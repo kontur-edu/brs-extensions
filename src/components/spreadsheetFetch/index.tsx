@@ -3,7 +3,7 @@ import buildAutoMarksConfigAsync from "../../functions/buildAutoMarksConfigAsync
 import NestedList, {NestedListItem} from "../NestedList";
 import {Collapse, TextField} from "@material-ui/core";
 import SubmitWithLoading from "../submitWithLoading";
-import { MarksData } from "../../managers/MarksManager";
+import { MarksData } from "../../marksActions/MarksManager";
 import './styles.css';
 
 class SpreadsheetFetch extends React.Component<Props, State> {
