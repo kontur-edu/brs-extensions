@@ -124,7 +124,6 @@ export default memo(SpreadsheetFetch);
 
 interface Props {
     onDataLoaded: (data: MarksData) => void;
-    onUnauthorized: () => void;
     onError: (errorMessage: string) => void;
 }
 
