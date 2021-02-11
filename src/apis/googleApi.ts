@@ -1,7 +1,7 @@
-// @ts-ignore
-const sheets = gapi.client.sheets;
-
 export function getSpreadsheet(spreadsheetId: string): Spreadsheet {
+    // @ts-ignore
+    const sheets = gapi.client.sheets;
+
     async function readAsync(range: string) {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId,
@@ -48,6 +48,9 @@ export function getSpreadsheet(spreadsheetId: string): Spreadsheet {
 }
 
 export async function getSpreadsheetProperties(spreadsheetId: string): Promise<SpreadsheetProperties[]> {
+    // @ts-ignore
+    const sheets = gapi.client.sheets;
+
     const res = await sheets.spreadsheets.get({spreadsheetId});
     const sheetProps = JSON.parse(res.body).sheets as [{ properties: SpreadsheetProperties }];
     return sheetProps.map(s => s.properties)
