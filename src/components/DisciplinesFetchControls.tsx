@@ -40,8 +40,8 @@ export default function ({loading, onSubmit}: Props) {
     const classes = useStyles();
 
     const [course, setCourse] = React.useState(1);
-    const [year, setYear] = React.useState(1);
-    const [termType, setTermType] = React.useState("Осенний" as TermType);
+    const [year, setYear] = React.useState(new Date().getFullYear());
+    const [termType, setTermType] = React.useState(getTermType());
     const [isModule, setIsModule] = React.useState(false);
 
     function handleChange(event: any) {
@@ -101,6 +101,11 @@ export default function ({loading, onSubmit}: Props) {
             <SubmitWithLoading title="вывести" loading={loading} className={classes.submit}/>
         </form>
     )
+}
+
+function getTermType(): TermType {
+    const month = new Date().getMonth();
+    return (month >= 9 || month <= 1) ? "Осенний" : "Весенний";
 }
 
 export interface DisciplinesFetchData {
