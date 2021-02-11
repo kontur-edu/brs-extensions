@@ -8,12 +8,11 @@ import './styles.css';
 import {getSpreadsheetProperties} from "../../apis/googleApi";
 
 class SpreadsheetFetch extends React.Component<Props, State> {
-    tableUrl = '';
-
     constructor(props: Props) {
         super(props);
 
         this.state = {
+            tableUrl: '',
             loading: false,
             tableUrlError: {error: false, message: ''},
             moduleGroups: []
@@ -27,7 +26,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
             case 'table-url':
                 if (this.state.tableUrlError.error)
                     this.setState({tableUrlError: {error: false, message: ''}});
-                this.tableUrl = target.value as string;
+                this.setState({tableUrl: target.value as string});
         }
     }
 
@@ -67,7 +66,9 @@ class SpreadsheetFetch extends React.Component<Props, State> {
     }
 
     async getSpreadsheetInfo(): Promise<{ spreadsheetId: string, sheetName: string } | null> {
-        const result = this.tableUrl.match(/d\/(?<spreadsheetId>[a-zA-Z0-9-_]+)\/edit(#gid=(?<sheetId>[0-9]+))?/);
+        const regExp = /d\/(?<spreadsheetId>[a-zA-Z0-9-_]+)\/edit(#gid=(?<sheetId>[0-9]+))?/;
+        const result = this.state.tableUrl.match(regExp);
+
         if (!result?.groups || !result.groups.spreadsheetId) {
             this.setState({
                 loading: false,
@@ -104,6 +105,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
                                label="Ссылка"
                                type="text"
                                className={'tableUrl'}
+                               value={this.state.tableUrl}
                                onChange={this.handleChange}
                                error={this.state.tableUrlError.error}
                                helperText={this.state.tableUrlError.message}
@@ -128,6 +130,7 @@ interface Props {
 }
 
 interface State {
+    tableUrl: string;
     loading: boolean;
     tableUrlError: { error: boolean, message: string };
     moduleGroups: NestedListItem[];
