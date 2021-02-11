@@ -1,16 +1,8 @@
 import React from 'react';
-import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    DialogContentText,
-    Slide
-} from '@material-ui/core';
+import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Slide} from '@material-ui/core';
 import {TransitionProps} from '@material-ui/core/transitions';
 import {Redirect} from 'react-router-dom';
-import * as cache from "../helpers/cache";
+import BrsAuth from "../apis/brsAuth";
 
 const Transition = React.forwardRef(function Transition(
     props: TransitionProps & { children?: React.ReactElement<any, any> },
@@ -19,13 +11,11 @@ const Transition = React.forwardRef(function Transition(
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function UnauthorizedAlert(props: { open: boolean }) {
-    const {open} = props;
-
+export default function UnauthorizedAlert({open, brsAuth}: { open: boolean, brsAuth: BrsAuth }) {
     const [redirect, setRedirect] = React.useState(false);
 
     const handleOk = () => {
-        cache.clear('loginInfo');
+        brsAuth.logout();
         setRedirect(true);
     };
 

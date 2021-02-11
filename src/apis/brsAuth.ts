@@ -3,10 +3,11 @@ import BrsUrlProvider from "./brsUrlProvider";
 import * as cache from "../helpers/cache";
 
 export default class BrsAuth {
-    private brsUrlProvider: BrsUrlProvider;
+    readonly brsUrlProvider: BrsUrlProvider;
 
     constructor(brsUrlProvider: BrsUrlProvider) {
         this.brsUrlProvider = brsUrlProvider;
+        this.tryLoadLoginInfoFromCache();
     }
 
     private _sid: string | null = null;
@@ -42,7 +43,8 @@ export default class BrsAuth {
         if (!result)
             return false;
 
-        cache.save('loginInfo', {sid: result[0], login});
+        const sid = result[0];
+        this.saveLoginInfo(sid, login);
 
         return true;
     }
@@ -56,7 +58,19 @@ export default class BrsAuth {
         return true;
     }
 
-    async requestSidAsync(login: string, password: string) {
+    private saveLoginInfo(sid: string, login: string) {
+        cache.save('loginInfo', {sid, login});
+        this._sid = sid;
+        this._login = login;
+    }
+
+    logout() {
+        this._sid = null;
+        this._login = null;
+        cache.clear('loginInfo');
+    }
+
+    private async requestSidAsync(login: string, password: string) {
         return await request({
             url: this.brsUrlProvider.baseUrl + `/login`,
             method: 'POST',
@@ -69,7 +83,7 @@ export default class BrsAuth {
         }).then(x => x, () => null);
     }
 
-    private loadLoginInfoFromCache(){
+    private loadLoginInfoFromCache() {
         if (!this.tryLoadLoginInfoFromCache())
             throw new Error('BRS unauthorized');
     }
