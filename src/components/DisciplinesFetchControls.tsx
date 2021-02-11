@@ -39,34 +39,32 @@ const useStyles = makeStyles(() =>
 export default function ({loading, onSubmit}: Props) {
     const classes = useStyles();
 
-    const fetchData: DisciplinesFetchData = {
-        course: 0,
-        isModule: false,
-        termType: "Осенний",
-        year: 0
-    };
+    const [course, setCourse] = React.useState(1);
+    const [year, setYear] = React.useState(1);
+    const [termType, setTermType] = React.useState("Осенний" as TermType);
+    const [isModule, setIsModule] = React.useState(false);
 
     function handleChange(event: any) {
         const target = event.target;
         switch (target.name) {
             case 'year':
-                fetchData.year = target.value as number;
+                setYear(target.value as number);
                 break;
             case 'term-type':
-                fetchData.termType = target.value as ('Осенний' | 'Весенний');
+                setTermType(target.value as TermType);
                 break;
             case 'course':
-                fetchData.course = target.value as number;
+                setCourse(target.value as number);
                 break;
             case 'is-module':
-                fetchData.isModule = target.checked as boolean;
+                setIsModule(target.checked as boolean);
                 break;
         }
     }
 
     function handleSubmit(e: any) {
         e.preventDefault();
-        onSubmit(fetchData);
+        onSubmit({course, year, isModule, termType});
     }
 
     return (
@@ -75,11 +73,13 @@ export default function ({loading, onSubmit}: Props) {
                        className={classes.year}
                        label="Год"
                        type="number"
+                       value={year}
                        onChange={handleChange}
                        required/>
             <FormControl className={classes.termType} required>
                 <InputLabel id="term-label">Семестр</InputLabel>
                 <Select name="term-type"
+                        value={termType}
                         onChange={handleChange}>
                     <MenuItem value="Осенний">Осенний</MenuItem>
                     <MenuItem value="Весенний">Весенний</MenuItem>
@@ -89,12 +89,14 @@ export default function ({loading, onSubmit}: Props) {
                        className={classes.course}
                        label="Курс"
                        type="number"
+                       value={course}
                        onChange={handleChange}
                        required/>
             <FormControlLabel label="Модуль"
                               className={classes.isModule}
                               control={<Checkbox name="is-module"
                                                  color="primary"
+                                                 value={isModule}
                                                  onChange={handleChange}/>}/>
             <SubmitWithLoading title="вывести" loading={loading} className={classes.submit}/>
         </form>
@@ -103,7 +105,7 @@ export default function ({loading, onSubmit}: Props) {
 
 export interface DisciplinesFetchData {
     year: number;
-    termType: 'Осенний' | 'Весенний';
+    termType: TermType;
     course: number;
     isModule: boolean;
 }
@@ -112,3 +114,5 @@ interface Props {
     loading: boolean;
     onSubmit: (fetchData: DisciplinesFetchData) => void;
 }
+
+type TermType = "Осенний" | "Весенний";
