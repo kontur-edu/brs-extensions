@@ -1,17 +1,14 @@
 import React, {FormEvent} from 'react';
-import {Grid, Button, Container, TextField} from "@material-ui/core";
-import {Redirect} from 'react-router-dom';
-import SubmitWithLoading from "../submitWithLoading";
-import BrsAuth from "../../apis/brsAuth";
-import BrsUrlProvider from "../../apis/brsUrlProvider";
-import CustomAlert from "../CustomAlert";
-import GoogleLoginButton from "../GoogleLoginButton";
 import "./styles.css";
+import {Redirect} from "react-router-dom";
+import {Button, Container, Grid, TextField} from "@material-ui/core";
+import SubmitWithLoading from "../submitWithLoading";
+import GoogleLoginButton from "../GoogleLoginButton";
+import CustomAlert from "../CustomAlert";
+import BrsAuth from "../../apis/brsAuth";
 
-const brsAuth = new BrsAuth(new BrsUrlProvider(true));
-
-export default class LoginPage extends React.Component<{}, State> {
-    constructor(props: {}) {
+export default class LoginPage extends React.Component<Props, State> {
+    constructor(props: Props) {
         super(props);
 
         this.state = {
@@ -20,7 +17,7 @@ export default class LoginPage extends React.Component<{}, State> {
                 password: '',
                 sid: ''
             },
-            brsAuthorized: brsAuth.checkAuth(),
+            brsAuthorized: props.brsAuth.checkAuth(),
             googleAuthorized: false,
             redirect: false,
             submitLoading: false,
@@ -91,10 +88,10 @@ export default class LoginPage extends React.Component<{}, State> {
     loginBrsAsync = async () => {
         const {credentials} = this.state;
         if (credentials.sid) {
-            return await brsAuth.authBySidAsync(credentials.sid);
+            return await this.props.brsAuth.authBySidAsync(credentials.sid);
         }
         if (credentials.username && credentials.password) {
-            return await brsAuth.loginAsync(credentials.username, credentials.password);
+            return await this.props.brsAuth.loginAsync(credentials.username, credentials.password);
         }
         return false;
     }
@@ -213,4 +210,8 @@ interface State {
     openAlert: boolean,
     alertMessage: string,
     alertType: "error" | "success";
+}
+
+interface Props {
+    brsAuth: BrsAuth;
 }
