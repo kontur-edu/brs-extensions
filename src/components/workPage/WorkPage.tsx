@@ -1,5 +1,5 @@
 import React from 'react';
-import {Button, Collapse, Container, Grid,} from "@material-ui/core";
+import {Container,} from "@material-ui/core";
 import DisciplinesFetch from "../DisciplinesFetch";
 import SpreadsheetFetch from "../spreadsheetFetch";
 import WorkerDialog from "../WorkerDialog";
@@ -10,6 +10,7 @@ import CustomAlert from "../CustomAlert";
 import googleAuth from "../../apis/googleAuth";
 import {Logger} from "../../helpers/logger";
 import BrsAuth from "../../apis/brsAuth";
+import RunWorkerButtons from "../RunWorkerButtons";
 
 
 export default class WorkPage extends React.Component<Props, State> {
@@ -101,24 +102,9 @@ export default class WorkPage extends React.Component<Props, State> {
                         <SpreadsheetFetch onDataLoaded={this.handleDataLoaded}
                                           onError={this.handleError}/>
                         <br/>
-                        <Collapse in={this.state.showControls}>
-                            <Grid container justify="space-around">
-                                <Grid item>
-                                    <Button variant="contained"
-                                            onClick={this.handleRunWorkSafe}
-                                            color="primary">
-                                        Попробуй сделать хорошо
-                                    </Button>
-                                </Grid>
-                                <Grid item>
-                                    <Button variant="contained"
-                                            onClick={this.handleRunWorkUnsafe}
-                                            color="secondary">
-                                        Сделай хорошо
-                                    </Button>
-                                </Grid>
-                            </Grid>
-                        </Collapse>
+                        <RunWorkerButtons show={this.state.showControls}
+                                          onRunWorkUnsafe={this.handleRunWorkUnsafe}
+                                          onRunWorkSafe={this.handleRunWorkSafe}/>
                         {
                             this.state.runWork &&
                             <WorkerDialog runWork={this.state.runWork}
