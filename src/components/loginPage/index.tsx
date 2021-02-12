@@ -72,14 +72,14 @@ export default class LoginPage extends React.Component<Props, State> {
 
         if (loginSucceed) {
             this.setState({
-                alertMessage: 'Авторизация прошла успешно',
+                alertMessage: "Авторизация прошла успешно",
                 openAlert: true,
                 alertType: 'success',
                 brsAuthorized: true
             });
         } else
             this.setState({
-                alertMessage: 'Неверные имя пользователя или пароль',
+                alertMessage: "Что-то пошло не так :( Попробуйте позже",
                 openAlert: true,
                 alertType: 'error'
             });
