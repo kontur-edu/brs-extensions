@@ -33,7 +33,7 @@ function DisciplinesFetch({brsApi, onUnauthorized}: Props) {
         try {
             rawDisciplines = await brsApi.getDisciplineCachedAsync(year, termType, course, isModule);
         } catch (e) {
-            onUnauthorized();
+            onUnauthorized("БРС");
             setLoading(false);
             return;
         }
@@ -67,5 +67,5 @@ export default memo(DisciplinesFetch);
 
 interface Props {
     brsApi: BrsApi;
-    onUnauthorized: () => void;
+    onUnauthorized: (sessionName: string) => void;
 }

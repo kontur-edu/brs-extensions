@@ -5,13 +5,12 @@ import SpreadsheetFetch from "../spreadsheetFetch";
 import WorkerDialog from "../WorkerDialog";
 import MarksManager, {MarksData, PutMarksOptions} from "../../marksActions/MarksManager";
 import BrsApi from "../../apis/brsApi";
-import UnauthorizedAlert from "../UnauthorizedAlert";
+import SessionExpiredAlert from "../SessionExpiredAlert";
 import CustomAlert from "../CustomAlert";
 import googleAuth from "../../apis/googleAuth";
 import {Logger} from "../../helpers/logger";
 import BrsAuth from "../../apis/brsAuth";
 import RunWorkerButtons from "../RunWorkerButtons";
-
 
 export default class WorkPage extends React.Component<Props, State> {
     marksData: MarksData;
@@ -27,6 +26,7 @@ export default class WorkPage extends React.Component<Props, State> {
             showControls: false,
             runWork: false,
             openUnauthorizedAlert: false,
+            sessionName: '',
             errorMessage: '',
         }
 
@@ -35,9 +35,13 @@ export default class WorkPage extends React.Component<Props, State> {
     async componentDidMount() {
         await googleAuth.init();
 
-        const authorized = this.props.brsAuth.checkAuth() && googleAuth.checkAuthorized();
-        if (!authorized)
-            this.handleUnauthorized();
+        const brsAuthorized = this.props.brsAuth.checkAuth();
+        const googleAuthorized = googleAuth.checkAuthorized();
+
+        if (!brsAuthorized)
+            this.handleUnauthorized("БРС");
+        else if (!googleAuthorized)
+            this.handleUnauthorized("Google");
     }
 
     handleDataLoaded = (data: MarksData) => {
@@ -70,14 +74,14 @@ export default class WorkPage extends React.Component<Props, State> {
         this.setState({runWork: false});
     }
 
-    handleUnauthorized = () => {
-        this.setState({openUnauthorizedAlert: true});
+    handleUnauthorized = (sessionName: string) => {
+        this.setState({openUnauthorizedAlert: true, sessionName});
     }
 
     handleError = (error: any) => {
         const errorMessage: string = error.message || JSON.stringify(error);
         if (errorMessage.endsWith(' is Forbidden'))
-            this.handleUnauthorized();
+            this.handleUnauthorized("БРС");
         else
             this.setState({errorMessage});
     }
@@ -89,8 +93,9 @@ export default class WorkPage extends React.Component<Props, State> {
     render() {
         return (
             <React.Fragment>
-                {this.state.openUnauthorizedAlert && <UnauthorizedAlert brsAuth={this.props.brsAuth}
-                                                                        open={this.state.openUnauthorizedAlert}/>}
+                {this.state.openUnauthorizedAlert && <SessionExpiredAlert brsAuth={this.props.brsAuth}
+                                                                          sessionName={this.state.sessionName}
+                                                                          open={this.state.openUnauthorizedAlert}/>}
                 {this.state.errorMessage && <CustomAlert open={!!this.state.errorMessage}
                                                          message={this.state.errorMessage}
                                                          type={'error'}
@@ -122,6 +127,7 @@ export default class WorkPage extends React.Component<Props, State> {
 interface State {
     showControls: boolean;
     openUnauthorizedAlert: boolean;
+    sessionName: string;
     errorMessage: string;
     runWork: boolean;
 }

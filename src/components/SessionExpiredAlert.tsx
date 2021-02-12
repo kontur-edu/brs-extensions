@@ -11,7 +11,7 @@ const Transition = React.forwardRef(function Transition(
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function UnauthorizedAlert({open, brsAuth}: { open: boolean, brsAuth: BrsAuth }) {
+export default function SessionExpiredAlert({open, sessionName, brsAuth}: Props) {
     const [redirect, setRedirect] = React.useState(false);
 
     const handleOk = () => {
@@ -31,7 +31,7 @@ export default function UnauthorizedAlert({open, brsAuth}: { open: boolean, brsA
                 <DialogTitle id="alert-dialog-slide-title">Необходимо авторизоваться</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-slide-description">
-                        Кажется, действие сессии БРС или Google истекло. Необходимо повторно авторизоваться.
+                        Кажется, действие сессии {sessionName} истекло. Необходимо повторно авторизоваться.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions style={{display: 'flex', justifyContent: 'space-around'}}>
@@ -40,4 +40,10 @@ export default function UnauthorizedAlert({open, brsAuth}: { open: boolean, brsA
             </Dialog>
         </React.Fragment>
     );
+}
+
+interface Props {
+    open: boolean;
+    sessionName: string;
+    brsAuth: BrsAuth;
 }
