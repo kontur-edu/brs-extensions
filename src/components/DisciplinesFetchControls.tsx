@@ -104,8 +104,16 @@ export default function ({loading, onSubmit}: Props) {
 }
 
 function getTermType(): TermType {
-    const month = new Date().getMonth();
-    return (month >= 9 || month <= 1) ? "Осенний" : "Весенний";
+    const date = new Date();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+
+    return (
+        month >= 9 ||           // September to December
+        month == 1 ||           // January
+        month == 2 && day <= 7) // Until February 7
+        ? "Осенний"
+        : "Весенний";
 }
 
 export interface DisciplinesFetchData {
