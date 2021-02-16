@@ -1,22 +1,17 @@
-import React, {FormEvent} from 'react';
+import React from 'react';
 import "./styles.css";
 import {Redirect} from "react-router-dom";
-import {Button, Container, Grid, TextField} from "@material-ui/core";
-import SubmitWithLoading from "../submitWithLoading";
+import {Button, Container, Grid} from "@material-ui/core";
 import GoogleLoginButton from "../GoogleLoginButton";
 import CustomAlert from "../CustomAlert";
 import BrsAuth from "../../apis/brsAuth";
+import BrsLoginForm, {Credentials} from "../BrsLoginForm";
 
 export default class LoginPage extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
 
         this.state = {
-            credentials: {
-                username: '',
-                password: '',
-                sid: ''
-            },
             brsAuthorized: props.brsAuth.checkAuth(),
             googleAuthorized: false,
             redirect: false,
@@ -28,45 +23,10 @@ export default class LoginPage extends React.Component<Props, State> {
 
     }
 
-    handleUsernameChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        this.setState({
-            credentials: {
-                ...this.state.credentials,
-                username: value,
-                sid: '',
-            },
-        });
-    }
-
-    handlePasswordChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        this.setState({
-            credentials: {
-                ...this.state.credentials,
-                password: value,
-                sid: '',
-            },
-        });
-    }
-
-    handleSidChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        this.setState({
-            credentials: {
-                ...this.state.credentials,
-                sid: value,
-                username: '',
-                password: '',
-            },
-        });
-    }
-
-    handleBrsSubmit = async (e: FormEvent) => {
-        e.preventDefault();
+    handleBrsSubmit = async (credentials: Credentials) => {
         this.setState({submitLoading: true});
 
-        const loginSucceed = await this.loginBrsAsync();
+        const loginSucceed = await this.loginBrsAsync(credentials);
 
         this.setState({submitLoading: false})
 
@@ -85,8 +45,7 @@ export default class LoginPage extends React.Component<Props, State> {
             });
     }
 
-    loginBrsAsync = async () => {
-        const {credentials} = this.state;
+    loginBrsAsync = async (credentials: Credentials) => {
         if (credentials.sid) {
             return await this.props.brsAuth.authBySidAsync(credentials.sid);
         }
@@ -119,7 +78,6 @@ export default class LoginPage extends React.Component<Props, State> {
     }
 
     render() {
-        const {credentials} = this.state;
         return (
             <div className="login-page">
                 {this.state.redirect && <Redirect to="/brs-extensions/work"/>}
@@ -133,40 +91,7 @@ export default class LoginPage extends React.Component<Props, State> {
                     <p>Для начала работы, необходимо авторизоваться в БРС</p>
                     <Grid container justify="space-around">
                         <Grid item md={5} lg={5} sm={5} xs={10}>
-                            <form className="form" onSubmit={this.handleBrsSubmit}>
-                                <TextField
-                                    variant="outlined"
-                                    margin="normal"
-                                    fullWidth
-                                    id="username"
-                                    label="Имя пользователя"
-                                    name="username"
-                                    autoFocus
-                                    value={credentials.username}
-                                    onChange={this.handleUsernameChanged}
-                                />
-                                <TextField variant="outlined"
-                                           margin="normal"
-                                           fullWidth
-                                           name="password"
-                                           label="Пароль"
-                                           type="password"
-                                           id="password"
-                                           autoComplete="current-password"
-                                           value={credentials.password}
-                                           onChange={this.handlePasswordChanged}/>
-                                <p className="text-center">или</p>
-                                <TextField variant="outlined"
-                                           margin="normal"
-                                           fullWidth
-                                           name="sid"
-                                           label="JSESSIONID"
-                                           type="password"
-                                           id="sid"
-                                           value={credentials.sid}
-                                           onChange={this.handleSidChanged}/>
-                                <SubmitWithLoading title="войти" loading={this.state.submitLoading}/>
-                            </form>
+                            <BrsLoginForm onSubmit={this.handleBrsSubmit} loading={this.state.submitLoading}/>
                         </Grid>
                         <Grid item className="align-center">
                             <h3>А также</h3>
@@ -193,16 +118,7 @@ export default class LoginPage extends React.Component<Props, State> {
     }
 }
 
-interface Credentials {
-    username: string
-    password: string
-    sid: string
-
-    [props: string]: string
-}
-
 interface State {
-    credentials: Credentials;
     brsAuthorized: boolean;
     googleAuthorized: boolean;
     submitLoading: boolean;
