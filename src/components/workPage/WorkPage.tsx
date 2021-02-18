@@ -11,6 +11,7 @@ import googleAuth from "../../apis/googleAuth";
 import {Logger} from "../../helpers/logger";
 import BrsAuth from "../../apis/brsAuth";
 import RunWorkerButtons from "../RunWorkerButtons";
+import {StatusCode} from "../../helpers/CustomError";
 
 export default class WorkPage extends React.Component<Props, State> {
     marksData: MarksData;
@@ -80,8 +81,13 @@ export default class WorkPage extends React.Component<Props, State> {
 
     handleError = (error: any) => {
         const errorMessage: string = error.message || JSON.stringify(error);
-        if (errorMessage.endsWith(' is Forbidden'))
-            this.handleSessionExpired("БРС");
+        if (error.statusCode)
+            if (error.statusCode === StatusCode.BrsUnauthorized)
+                this.handleSessionExpired("БРС");
+            else
+                this.handleSessionExpired("Google");
+        else if (error.name === "RequestError")
+            this.setState({errorMessage: "В данный момент сервер недоступен. Попробуйте позже."});
         else
             this.setState({errorMessage});
     }
@@ -102,7 +108,8 @@ export default class WorkPage extends React.Component<Props, State> {
                                                          onClose={this.closeError}/>}
                 <div className="work-page">
                     <Container maxWidth="md">
-                        <DisciplinesFetch brsApi={this.props.brsApi} onUnauthorized={this.handleSessionExpired}/>
+                        <DisciplinesFetch brsApi={this.props.brsApi}
+                                          onError={this.handleError}/>
                         <hr/>
                         <SpreadsheetFetch onDataLoaded={this.handleDataLoaded}
                                           onError={this.handleError}/>

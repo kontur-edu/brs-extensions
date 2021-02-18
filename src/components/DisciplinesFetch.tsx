@@ -16,7 +16,7 @@ const useStyles = makeStyles(() =>
     }),
 );
 
-function DisciplinesFetch({brsApi, onUnauthorized}: Props) {
+function DisciplinesFetch({brsApi, onError}: Props) {
     const classes = useStyles();
 
     const [openDisciplines, setOpenDisciplines] = React.useState(false);
@@ -29,12 +29,12 @@ function DisciplinesFetch({brsApi, onUnauthorized}: Props) {
         const termType = fetchData.termType === 'Осенний' ? TermType.Fall : TermType.Spring;
         const {year, course, isModule} = fetchData;
 
-        let rawDisciplines;
+        let rawDisciplines: Discipline[];
         try {
             rawDisciplines = await brsApi.getDisciplineCachedAsync(year, termType, course, isModule);
         } catch (e) {
-            onUnauthorized("БРС");
             setLoading(false);
+            onError(e);
             return;
         }
 
@@ -67,5 +67,5 @@ export default memo(DisciplinesFetch);
 
 interface Props {
     brsApi: BrsApi;
-    onUnauthorized: (sessionName: string) => void;
+    onError: (error: any) => void;
 }

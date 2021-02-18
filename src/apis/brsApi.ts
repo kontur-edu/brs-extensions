@@ -3,6 +3,7 @@ import request from 'request-promise';
 import * as cache from '../helpers/cache';
 import BrsAuth from "./brsAuth";
 import BrsUrlProvider from "./brsUrlProvider";
+import {CustomError, StatusCode} from "../helpers/CustomError";
 
 export default class BrsApi {
     private readonly brsAuth: BrsAuth;
@@ -348,7 +349,7 @@ export default class BrsApi {
         });
 
         if (response.trimLeft().startsWith('<!DOCTYPE html>')) {
-            throw new Error(uri + ' is Forbidden');
+            throw new CustomError(StatusCode.BrsUnauthorized, uri + ' is Forbidden');
         }
 
         return response;
