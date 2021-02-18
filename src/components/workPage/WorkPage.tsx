@@ -25,7 +25,7 @@ export default class WorkPage extends React.Component<Props, State> {
         this.state = {
             showControls: false,
             runWork: false,
-            openUnauthorizedAlert: false,
+            openSessionExpiredAlert: false,
             sessionName: '',
             errorMessage: '',
         }
@@ -39,9 +39,9 @@ export default class WorkPage extends React.Component<Props, State> {
         const googleAuthorized = googleAuth.checkAuthorized();
 
         if (!brsAuthorized)
-            this.handleUnauthorized("БРС");
+            this.handleSessionExpired("БРС");
         else if (!googleAuthorized)
-            this.handleUnauthorized("Google");
+            this.handleSessionExpired("Google");
     }
 
     handleDataLoaded = (data: MarksData) => {
@@ -74,14 +74,14 @@ export default class WorkPage extends React.Component<Props, State> {
         this.setState({runWork: false});
     }
 
-    handleUnauthorized = (sessionName: string) => {
-        this.setState({openUnauthorizedAlert: true, sessionName});
+    handleSessionExpired = (sessionName: string) => {
+        this.setState({openSessionExpiredAlert: true, sessionName});
     }
 
     handleError = (error: any) => {
         const errorMessage: string = error.message || JSON.stringify(error);
         if (errorMessage.endsWith(' is Forbidden'))
-            this.handleUnauthorized("БРС");
+            this.handleSessionExpired("БРС");
         else
             this.setState({errorMessage});
     }
@@ -93,16 +93,16 @@ export default class WorkPage extends React.Component<Props, State> {
     render() {
         return (
             <React.Fragment>
-                {this.state.openUnauthorizedAlert && <SessionExpiredAlert brsAuth={this.props.brsAuth}
-                                                                          sessionName={this.state.sessionName}
-                                                                          open={this.state.openUnauthorizedAlert}/>}
+                {this.state.openSessionExpiredAlert && <SessionExpiredAlert brsAuth={this.props.brsAuth}
+                                                                            sessionName={this.state.sessionName}
+                                                                            open={this.state.openSessionExpiredAlert}/>}
                 {this.state.errorMessage && <CustomAlert open={!!this.state.errorMessage}
                                                          message={this.state.errorMessage}
                                                          type={'error'}
                                                          onClose={this.closeError}/>}
                 <div className="work-page">
                     <Container maxWidth="md">
-                        <DisciplinesFetch brsApi={this.props.brsApi} onUnauthorized={this.handleUnauthorized}/>
+                        <DisciplinesFetch brsApi={this.props.brsApi} onUnauthorized={this.handleSessionExpired}/>
                         <hr/>
                         <SpreadsheetFetch onDataLoaded={this.handleDataLoaded}
                                           onError={this.handleError}/>
@@ -126,7 +126,7 @@ export default class WorkPage extends React.Component<Props, State> {
 
 interface State {
     showControls: boolean;
-    openUnauthorizedAlert: boolean;
+    openSessionExpiredAlert: boolean;
     sessionName: string;
     errorMessage: string;
     runWork: boolean;
