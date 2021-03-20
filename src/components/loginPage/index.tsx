@@ -98,6 +98,26 @@ export default class LoginPage extends React.Component<Props, State> {
         this.setState({redirect: true});
     }
 
+    handleBrsLogout = () => {
+        this.props.brsAuth.logout();
+        this.setState({
+            brsAuthorized: false,
+            alertMessage: "Вы вышли из аккаунта БРС",
+            alertType: "success",
+            openAlert: true
+        });
+    }
+
+    handleGoogleLogout = async () => {
+        await googleAuth.logout();
+        this.setState({
+            googleAuthorized: false,
+            alertType: "success",
+            alertMessage: "Вы вышли из аккаунта Google",
+            openAlert: true
+        });
+    }
+
     render() {
         return (
             <div className="login-page">
@@ -109,16 +129,23 @@ export default class LoginPage extends React.Component<Props, State> {
                     <h3>Правила хранения данных</h3>
                     <p>Данные хранятся в localstorage</p>
                     <hr/>
-                    <p>Для начала работы, необходимо авторизоваться в БРС</p>
                     <Grid container justify="space-around">
                         <Grid item md={5} lg={5} sm={5} xs={10}>
-                            <BrsLoginForm onSubmit={this.handleBrsSubmit} loading={this.state.submitLoading}/>
+                            <BrsLoginForm onSubmit={this.handleBrsSubmit}
+                                          loading={this.state.brsLoading}
+                                          signedIn={this.state.brsAuthorized}
+                                          onLogout={this.handleBrsLogout}
+                                          username={this.props.brsAuth.username}
+                                          submitting={this.state.submitLoading}/>
                         </Grid>
                         <Grid item className="align-center">
                             <h3>А также</h3>
                         </Grid>
                         <Grid item className="align-center">
                             <GoogleLoginButton onSignedIn={this.handleGoogleSignedIn}
+                                               signedIn={this.state.googleAuthorized}
+                                               username={googleAuth.getUsername()}
+                                               onLogout={this.handleGoogleLogout}
                                                onFailure={this.handleGoogleLoginFailed}/>
                             <br/>
                         </Grid>
@@ -127,7 +154,9 @@ export default class LoginPage extends React.Component<Props, State> {
                         <Button variant="contained"
                                 onClick={this.startWork}
                                 disabled={!this.state.brsAuthorized || !this.state.googleAuthorized}
-                                color="secondary">начать работу</Button>
+                                color="secondary">
+                            начать работу
+                        </Button>
                     </Container>
                     <CustomAlert open={this.state.openAlert}
                                  message={this.state.alertMessage}

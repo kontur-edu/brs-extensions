@@ -1,25 +1,43 @@
 import GoogleLogin from "react-google-login";
 import React from "react";
+import {Button} from "@material-ui/core";
 
 const CLIENT_ID = '122993083593-pacve8csj86voko30ia65raeg0ncrtuv.apps.googleusercontent.com';
 const SCOPES = "profile email https://www.googleapis.com/auth/spreadsheets";
 
 export default function GoogleLoginButton(props: Props) {
-    const {onSignedIn, onFailure} = props;
-
+    const {onSignedIn, onFailure, signedIn, username, onLogout} = props;
+    
     return (
-        <GoogleLogin
-            clientId={CLIENT_ID}
-            buttonText="Войти в аккаунт Google"
-            onSuccess={onSignedIn}
-            onFailure={onFailure}
-            scope={SCOPES}
-            isSignedIn={true}
-        />
+        <React.Fragment>
+            {
+                signedIn ?
+                    <React.Fragment>
+                        <p>Добро пожаловать, {username}</p>
+                        <Button type="button"
+                                fullWidth
+                                variant="contained"
+                                onClick={onLogout}
+                                color="primary">
+                            Выйти из Google
+                        </Button>
+                    </React.Fragment> :
+                    <GoogleLogin
+                        clientId={CLIENT_ID}
+                        buttonText="Войти в аккаунт Google"
+                        onSuccess={onSignedIn}
+                        onFailure={onFailure}
+                        scope={SCOPES}
+                        isSignedIn={true}/>
+            }
+        </React.Fragment>
     );
 }
 
 interface Props {
     onSignedIn: () => void;
     onFailure: (error: any) => void;
+    onLogout: () => void;
+    signedIn: boolean;
+    username?: string;
 }
