@@ -45,9 +45,10 @@ export default class BrsApi {
     ) {
         const queryString = `?year=${year}&termType=${termType}&course=${course}&total=0&page=1&pageSize=1000&search=`;
         if (isModule) {
-            const disciplines = await this.requestApiJsonAsync<Discipline[]>(
+            const paging = await this.requestApiJsonAsync<Paging<Discipline>>(
                 '/mvc/mobile/module/fetch' + queryString
             );
+            const disciplines = paging.content;
             for (const d of disciplines) {
                 d.isModule = true;
             }
