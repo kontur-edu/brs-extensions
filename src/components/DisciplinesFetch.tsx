@@ -8,6 +8,7 @@ import DisciplinesFetchControls, {DisciplinesFetchData} from "./DisciplinesFetch
 const useStyles = makeStyles(() =>
     createStyles({
         header: {
+            marginTop: 10,
             marginBottom: 10
         },
         disciplinesList: {
@@ -28,8 +29,8 @@ function DisciplinesFetch({brsApi, onError}: Props) {
 
         const termType = fetchData.termType === 'Осенний' ? TermType.Fall : TermType.Spring;
         const {year, course, isModule} = fetchData;
-
         let rawDisciplines: Discipline[];
+        
         try {
             rawDisciplines = await brsApi.getDisciplineCachedAsync(year, termType, course, isModule);
         } catch (e) {
