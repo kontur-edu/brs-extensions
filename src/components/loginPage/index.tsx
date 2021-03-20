@@ -80,7 +80,7 @@ export default class LoginPage extends React.Component<Props, State> {
     render() {
         return (
             <div className="login-page">
-                {this.state.redirect && <Redirect to="/brs-extensions/work"/>}
+                {this.state.redirect && <Redirect to="/work"/>}
                 <Container component="main" maxWidth="md">
                     <h1>Привет!</h1>
                     <h3>Как все работает</h3>

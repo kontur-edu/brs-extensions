@@ -21,7 +21,7 @@ export default function SessionExpiredAlert({open, sessionName, brsAuth}: Props)
 
     return (
         <React.Fragment>
-            {redirect && <Redirect to="/brs-extensions"/>}
+            {redirect && <Redirect to="/"/>}
             <Dialog
                 open={open}
                 TransitionComponent={Transition}

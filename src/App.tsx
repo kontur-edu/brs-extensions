@@ -1,5 +1,5 @@
 import React from 'react';
-import {BrowserRouter, Route, Switch} from 'react-router-dom';
+import {HashRouter, Route, Switch} from 'react-router-dom';
 import BrsUrlProvider from "./apis/brsUrlProvider";
 import BrsAuth from "./apis/brsAuth";
 import LoginPageWrapper from "./components/loginPage/LoginPageWrapper";
@@ -14,12 +14,12 @@ const brsApi = new BrsApi(brsAuth, urlProvider);
 export default function App() {
     return (
         <Context.Provider value={{brsAuth, brsApi}}>
-            <BrowserRouter>
+            <HashRouter hashType={"noslash"}>
                 <Switch>
-                    <Route path="/brs-extensions/work" component={WorkPageWrapper}/>
-                    <Route exact path="/brs-extensions" component={LoginPageWrapper}/>
+                    <Route path="/work" component={WorkPageWrapper}/>
+                    <Route exact path="" component={LoginPageWrapper}/>
                 </Switch>
-            </BrowserRouter>
+            </HashRouter>
         </Context.Provider>
     )
 }
