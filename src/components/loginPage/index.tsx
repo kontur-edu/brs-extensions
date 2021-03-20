@@ -4,15 +4,17 @@ import {Redirect} from "react-router-dom";
 import {Button, Container, Grid} from "@material-ui/core";
 import GoogleLoginButton from "../GoogleLoginButton";
 import CustomAlert from "../CustomAlert";
-import BrsAuth from "../../apis/brsAuth";
-import BrsLoginForm, {Credentials} from "../BrsLoginForm";
+import BrsAuth, {LoginStatus} from "../../apis/brsAuth";
+import BrsLoginForm, {Credentials} from "../brsLoginForm";
+import googleAuth from "../../apis/googleAuth";
 
 export default class LoginPage extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
 
         this.state = {
-            brsAuthorized: props.brsAuth.checkAuth(),
+            brsLoading: true,
+            brsAuthorized: false,
             googleAuthorized: false,
             redirect: false,
             submitLoading: false,
@@ -23,36 +25,55 @@ export default class LoginPage extends React.Component<Props, State> {
 
     }
 
+    async componentDidMount() {
+        await this.props.brsAuth.tryRestoreAsync();
+        googleAuth.init();
+
+        const brsAuthorized = this.props.brsAuth.checkAuth();
+        const googleAuthorized = googleAuth.checkAuthorized();
+        this.setState({brsLoading: false, brsAuthorized, googleAuthorized});
+    }
+
     handleBrsSubmit = async (credentials: Credentials) => {
         this.setState({submitLoading: true});
 
-        const loginSucceed = await this.loginBrsAsync(credentials);
+        const loginStatus = await this.loginBrsAsync(credentials);
 
         this.setState({submitLoading: false})
 
-        if (loginSucceed) {
-            this.setState({
-                alertMessage: "Авторизация прошла успешно",
-                openAlert: true,
-                alertType: 'success',
-                brsAuthorized: true
-            });
-        } else
-            this.setState({
-                alertMessage: "Что-то пошло не так :( Попробуйте позже",
-                openAlert: true,
-                alertType: 'error'
-            });
+        switch (loginStatus) {
+            case LoginStatus.Succeed:
+                this.setState({
+                    alertMessage: "Авторизация прошла успешно",
+                    openAlert: true,
+                    alertType: 'success',
+                    brsAuthorized: true
+                });
+                break;
+            case LoginStatus.Error:
+                this.setState({
+                    alertMessage: "Что-то пошло не так :( Попробуйте позже",
+                    openAlert: true,
+                    alertType: 'error'
+                });
+                break;
+            case LoginStatus.InvalidCredentials:
+                this.setState({
+                    alertMessage: "Неверные логин, пароль или JSESSIONID",
+                    openAlert: true,
+                    alertType: 'error'
+                });
+        }
     }
 
-    loginBrsAsync = async (credentials: Credentials) => {
+    loginBrsAsync = async (credentials: Credentials): Promise<LoginStatus> => {
         if (credentials.sid) {
             return await this.props.brsAuth.authBySidAsync(credentials.sid);
         }
-        if (credentials.username && credentials.password) {
-            return await this.props.brsAuth.loginAsync(credentials.username, credentials.password);
+        if (credentials.login && credentials.password) {
+            return await this.props.brsAuth.loginAsync(credentials.login, credentials.password);
         }
-        return false;
+        return LoginStatus.InvalidCredentials;
     }
 
     handleCloseAlert = () => {
@@ -119,6 +140,7 @@ export default class LoginPage extends React.Component<Props, State> {
 }
 
 interface State {
+    brsLoading: boolean;
     brsAuthorized: boolean;
     googleAuthorized: boolean;
     submitLoading: boolean;

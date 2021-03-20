@@ -1,20 +1,20 @@
 import request from "request-promise";
 import BrsUrlProvider from "./brsUrlProvider";
 import * as cache from "../helpers/cache";
+import {StorageType} from "../helpers/cache";
 
 export default class BrsAuth {
     readonly brsUrlProvider: BrsUrlProvider;
 
     constructor(brsUrlProvider: BrsUrlProvider) {
         this.brsUrlProvider = brsUrlProvider;
-        this.tryLoadLoginInfoFromCache();
     }
 
     private _sid: string | null = null;
 
     get sid() {
         if (!this._sid)
-            this.loadLoginInfoFromCache();
+            throw new Error('BRS unauthorized');
         return this._sid;
     }
 
@@ -22,52 +22,111 @@ export default class BrsAuth {
 
     get login() {
         if (!this._login)
-            this.loadLoginInfoFromCache();
+            throw new Error('BRS unauthorized');
         return this._login;
+    }
+
+    private _username?: string = "Anonymous";
+
+    get username() {
+        return this._username;
     }
 
     checkAuth() {
         return !!(this._sid && this._login);
     }
 
-    async loginAsync(login: string, password: string): Promise<boolean> {
+    async tryRestoreAsync() {
+        if (!!(this._sid && this._login))
+            return;
+
+        let loginInfo = cache.read<LoginInfo>("loginInfo", StorageType.Session);
+        if (loginInfo) {
+            this.saveLoginInfo(loginInfo.sid, loginInfo.login, loginInfo.username);
+            return;
+        }
+
+        loginInfo = cache.read<LoginInfo>("loginInfo", StorageType.Local);
+        if (!loginInfo)
+            return;
+
+        if ((await this.checkSidAsync(loginInfo.sid))?.success)
+            this.saveLoginInfo(loginInfo.sid, loginInfo.login, loginInfo.username);
+    }
+
+    private async checkSidAsync(sid: string): Promise<{ success: boolean, username: string } | null> {
+        try {
+            const response: string = await request({
+                method: 'GET',
+                url: this.brsUrlProvider.baseUrl + "/mvc/mobile",
+                headers: {
+                    'X-Cookie': `JSESSIONID=${sid}`,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            const username = response.match(/username">([А-ЯЁа-яё \-]+)</);
+            if (username)
+                return {success: true, username: username[1]};
+            return {success: false, username: ""}
+
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async loginAsync(login: string, password: string): Promise<LoginStatus> {
         const response = await this.requestSidAsync(login, password);
 
         if (!response || !('x-set-cookie' in response.headers)) {
-            return false;
+            return LoginStatus.Error;
         }
 
         const cookie = response.headers['x-set-cookie'] as string;
         const result = cookie.match(/(?<=JSESSIONID=)\w+/);
 
         if (!result)
-            return false;
+            return LoginStatus.Error;
 
         const sid = result[0];
-        this.saveLoginInfo(sid, login);
 
-        return true;
+        const checkResult = await this.checkSidAsync(sid);
+        if (checkResult === null)
+            return LoginStatus.Error;
+        if (!checkResult.success)
+            return LoginStatus.InvalidCredentials;
+
+        this.saveLoginInfo(sid, login, checkResult.username);
+
+        return LoginStatus.Succeed;
     }
 
-    async authBySidAsync(sid: string): Promise<boolean> {
+    async authBySidAsync(sid: string): Promise<LoginStatus> {
         if (!sid)
-            return false;
+            return LoginStatus.InvalidCredentials;
 
-        cache.save('loginInfo', {sid: sid, login: 'SESSION'});
+        const checkResult = await this.checkSidAsync(sid);
+        if (checkResult === null)
+            return LoginStatus.Error;
+        if (!checkResult.success)
+            return LoginStatus.InvalidCredentials;
 
-        return true;
+        this.saveLoginInfo(sid, "Anonymous", checkResult.username);
+
+        return LoginStatus.Succeed;
     }
 
-    private saveLoginInfo(sid: string, login: string) {
-        cache.save('loginInfo', {sid, login});
+    private saveLoginInfo(sid: string, login: string, username: string) {
+        cache.save("loginInfo", {sid, login, username}, StorageType.LocalAndSession);
         this._sid = sid;
         this._login = login;
+        this._username = username;
     }
 
     logout() {
         this._sid = null;
         this._login = null;
-        cache.clear('loginInfo');
+        cache.clear("loginInfo", StorageType.LocalAndSession);
     }
 
     private async requestSidAsync(login: string, password: string) {
@@ -82,20 +141,16 @@ export default class BrsAuth {
             },
         }).then(x => x, () => null);
     }
+}
 
-    private loadLoginInfoFromCache() {
-        if (!this.tryLoadLoginInfoFromCache())
-            throw new Error('BRS unauthorized');
-    }
+export enum LoginStatus {
+    Succeed,
+    InvalidCredentials,
+    Error
+}
 
-    private tryLoadLoginInfoFromCache() {
-        const loginInfo = cache.read<{ sid: string, login: string }>('loginInfo');
-        if (!loginInfo)
-            return false;
-
-        this._sid = loginInfo.sid;
-        this._login = loginInfo.login;
-
-        return true;
-    }
+interface LoginInfo {
+    sid: string;
+    login: string;
+    username: string;
 }

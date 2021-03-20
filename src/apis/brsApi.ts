@@ -1,6 +1,7 @@
 import 'bluebird';
 import request from 'request-promise';
 import * as cache from '../helpers/cache';
+import {StorageType} from '../helpers/cache';
 import BrsAuth from "./brsAuth";
 import BrsUrlProvider from "./brsUrlProvider";
 import {CustomError, StatusCode} from "../helpers/CustomError";
@@ -21,7 +22,7 @@ export default class BrsApi {
         isModule: boolean
     ) {
         const cacheName = `${this.brsAuth.login}_getDiscipline_${year}_${termType}_${course}_${isModule}`;
-        const cacheResult = cache.read<Discipline[]>(cacheName);
+        const cacheResult = cache.read<Discipline[]>(cacheName, StorageType.Local);
         if (cacheResult) {
             return cacheResult;
         }
@@ -32,7 +33,7 @@ export default class BrsApi {
             course,
             isModule
         );
-        cache.save(cacheName, result);
+        cache.save(cacheName, result, StorageType.Local);
         return result;
     }
 
@@ -160,7 +161,7 @@ export default class BrsApi {
     ) {
         const cacheName = `${this.brsAuth.login}_getControlActions_${discipline.disciplineLoad}` +
             `_${discipline.isModule}_${discipline.groupHistoryId}_${discipline.groupId}_${cardType}_${markType}`;
-        const cacheResult = cache.read<ControlAction[]>(cacheName);
+        const cacheResult = cache.read<ControlAction[]>(cacheName, StorageType.Local);
         if (cacheResult) {
             return cacheResult;
         }
@@ -173,7 +174,7 @@ export default class BrsApi {
             cardType,
             markType
         );
-        cache.save(cacheName, result);
+        cache.save(cacheName, result, StorageType.Local);
         return result;
     }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Container,} from "@material-ui/core";
+import {Button, Container,} from "@material-ui/core";
 import DisciplinesFetch from "../DisciplinesFetch";
 import SpreadsheetFetch from "../spreadsheetFetch";
 import WorkerDialog from "../WorkerDialog";
@@ -12,6 +12,8 @@ import {Logger} from "../../helpers/logger";
 import BrsAuth from "../../apis/brsAuth";
 import RunWorkerButtons from "../RunWorkerButtons";
 import {StatusCode} from "../../helpers/CustomError";
+import LoadingPane from "../loadingPane/LoadingPane";
+import {Redirect} from "react-router-dom";
 
 export default class WorkPage extends React.Component<Props, State> {
     marksData: MarksData;
@@ -29,12 +31,14 @@ export default class WorkPage extends React.Component<Props, State> {
             openSessionExpiredAlert: false,
             sessionName: '',
             errorMessage: '',
+            loading: true,
         }
 
     }
 
     async componentDidMount() {
         await googleAuth.init();
+        await this.props.brsAuth.tryRestoreAsync();
 
         const brsAuthorized = this.props.brsAuth.checkAuth();
         const googleAuthorized = googleAuth.checkAuthorized();
@@ -43,6 +47,8 @@ export default class WorkPage extends React.Component<Props, State> {
             this.handleSessionExpired("БРС");
         else if (!googleAuthorized)
             this.handleSessionExpired("Google");
+        else
+            this.setState({loading: false});
     }
 
     handleDataLoaded = (data: MarksData) => {
@@ -76,7 +82,7 @@ export default class WorkPage extends React.Component<Props, State> {
     }
 
     handleSessionExpired = (sessionName: string) => {
-        this.setState({openSessionExpiredAlert: true, sessionName});
+        this.setState({openSessionExpiredAlert: true, sessionName, loading: false});
     }
 
     handleError = (error: any) => {
@@ -99,6 +105,7 @@ export default class WorkPage extends React.Component<Props, State> {
     render() {
         return (
             <React.Fragment>
+                {this.state.loading && <LoadingPane/>}
                 {this.state.openSessionExpiredAlert && <SessionExpiredAlert brsAuth={this.props.brsAuth}
                                                                             sessionName={this.state.sessionName}
                                                                             open={this.state.openSessionExpiredAlert}/>}
@@ -137,6 +144,7 @@ interface State {
     sessionName: string;
     errorMessage: string;
     runWork: boolean;
+    loading: boolean;
 }
 
 interface Props {

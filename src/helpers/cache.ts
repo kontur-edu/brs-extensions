@@ -1,26 +1,35 @@
 const memoryCache: { [name: string]: object | string } = {};
 
-export function save(name: string, data: object | string) {
+export function save(name: string, data: object | string, whereTo: StorageType) {
     if (!data) {
         return false;
     }
 
     const json = JSON.stringify(data);
 
-    localStorage.setItem(name, json);
+    if (whereTo === StorageType.Local || whereTo === StorageType.LocalAndSession)
+        localStorage.setItem(name, json);
+    if (whereTo === StorageType.Session || whereTo === StorageType.LocalAndSession)
+        sessionStorage.setItem(name, json);
 
     memoryCache[name] = data;
 
     return true;
 }
 
-export function read<T extends object | string>(name: string) {
+export function read<T extends object | string>(name: string, whereFrom: StorageType) {
     const localData = memoryCache[name];
     if (localData) {
         return localData as T;
     }
 
-    const content = localStorage.getItem(name);
+    let content: string | null = null
+
+    if (whereFrom === StorageType.Local || whereFrom === StorageType.LocalAndSession)
+        content = localStorage.getItem(name);
+    if (whereFrom === StorageType.Session || whereFrom === StorageType.LocalAndSession)
+        content = sessionStorage.getItem(name);
+
     if (!content) {
         return null;
     }
@@ -34,10 +43,19 @@ export function read<T extends object | string>(name: string) {
     return memoryData as T;
 }
 
-export function clear(name: string) {
-    localStorage.removeItem(name);
+export function clear(name: string, storageType: StorageType) {
+    if (storageType === StorageType.Local || storageType === StorageType.LocalAndSession)
+        localStorage.removeItem(name);
+    if (storageType === StorageType.Session || storageType === StorageType.LocalAndSession)
+        sessionStorage.removeItem(name);
 
     delete memoryCache[name];
 
     return true;
+}
+
+export enum StorageType {
+    Local,
+    Session,
+    LocalAndSession
 }
