@@ -32,6 +32,7 @@ export default class WorkPage extends React.Component<Props, State> {
             sessionName: '',
             errorMessage: '',
             loading: true,
+            redirect: false
         }
 
     }
@@ -95,11 +96,15 @@ export default class WorkPage extends React.Component<Props, State> {
         else if (error.name === "RequestError")
             this.setState({errorMessage: "В данный момент сервер недоступен. Попробуйте позже."});
         else
-            this.setState({errorMessage});
+            this.setState({errorMessage: `Что-то пошло не так : ${errorMessage}`});
     }
 
     closeError = () => {
         this.setState({errorMessage: ''})
+    }
+
+    returnToLoginPage = () => {
+        this.setState({redirect: true})
     }
 
     render() {
@@ -113,8 +118,14 @@ export default class WorkPage extends React.Component<Props, State> {
                                                          message={this.state.errorMessage}
                                                          type={'error'}
                                                          onClose={this.closeError}/>}
+                {this.state.redirect && <Redirect to="/"/>}
                 <div className="work-page">
                     <Container maxWidth="md">
+                        <Button variant="contained"
+                                style={{marginTop: 10}}
+                                onClick={this.returnToLoginPage}>
+                            Вернуться на страницу входа
+                        </Button>
                         <DisciplinesFetch brsApi={this.props.brsApi}
                                           onError={this.handleError}/>
                         <hr/>
@@ -145,6 +156,7 @@ interface State {
     errorMessage: string;
     runWork: boolean;
     loading: boolean;
+    redirect: boolean;
 }
 
 interface Props {
