@@ -92,7 +92,7 @@ export default function ({loading, onSubmit}: Props) {
                        value={course}
                        onChange={handleChange}
                        required/>
-            <FormControlLabel label="Модуль"
+            <FormControlLabel label="ИТС"
                               className={classes.isModule}
                               control={<Checkbox name="is-module"
                                                  color="primary"
