@@ -120,7 +120,7 @@ export default class WorkPage extends React.Component<Props, State> {
                                                          onClose={this.closeError}/>}
                 {this.state.redirect && <Redirect to="/"/>}
                 <div className="work-page">
-                    <Container maxWidth="md">
+                    <Container maxWidth="md" style={{paddingBottom: 10}}>
                         <Button variant="contained"
                                 style={{marginTop: 10}}
                                 onClick={this.returnToLoginPage}>
