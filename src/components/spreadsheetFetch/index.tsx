@@ -99,8 +99,8 @@ class SpreadsheetFetch extends React.Component<Props, State> {
     render() {
         return (
             <span className={'spreadsheet-fetch'}>
-                <h3 className={'vertical-margin-min'}>Вставь ссылку на Google Таблицу</h3>
-                <form onSubmit={this.loadTable} className={'vertical-margin-min'}>
+                <h3 className={'vertical-margin-medium'}>Вставь ссылку на Google Таблицу</h3>
+                <form onSubmit={this.loadTable} className={'vertical-margin-medium'}>
                     <TextField name="table-url"
                                label="Ссылка"
                                type="text"
@@ -114,7 +114,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
                                        loading={this.state.loading}
                                        className={'submit'}/>
                 </form>
-                <Collapse in={!!this.state.moduleGroups.length} className={"vertical-margin-min"}>
+                <Collapse in={!!this.state.moduleGroups.length} className={"vertical-margin-medium"}>
                     <NestedList items={this.state.moduleGroups} collapsed={false}/>
                 </Collapse>
             </span>

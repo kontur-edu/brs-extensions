@@ -49,10 +49,10 @@ export default function ({onSubmit, submitting, loading, signedIn, onLogout, use
             </React.Fragment>
         ) :
         (
-            <div style={{position: "relative"}}>
-                <p>Авторизуйтесь в БРС</p>
+            <div className={"brs-login-form"}>
                 <form className="form" onSubmit={handleSubmit}>
                     <TextField
+                        className={"form-component"}
                         variant="outlined"
                         margin="normal"
                         fullWidth
@@ -62,35 +62,39 @@ export default function ({onSubmit, submitting, loading, signedIn, onLogout, use
                         autoFocus
                         value={login}
                         disabled={loading}
-                        onChange={handleUsernameChanged}
-                    />
-                    <TextField variant="outlined"
-                               margin="normal"
-                               fullWidth
-                               name="password"
-                               label="Пароль"
-                               type="password"
-                               id="password"
-                               autoComplete="current-password"
-                               value={password}
-                               disabled={loading}
-                               onChange={handlePasswordChanged}/>
-                    <p className="text-center">или</p>
-                    <TextField variant="outlined"
-                               margin="normal"
-                               fullWidth
-                               name="sid"
-                               label="JSESSIONID"
-                               type="password"
-                               id="sid"
-                               value={sid}
-                               disabled={loading}
-                               onChange={handleSidChanged}/>
-                    <SubmitWithLoading title="войти" loading={submitting} disabled={loading}/>
+                        onChange={handleUsernameChanged}/>
+                    <TextField
+                        className={"form-component"}
+                        variant="outlined"
+                        margin="normal"
+                        fullWidth
+                        name="password"
+                        label="Пароль"
+                        type="password"
+                        id="password"
+                        autoComplete="current-password"
+                        value={password}
+                        disabled={loading}
+                        onChange={handlePasswordChanged}/>
+                    <p className="text-center form-component">или</p>
+                    <TextField
+                        className={"form-component"}
+                        variant="outlined"
+                        margin="normal"
+                        fullWidth
+                        name="sid"
+                        label="JSESSIONID"
+                        type="password"
+                        id="sid"
+                        value={sid}
+                        disabled={loading}
+                        onChange={handleSidChanged}/>
+                    <SubmitWithLoading className={"vertical-margin-medium"} title="войти" loading={submitting}
+                                       disabled={loading}/>
                 </form>
                 {
                     loading &&
-                    <CircularProgress color="primary" size={150} className="brs-login-form-loading"/>
+                    <CircularProgress color="primary" size={150} className="progress"/>
                 }
             </div>
         );

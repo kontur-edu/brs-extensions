@@ -125,11 +125,20 @@ export default class LoginPage extends React.Component<Props, State> {
                 <Container component="main" maxWidth="md">
                     <h1>Привет!</h1>
                     <h3>Как все работает</h3>
-                    <p>Как-то все работает</p>
+                    <p>В Google Таблицах вы заполняете оценки за курс по некоторому шаблону.<br/>
+                        После этого импортируете Google Таблицу в сервис и выполняете пробный запуск выставления оценок,
+                        чтобы исключить ошибки.<br/>
+                        Наконец делаете запуск с реальным выставлением оценок.</p>
+                    <p>Вы входите с БРС, чтобы сервис мог получить информацию о ваших курсах и выставлять оценки от
+                        вашего имени.<br/>
+                        Вы входите в Google, чтобы сервис мог загружать из ваших Google Таблиц оценки студентов.</p>
                     <h3>Правила хранения данных</h3>
-                    <p>Данные хранятся в localstorage</p>
+                    <p>Ваш логин и пароль передаются в БРС через наш прокси для создания сессии в БРС.<br/>
+                        Данные о сессии БРС и о доступных вам курсах сохраняются локально в вашем браузере.<br/>
+                        Остальные данные хранятся в рамках сессии в вашем браузере.</p>
                     <hr/>
-                    <Grid container justify="space-around">
+                    <p className={"align-center"}>Авторизуйтесь в БРС и Google, чтобы начать работу в сервисе</p>
+                    <Grid container justify="space-around" className={"vertical-margin-medium"}>
                         <Grid item md={5} lg={5} sm={5} xs={10}>
                             <BrsLoginForm onSubmit={this.handleBrsSubmit}
                                           loading={this.state.brsLoading}
@@ -137,9 +146,6 @@ export default class LoginPage extends React.Component<Props, State> {
                                           onLogout={this.handleBrsLogout}
                                           username={this.props.brsAuth.username}
                                           submitting={this.state.submitLoading}/>
-                        </Grid>
-                        <Grid item className="align-center">
-                            <h3>А также</h3>
                         </Grid>
                         <Grid item className="align-center">
                             <GoogleLoginButton onSignedIn={this.handleGoogleSignedIn}

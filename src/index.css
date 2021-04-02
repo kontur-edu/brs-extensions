@@ -12,7 +12,11 @@ code {
     monospace;
 }
 
-.vertical-margin-min {
+.vertical-margin-medium {
     margin-bottom: 20px;
     margin-top: 20px;
+}
+
+.align-center {
+    text-align: center;
 }

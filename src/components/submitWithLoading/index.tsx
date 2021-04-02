@@ -1,4 +1,4 @@
-import {CircularProgress, Button} from "@material-ui/core";
+import {Button, CircularProgress} from "@material-ui/core";
 import React from "react";
 import "./styles.css";
 

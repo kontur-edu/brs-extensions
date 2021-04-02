@@ -3,7 +3,7 @@ import React from "react";
 
 export default function ({show, onRunWorkSafe, onRunWorkUnsafe}: Props) {
     return (
-        <Collapse in={show} className={"vertical-margin-min"}>
+        <Collapse in={show} className={"vertical-margin-medium"}>
             <Grid container justify="space-around">
                 <Grid item>
                     <Button variant="contained"
