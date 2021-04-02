@@ -27,11 +27,13 @@ export default class BrsApi {
             return cacheResult;
         }
 
+        const total = await this.getDisciplineTotalAsync(year, termType, course, isModule);
         const result = await this.getDisciplineInternalAsync(
             year,
             termType,
             course,
-            isModule
+            isModule,
+            total
         );
         cache.save(cacheName, result, StorageType.Local);
         return result;
@@ -41,9 +43,10 @@ export default class BrsApi {
         year: number,
         termType: TermType,
         course: number,
-        isModule: boolean
+        isModule: boolean,
+        total: number
     ) {
-        const queryString = `?year=${year}&termType=${termType}&course=${course}&total=0&page=1&pageSize=1000&search=`;
+        const queryString = `?year=${year}&termType=${termType}&course=${course}&total=${total}&page=1&pageSize=1000&search=`;
         if (isModule) {
             const paging = await this.requestApiJsonAsync<Paging<Discipline>>(
                 '/mvc/mobile/module/fetch' + queryString
@@ -63,6 +66,20 @@ export default class BrsApi {
             }
             return disciplines;
         }
+    }
+
+    async getDisciplineTotalAsync(
+        year: number,
+        termType: TermType,
+        course: number,
+        isModule: boolean
+    ) {
+        const moduleParameter = isModule ? '&its=true' : '';
+        const queryString = `?year=${year}&termType=${termType}&course=${course}` + moduleParameter;
+        const total = await this.requestApiJsonAsync<number>(
+            '/mvc/mobile/discipline/amount' + queryString
+        );
+        return total;
     }
 
     async getAllStudentMarksAsync(discipline: Discipline) {
