@@ -50,11 +50,12 @@ export default class BrsAuth {
         if (!loginInfo)
             return;
 
-        if ((await this.checkSidAsync(loginInfo.sid))?.success)
+        const sidCheckResult = await this.checkSidAsync(loginInfo.sid);
+        if (sidCheckResult?.success)
             this.saveLoginInfo(loginInfo.sid, loginInfo.login, loginInfo.username);
     }
 
-    private async checkSidAsync(sid: string): Promise<{ success: boolean, username: string } | null> {
+    private async checkSidAsync(sid: string): Promise<SidCheckResult | null> {
         try {
             const response: string = await request({
                 method: 'GET',
@@ -152,5 +153,10 @@ export enum LoginStatus {
 interface LoginInfo {
     sid: string;
     login: string;
+    username: string;
+}
+
+interface SidCheckResult {
+    success: boolean;
     username: string;
 }

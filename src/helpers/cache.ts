@@ -19,7 +19,7 @@ export function save(name: string, data: object | string, whereTo: StorageType) 
 
 export function read<T extends object | string>(name: string, whereFrom: StorageType) {
     const localData = memoryCache[name];
-    if (localData) {
+    if (localData && whereFrom !== StorageType.Session) {
         return localData as T;
     }
 
