@@ -120,7 +120,7 @@ export default class WorkPage extends React.Component<Props, State> {
                                                          onClose={this.closeError}/>}
                 {this.state.redirect && <Redirect to="/"/>}
                 <div className="work-page">
-                    <Container maxWidth="md" style={{paddingBottom: 10}}>
+                    <Container maxWidth="md">
                         <Button variant="contained"
                                 style={{marginTop: 10}}
                                 onClick={this.returnToLoginPage}>
@@ -131,7 +131,6 @@ export default class WorkPage extends React.Component<Props, State> {
                         <hr/>
                         <SpreadsheetFetch onDataLoaded={this.handleDataLoaded}
                                           onError={this.handleError}/>
-                        <br/>
                         <RunWorkerButtons show={this.state.showControls}
                                           onRunWorkUnsafe={this.handleRunWorkUnsafe}
                                           onRunWorkSafe={this.handleRunWorkSafe}/>
