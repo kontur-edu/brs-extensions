@@ -1,35 +1,12 @@
 import React from 'react';
-import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
-import {
-    ListSubheader,
-    Collapse,
-    ListItemText,
-    ListItemIcon,
-    ListItem,
-    List
-} from '@material-ui/core';
+import {Collapse, List, ListItem, ListItemIcon, ListItemText, ListSubheader} from '@material-ui/core';
 import {ExpandLess, ExpandMore} from '@material-ui/icons';
 import GroupIcon from '@material-ui/icons/Group';
 import ViewModuleIcon from '@material-ui/icons/ViewModule';
-
-const useStyles = makeStyles((theme: Theme) =>
-    createStyles({
-        root: {
-            width: '100%',
-            backgroundColor: theme.palette.background.default,
-        },
-        nested: {
-            paddingLeft: theme.spacing(4),
-        },
-        onEmptyMessage: {
-            textAlign: "center"
-        }
-    }),
-);
+import "./styles.css"
 
 export default function NestedList(props: NestedListProps) {
     const {title, items, collapsed = true} = props;
-    const classes = useStyles();
 
     const listSubheader = (
         <ListSubheader component="div" id="nested-list-subheader" hidden={!title}>
@@ -42,11 +19,11 @@ export default function NestedList(props: NestedListProps) {
             component="nav"
             aria-labelledby="nested-list-subheader"
             subheader={listSubheader}
-            className={classes.root}>
+            className={"primary"}>
             {
                 items.length ?
                     ConstructItems(items, collapsed) :
-                    <ListItem className={classes.onEmptyMessage}>
+                    <ListItem className={"align-center"}>
                         <ListItemText primary="No items"/>
                     </ListItem>
             }
@@ -54,7 +31,7 @@ export default function NestedList(props: NestedListProps) {
     );
 }
 
-function ConstructItems(items: NestedListItem[], collapsed: boolean) {
+function ConstructItems(items: INestedListItem[], collapsed: boolean) {
     return items.map((item, index) => (
         <Item key={index}
               item={item}
@@ -62,16 +39,16 @@ function ConstructItems(items: NestedListItem[], collapsed: boolean) {
     ));
 }
 
-function Item(props: ItemProps) {
-    const {item, collapsed} = props;
+function Item({item, collapsed}: ItemProps) {
     const [open, setOpen] = React.useState(!collapsed);
+
     const {title, nestedItems} = item;
 
-    const hasSubItems = nestedItems && nestedItems.length > 0; //(item.nestedItems ?? []).length > 0;
+    const hasSubItems = nestedItems && nestedItems.length > 0;
 
     return (
         <React.Fragment>
-            <ListItem button onClick={() => setOpen(!open)}>
+            <ListItem button onClick={() => setOpen(!open)} className={"primary hover"}>
                 <ListItemIcon>
                     <ViewModuleIcon/>
                 </ListItemIcon>
@@ -79,37 +56,42 @@ function Item(props: ItemProps) {
                 {hasSubItems && (open ? <ExpandLess/> : <ExpandMore/>)}
             </ListItem>
             {
-                nestedItems?.map((nestedItemTitle, index) =>
-                    <NestedItem {...{index, open, nestedItemTitle}}/>)
+                nestedItems?.map((nestedItem, index) =>
+                    <NestedItem {...{index, open, title: nestedItem.title, colored: nestedItem.colored}}/>)
             }
         </React.Fragment>
     );
 }
 
-function NestedItem({index, nestedItemTitle, open}: NestedItemProps) {
-    const classes = useStyles();
+function NestedItem({index, title, open, colored}: NestedItemProps) {
+    const color = colored && "special";
 
     return (
         <Collapse key={index} in={open} timeout="auto" unmountOnExit>
-            <List component="div" className={classes.nested} disablePadding>
-                <ListItem button>
+            <List component="div" disablePadding>
+                <ListItem className={"nested-item " + color}>
                     <ListItemIcon>
                         <GroupIcon/>
                     </ListItemIcon>
-                    <ListItemText primary={nestedItemTitle}/>
+                    <ListItemText primary={title}/>
                 </ListItem>
             </List>
         </Collapse>
     );
 }
 
-export interface NestedListItem {
-    title: string,
-    nestedItems?: string[]
+export interface INestedListItem {
+    title: string;
+    nestedItems?: INestedItem[];
+}
+
+export interface INestedItem {
+    title: string;
+    colored?: boolean;
 }
 
 interface ItemsProps {
-    items: NestedListItem[];
+    items: INestedListItem[];
     collapsed?: boolean;
 }
 
@@ -118,12 +100,13 @@ interface NestedListProps extends ItemsProps {
 }
 
 interface ItemProps {
-    item: NestedListItem;
+    item: INestedListItem;
     collapsed?: boolean;
 }
 
 interface NestedItemProps {
     index: number;
-    nestedItemTitle: string;
+    title: string;
     open: boolean;
+    colored?: boolean;
 }

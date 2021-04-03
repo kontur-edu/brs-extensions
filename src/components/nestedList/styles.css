@@ -1,0 +1,19 @@
+.nested-item {
+    padding-left: 40px !important;
+}
+
+.dark {
+    background-color: #c4c5c5;
+}
+
+.primary {
+    background-color: #E2E3E3;
+}
+
+.special {
+    background-color: #FF0000;
+}
+
+.hover:hover {
+    background-color: #c4c5c5;
+}
