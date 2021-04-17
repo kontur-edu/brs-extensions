@@ -1,3 +1,5 @@
+import {DisciplineConfig} from "../functions/getSpreadsheetDataAsync";
+
 const memoryCache: { [name: string]: object | string } = {};
 
 export function save(name: string, data: object | string, whereTo: StorageType) {
@@ -52,6 +54,11 @@ export function clear(name: string, storageType: StorageType) {
     delete memoryCache[name];
 
     return true;
+}
+
+export function buildCacheName(login: string, method: string, disciplineConfig: DisciplineConfig) {
+    const {year, termType, course, isModule} = disciplineConfig;
+    return `${login}_${method}_${year}_${termType}_${course}_${isModule}`;
 }
 
 export enum StorageType {
