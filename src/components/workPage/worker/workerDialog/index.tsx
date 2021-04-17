@@ -4,8 +4,11 @@ import {Dialog, List, ListItem, ListItemText} from "@material-ui/core";
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
 import MuiDialogActions from '@material-ui/core/DialogActions';
-import SubmitWithLoading from "./submitWithLoading";
-import MarksManager, {MarksData} from "../marksActions/MarksManager";
+import SubmitWithLoading from "../../../submitWithLoading";
+import MarksManager from "../../../../marksActions/MarksManager";
+import {Discipline} from "../../../../apis/brsApi";
+import {SpreadsheetData} from "../../../../functions/getSpreadsheetDataAsync";
+import "./styles.css"
 
 const DialogContent = withStyles(() => ({
     root: {
@@ -51,7 +54,8 @@ export default class WorkerDialog extends React.Component<Props, State> {
     startWork = async () => {
         this.marksManager.getLogger().addLogHandler(this.logMessage);
 
-        await this.marksManager.putMarksToBrsAsync(this.props.marksData);
+        const {spreadsheetData, suitableDisciplines} = this.props.marksData;
+        await this.marksManager.putMarksToBrsAsync(spreadsheetData, suitableDisciplines);
 
         this.marksManager.getLogger().removeLogHandler(this.logMessage);
 
@@ -69,7 +73,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
     render() {
         return (
             <React.Fragment>
-                <Dialog open={this.props.runWork} maxWidth="lg" fullWidth>
+                <Dialog open={this.props.runWork} maxWidth="md" fullWidth className="worker-dialog">
                     <MuiDialogTitle>Лог действий</MuiDialogTitle>
                     <DialogContent dividers>
                         <List dense disablePadding style={{minHeight: 400}}>
@@ -93,6 +97,11 @@ export default class WorkerDialog extends React.Component<Props, State> {
             </React.Fragment>
         );
     }
+}
+
+export interface MarksData {
+    spreadsheetData: SpreadsheetData;
+    suitableDisciplines: Discipline[];
 }
 
 interface Props {
