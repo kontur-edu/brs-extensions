@@ -1,18 +1,15 @@
-import { TermType, Discipline, StudentFailure } from '../apis/brsApi';
-import { MarksData, DisciplineConfig } from '../marksActions/MarksManager';
+import {Discipline, StudentFailure, TermType} from '../apis/brsApi';
+import {ControlActionConfig} from '../marksActions/MarksManager';
 import * as readStudents from './readStudentsAsync';
-import { ActualStudent } from './readStudentsAsync';
+import {ActualStudent} from './readStudentsAsync';
 import * as googleApi from '../apis/googleApi';
-import { normalizeString, compareNormalized } from '../helpers/tools';
-import { parseStudentFailure } from '../helpers/brsHelpers';
-import { ControlActionConfig } from '../marksActions/MarksManager';
+import {compareNormalized, normalizeString} from '../helpers/tools';
+import {parseStudentFailure} from '../helpers/brsHelpers';
 
-export default async function buildAutoMarksConfigAsync(
+export default async function getSpreadsheetDataAsync(
     spreadsheetId: string,
-    sheetName: string,
-    isSuitableDiscipline: ((d: Discipline) => boolean) | null = null,
-    isSuitableActualStudent: ((s: ActualStudent) => boolean) | null = null
-): Promise<MarksData> {
+    sheetName: string,): Promise<SpreadsheetData> {
+
     const rows = await readRowsFromSpreadsheetAsync(spreadsheetId, sheetName);
     const header = getHeader(rows);
 
@@ -22,10 +19,10 @@ export default async function buildAutoMarksConfigAsync(
     const disciplineConfig = buildDisciplineConfig(
         rows,
         indices,
-        isSuitableDiscipline
+        null
     );
 
-    const allActualStudents = await readStudents.fromSpreadsheetAsync(
+    const actualStudents = await readStudents.fromSpreadsheetAsync(
         spreadsheetId,
         dataRange,
         indices.fullNameColumn - indices.left,
@@ -33,9 +30,6 @@ export default async function buildAutoMarksConfigAsync(
         null,
         indices.failureColumn - indices.left
     );
-    const actualStudents = isSuitableActualStudent
-        ? allActualStudents.filter(isSuitableActualStudent)
-        : allActualStudents;
 
     return {
         actualStudents,
@@ -96,7 +90,7 @@ function buildIndicesBy(header: string[]): Indices {
         disciplineParameterKeyColumnIndex <= failureColumnIndex ||
         disciplineParameterValueColumnIndex <= failureColumnIndex ||
         disciplineParameterValueColumnIndex !==
-            disciplineParameterKeyColumnIndex + 1
+        disciplineParameterKeyColumnIndex + 1
     )
         throw new Error(`Wrong order of columns`);
     const leftIndex = Math.min(groupColumnIndex, fullNameColumnIndex);
@@ -228,6 +222,22 @@ function addDisciplineConfigParameter(
         config.defaultStudentFailure =
             parseStudentFailure(value) ?? StudentFailure.NoFailure;
     }
+}
+
+export interface SpreadsheetData {
+    actualStudents: ActualStudent[];
+    disciplineConfig: DisciplineConfig;
+    controlActionConfigs: ControlActionConfig[];
+}
+
+export interface DisciplineConfig {
+    name: string;
+    year: number;
+    termType: number;
+    course: number;
+    isModule: boolean;
+    defaultStudentFailure: StudentFailure;
+    isSuitableDiscipline: ((d: Discipline) => boolean) | null;
 }
 
 interface Indices {
