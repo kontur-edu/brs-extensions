@@ -11,7 +11,7 @@ import {StorageType} from "../../helpers/cache"
 import './styles.css';
 import catchOrReturn from "../../helpers/catchOrReturn";
 import RunWorkerButtons from "../workPage/worker/RunWorkerButtons";
-import WorkerDialog, {MarksData} from "../workPage/worker/workerDialog";
+import WorkerDialog, {MarksData} from "../workPage/worker";
 import MarksManager, {PutMarksOptions} from "../../marksActions/MarksManager";
 import {Logger} from "../../helpers/logger";
 
@@ -209,7 +209,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
                 </form>
                 <Collapse in={this.state.showDisciplines} className={"vertical-margin-min"}>
                     <h3>Загруженная дисциплина из Google Таблицы</h3>
-                    <p>Группы, к которым у Вас нет доступа в БРС, подсвеченны
+                    <p>Группы, к которым у Вас нет доступа в БРС, подсвечены
                         <b className={"colored-text"}> красным</b></p>
                     <NestedList items={this.state.disciplines} collapsed={false}/>
                     {this.state.disciplinesMissed ?
