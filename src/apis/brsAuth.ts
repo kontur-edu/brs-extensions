@@ -2,6 +2,7 @@ import request from "request-promise";
 import BrsUrlProvider from "./brsUrlProvider";
 import * as cache from "../helpers/cache";
 import {StorageType} from "../helpers/cache";
+import {CustomError, StatusCode} from "../helpers/CustomError";
 
 export default class BrsAuth {
     readonly brsUrlProvider: BrsUrlProvider;
@@ -14,7 +15,7 @@ export default class BrsAuth {
 
     get sid() {
         if (!this._sid)
-            throw new Error('BRS unauthorized');
+            throw new CustomError(StatusCode.BrsUnauthorized, 'BRS unauthorized');
         return this._sid;
     }
 
@@ -22,7 +23,7 @@ export default class BrsAuth {
 
     get login() {
         if (!this._login)
-            throw new Error('BRS unauthorized');
+            throw new CustomError(StatusCode.BrsUnauthorized, 'BRS unauthorized');
         return this._login;
     }
 
@@ -69,7 +70,7 @@ export default class BrsAuth {
             const username = response.match(/username">([А-ЯЁа-яё \-]+)</);
             if (username)
                 return {success: true, username: username[1]};
-            return {success: false, username: ""}
+            return {success: false, username: "Anonymous"}
 
         } catch (e) {
             return null;
