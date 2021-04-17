@@ -7,7 +7,7 @@ import BrsUrlProvider from "./brsUrlProvider";
 import {CustomError, StatusCode} from "../helpers/CustomError";
 
 export default class BrsApi {
-    private readonly brsAuth: BrsAuth;
+    readonly brsAuth: BrsAuth;
     private readonly brsUrlProvider: BrsUrlProvider;
 
     constructor(brsAuth: BrsAuth, brsUrlProvider: BrsUrlProvider) {
@@ -46,7 +46,7 @@ export default class BrsApi {
         isModule: boolean,
         total: number
     ) {
-        const queryString = `?year=${year}&termType=${termType}&course=${course}&total=${total}&page=1&pageSize=1000&search=`;
+        const queryString = `?year=${year}&termType=${termType}&course=${course}&total=${total}&page=1&pageSize=${total}&search=`;
         if (isModule) {
             const paging = await this.requestApiJsonAsync<Paging<Discipline>>(
                 '/mvc/mobile/module/fetch' + queryString
