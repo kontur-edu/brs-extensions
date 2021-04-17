@@ -19,7 +19,7 @@ export default function NestedList(props: NestedListProps) {
             component="nav"
             aria-labelledby="nested-list-subheader"
             subheader={listSubheader}
-            className={"primary"}>
+            className={"nested-list primary"}>
             {
                 items.length ?
                     ConstructItems(items, collapsed) :
@@ -64,7 +64,7 @@ function Item({item, collapsed}: ItemProps) {
 }
 
 function NestedItem({index, title, open, colored}: NestedItemProps) {
-    const color = colored && "special";
+    const color = colored && "colored";
 
     return (
         <Collapse key={index} in={open} timeout="auto" unmountOnExit>
