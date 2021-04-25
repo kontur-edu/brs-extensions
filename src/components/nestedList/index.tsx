@@ -64,7 +64,7 @@ function Item({item, collapsed}: ItemProps) {
 }
 
 function NestedItem({index, title, open, colored}: NestedItemProps) {
-    const color = colored && "colored";
+    const color = colored && "colored-back";
 
     return (
         <Collapse key={index} in={open} timeout="auto" unmountOnExit>

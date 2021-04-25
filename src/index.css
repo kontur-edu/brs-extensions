@@ -38,3 +38,11 @@ code {
     text-decoration: underline;
     cursor: pointer;
 }
+
+.colored-text {
+    color: #FF7777;
+}
+
+.colored-back {
+    background: #FF7777;
+}

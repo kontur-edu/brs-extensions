@@ -10,10 +10,6 @@
     background-color: #E2E3E3;
 }
 
-.nested-list .colored {
-    background-color: #FF0000;
-}
-
 .nested-list .hover:hover {
     background-color: #c4c5c5;
 }
