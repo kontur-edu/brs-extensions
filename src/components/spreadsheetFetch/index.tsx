@@ -11,9 +11,9 @@ import {StorageType} from "../../helpers/cache"
 import './styles.css';
 import catchOrReturn from "../../helpers/catchOrReturn";
 import RunWorkerButtons from "../workPage/worker/RunWorkerButtons";
-import WorkerDialog, {MarksData} from "../workPage/worker";
 import MarksManager, {PutMarksOptions} from "../../marksActions/MarksManager";
 import {Logger} from "../../helpers/logger";
+import WorkerDialog, {MarksData} from "../workPage/worker/workerDialog";
 
 class SpreadsheetFetch extends React.Component<Props, State> {
     marksData: MarksData = {} as any;
@@ -22,7 +22,6 @@ class SpreadsheetFetch extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
 
-        // const items = Array(10).fill({title: "Text", colored: true});
         this.state = {
             tableUrl: '',
             loading: false,
@@ -192,7 +191,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
     render() {
         return (
             <span className={'spreadsheet-fetch'}>
-                <h3 className={'vertical-margin-min'}>Вставь ссылку на лист Google Таблицы с оценками</h3>
+                <h3 className={'vertical-margin-min'}>Вставьте ссылку на лист Google Таблицы с оценками</h3>
                 <form onSubmit={this.loadDisciplines} className={'vertical-margin-min'}>
                     <TextField name="table-url"
                                label="Ссылка"
@@ -209,12 +208,11 @@ class SpreadsheetFetch extends React.Component<Props, State> {
                 </form>
                 <Collapse in={this.state.showDisciplines} className={"vertical-margin-min"}>
                     <h3>Загруженная дисциплина из Google Таблицы</h3>
-                    <p>Группы, к которым у Вас нет доступа в БРС, подсвечены
-                        <b className={"colored-text"}> красным</b></p>
+                    <p>Группы, к которым у Вас нет доступа в БРС, <b className={"colored-text"}> подсвечены</b></p>
                     <NestedList items={this.state.disciplines} collapsed={false}/>
                     {this.state.disciplinesMissed ?
                         <React.Fragment>
-                            <span>У вас нет доступа ни к одной из перечисленных групп в БРС</span>
+                            <span>У Вас нет доступа ни к одной из перечисленных групп в БРС</span>
                             <ol className={"no-margin"}>
                                 <li>Убедитесь, что название курса в БРС и в Google Таблицах совпадает</li>
                                 <li>Запросите доступ на курс в БРС</li>
@@ -223,7 +221,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
                             </ol>
                         </React.Fragment> :
                         <React.Fragment>
-                            <p>Если вам доступны не все группы, которые вам доступны в БРС, то <a
+                            <p>Если Вам доступны не все группы, которые вам доступны в БРС, то <a
                                 className={"button-link"}
                                 aria-disabled={true}
                                 onClick={this.updateCachedDisciplines}>обновите кэш групп</a>
