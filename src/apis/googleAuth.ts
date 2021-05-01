@@ -26,12 +26,8 @@ const googleAuth = {
 
     getUsername(): string | undefined {
         // @ts-ignore
-        const username = gapi.auth2?.getAuthInstance().currentUser?.get().getBasicProfile().getName();
-        if (username)
-            return username;
-
-        // @ts-ignore
-        return gapi.auth2?.getAuthInstance().currentUser?.get().getBasicProfile().getEmail();
+        const basicProfile = gapi.auth2?.getAuthInstance()?.currentUser?.get()?.getBasicProfile();
+        return basicProfile?.getName() || basicProfile?.getEmail();
     },
 
     async logout() {
