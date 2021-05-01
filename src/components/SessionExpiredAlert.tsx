@@ -15,6 +15,8 @@ export default function SessionExpiredAlert({open, sessionName, brsAuth}: Props)
     const [redirect, setRedirect] = React.useState(false);
 
     const handleOk = () => {
+        if (sessionName === "БРС")
+            brsAuth.logout();
         setRedirect(true);
     };
 
