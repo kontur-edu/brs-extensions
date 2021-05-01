@@ -50,6 +50,8 @@ export default function ({onSubmit, submitting, loading, signedIn, onLogout, use
         ) :
         (
             <div className={"brs-login-form"}>
+                <p>Войдите в БРС, чтобы сервис мог получить информацию о ваших курсах и выставлять оценки от вашего
+                    имени</p>
                 <form className="form" onSubmit={handleSubmit}>
                     <TextField
                         className={"form-component"}

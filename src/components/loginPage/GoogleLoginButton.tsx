@@ -7,7 +7,7 @@ const SCOPES = "profile email https://www.googleapis.com/auth/spreadsheets";
 
 export default function GoogleLoginButton(props: Props) {
     const {onSignedIn, onFailure, signedIn, username, onLogout} = props;
-    
+
     return (
         <React.Fragment>
             {
@@ -22,13 +22,16 @@ export default function GoogleLoginButton(props: Props) {
                             Выйти из Google
                         </Button>
                     </React.Fragment> :
-                    <GoogleLogin
-                        clientId={CLIENT_ID}
-                        buttonText="Войти в аккаунт Google"
-                        onSuccess={onSignedIn}
-                        onFailure={onFailure}
-                        scope={SCOPES}
-                        isSignedIn={true}/>
+                    <React.Fragment>
+                        <p>Войдите в Google, чтобы сервис мог загружать оценки студентов из ваших Google Таблиц</p>
+                        <GoogleLogin
+                            clientId={CLIENT_ID}
+                            buttonText="Войти в аккаунт Google"
+                            onSuccess={onSignedIn}
+                            onFailure={onFailure}
+                            scope={SCOPES}
+                            isSignedIn={true}/>
+                    </React.Fragment>
             }
         </React.Fragment>
     );

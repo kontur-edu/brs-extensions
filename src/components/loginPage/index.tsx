@@ -1,12 +1,12 @@
 import React from 'react';
 import "./styles.css";
 import {Redirect} from "react-router-dom";
-import {Button, Container, Grid} from "@material-ui/core";
-import GoogleLoginButton from "./GoogleLoginButton";
-import CustomAlert from "../CustomAlert";
+import {Button, Container} from "@material-ui/core";
 import BrsAuth, {LoginStatus} from "../../apis/brsAuth";
 import BrsLoginForm, {Credentials} from "./brsLoginForm";
 import googleAuth from "../../apis/googleAuth";
+import GoogleLoginButton from "./GoogleLoginButton";
+import CustomAlert from "../CustomAlert";
 
 export default class LoginPage extends React.Component<Props, State> {
     constructor(props: Props) {
@@ -123,40 +123,36 @@ export default class LoginPage extends React.Component<Props, State> {
             <div className="login-page">
                 {this.state.redirect && <Redirect to="/work"/>}
                 <Container component="main" maxWidth="md">
-                    <h1>Привет!</h1>
-                    <h3>Как все работает</h3>
-                    <p>В Google Таблицах Вы заполняете оценки за курс по некоторому шаблону.<br/>
+                    <h1>Добро пожаловать в Расширения БРС</h1>
+                    <h3 className={"block-header"}>Как все работает</h3>
+                    <p>В Google Таблицах вы заполняете оценки за курс по некоторому шаблону.<br/>
                         После этого импортируете Google Таблицу в сервис и выполняете пробный запуск выставления оценок,
                         чтобы исключить ошибки.<br/>
                         Наконец делаете запуск с реальным выставлением оценок.</p>
-                    <p>Вы входите с БРС, чтобы сервис мог получить информацию о ваших курсах и выставлять оценки от
-                        вашего имени.<br/>
-                        Вы входите в Google, чтобы сервис мог загружать из ваших Google Таблиц оценки студентов.</p>
-                    <h3>Правила хранения данных</h3>
+                    <h3 className={"block-header"}>Правила хранения данных</h3>
                     <p>Ваш логин и пароль передаются в БРС через наш прокси для создания сессии в БРС.<br/>
-                        Данные о сессии БРС и о доступных Вам курсах сохраняются локально в вашем браузере.<br/>
+                        Данные о сессии БРС и о доступных вам курсах сохраняются локально в вашем браузере.<br/>
                         Остальные данные хранятся в рамках сессии в вашем браузере.</p>
                     <hr/>
-                    <p className={"align-center"}>Авторизуйтесь в БРС и Google, чтобы начать работу в сервисе</p>
-                    <Grid container justify="space-around" className={"vertical-margin-medium"}>
-                        <Grid item md={5} lg={5} sm={5} xs={10}>
+                    <Container maxWidth={"xs"}>
+                        <Container>
                             <BrsLoginForm onSubmit={this.handleBrsSubmit}
                                           loading={this.state.brsLoading}
                                           signedIn={this.state.brsAuthorized}
                                           onLogout={this.handleBrsLogout}
                                           username={this.props.brsAuth.username}
                                           submitting={this.state.submitLoading}/>
-                        </Grid>
-                        <Grid item className="align-center">
+                        </Container>
+                        <hr className={"vertical-margin-medium"}/>
+                        <Container className={"text-align-center"}>
                             <GoogleLoginButton onSignedIn={this.handleGoogleSignedIn}
                                                signedIn={this.state.googleAuthorized}
                                                username={googleAuth.getUsername()}
                                                onLogout={this.handleGoogleLogout}
                                                onFailure={this.handleGoogleLoginFailed}/>
-                            <br/>
-                        </Grid>
-                    </Grid>
-                    <Container className="start-work-wrapper">
+                        </Container>
+                    </Container>
+                    <Container className="text-align-center vertical-margin-large">
                         <Button variant="contained"
                                 onClick={this.startWork}
                                 disabled={!this.state.brsAuthorized || !this.state.googleAuthorized}
