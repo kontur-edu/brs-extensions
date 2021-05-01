@@ -3,6 +3,8 @@ import SubmitWithLoading from "../../submitWithLoading";
 import React, {FormEvent} from "react";
 import "./styles.css"
 
+const sidGainingInstruction = "https://docs.google.com/document/d/1btXePo-5bE8RyX7RFXnBuS-UN9SmwUithpc_UXhAWsg/edit";
+
 export default function ({onSubmit, submitting, loading, signedIn, onLogout, username}: Props) {
     const [login, setLogin] = React.useState('');
     const [password, setPassword] = React.useState('');
@@ -91,6 +93,10 @@ export default function ({onSubmit, submitting, loading, signedIn, onLogout, use
                         value={sid}
                         disabled={loading}
                         onChange={handleSidChanged}/>
+                    <a href={sidGainingInstruction}
+                       className={"button-link"}
+                       target={"_blank"}
+                    >Как получить JSESSIONID</a>
                     <SubmitWithLoading className={"vertical-margin-medium"} title="войти" loading={submitting}
                                        disabled={loading}/>
                 </form>
