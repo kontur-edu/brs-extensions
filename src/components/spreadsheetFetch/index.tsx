@@ -1,7 +1,7 @@
 import React, {FormEvent, memo} from "react";
 import getSpreadsheetDataAsync, {DisciplineConfig, SpreadsheetData} from "../../functions/getSpreadsheetDataAsync";
 import NestedList, {INestedItem, INestedListItem} from "../nestedList";
-import {Collapse, TextField} from "@material-ui/core";
+import {Collapse, Container, TextField} from "@material-ui/core";
 import SubmitWithLoading from "../submitWithLoading";
 import {getSpreadsheetProperties} from "../../apis/googleApi";
 import getSuitableDisciplinesAsync from "../../functions/getSuitableDisciplinesAsync";
@@ -14,6 +14,9 @@ import RunWorkerButtons from "../workPage/worker/RunWorkerButtons";
 import MarksManager, {PutMarksOptions} from "../../marksActions/MarksManager";
 import {Logger} from "../../helpers/logger";
 import WorkerDialog, {MarksData} from "../workPage/worker/workerDialog";
+
+const spreadsheetPattern = "https://docs.google.com/spreadsheets/d/1Owzl3JfmFASIdC7ZMMw-0kkA3pwFSab1QdVO5dhZoxY/edit#gid=675912523";
+const spreadsheetUrlPattern = "https://docs.google.com/spreadsheets/d/sjwa1/edit#gid=0"
 
 class SpreadsheetFetch extends React.Component<Props, State> {
     marksData: MarksData = {} as any;
@@ -194,7 +197,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
                 <h3 className={'vertical-margin-min'}>Вставьте ссылку на лист Google Таблицы с оценками</h3>
                 <form onSubmit={this.loadDisciplines} className={'vertical-margin-min'}>
                     <TextField name="table-url"
-                               label="Ссылка"
+                               label={"Ссылка вида " + spreadsheetUrlPattern}
                                type="text"
                                className={'tableUrl'}
                                value={this.state.tableUrl}
@@ -205,6 +208,9 @@ class SpreadsheetFetch extends React.Component<Props, State> {
                     <SubmitWithLoading title="загрузить"
                                        loading={this.state.loading}
                                        className={'submit'}/>
+                    <a href={spreadsheetPattern}
+                       target={"_blank"}
+                       className={"button-link"}>Пример таблицы для экспорта в БРС</a>
                 </form>
                 <Collapse in={this.state.showDisciplines} className={"vertical-margin-min"}>
                     <h3>Загруженная дисциплина из Google Таблицы</h3>
@@ -223,12 +229,13 @@ class SpreadsheetFetch extends React.Component<Props, State> {
                         <React.Fragment>
                             <p>Если Вам доступны не все группы, которые вам доступны в БРС, то <a
                                 className={"button-link"}
-                                aria-disabled={true}
                                 onClick={this.updateCachedDisciplines}>обновите кэш групп</a>
                             </p>
-                            <RunWorkerButtons enabled={this.state.showWorkerButtons}
-                                              onRunWorkSafe={this.handleRunWorkSafe}
-                                              onRunWorkUnsafe={this.handleRunWorkUnsafe}/>
+                            <Container className={"vertical-margin-medium"}>
+                                <RunWorkerButtons enabled={this.state.showWorkerButtons}
+                                                  onRunWorkSafe={this.handleRunWorkSafe}
+                                                  onRunWorkUnsafe={this.handleRunWorkUnsafe}/>
+                            </Container>
                         </React.Fragment>
                     }
                 </Collapse>
