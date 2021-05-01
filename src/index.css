@@ -22,16 +22,22 @@ code {
     margin-top: 8px;
 }
 
+.vertical-margin-large {
+    margin-bottom: 40px;
+    margin-top: 40px;
+}
+
 .no-margin {
     margin: 0;
 }
 
-.align-center {
+.text-align-center {
     text-align: center;
 }
 
 .button-link {
     color: blue;
+    text-decoration: none;
 }
 
 .button-link:hover {
@@ -45,4 +51,12 @@ code {
 
 .colored-back {
     background: #FF7777;
+}
+
+.block-header {
+    margin-bottom: 0;
+}
+
+.block-header ~ p {
+    margin-top: 5px;
 }

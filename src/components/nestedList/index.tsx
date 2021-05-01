@@ -23,7 +23,7 @@ export default function NestedList(props: NestedListProps) {
             {
                 items.length ?
                     ConstructItems(items, collapsed) :
-                    <ListItem className={"align-center"}>
+                    <ListItem className={"text-align-center"}>
                         <ListItemText primary="No items"/>
                     </ListItem>
             }
