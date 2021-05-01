@@ -1,5 +1,5 @@
-import { StudentFailure } from '../apis/brsApi';
-import { compareNormalized } from './tools';
+import {StudentFailure} from '../apis/brsApi';
+import {compareNormalized} from './tools';
 
 const failureMapping: { [key: string]: StudentFailure } = {
     '-': StudentFailure.NoFailure,
