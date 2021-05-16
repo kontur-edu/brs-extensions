@@ -21,7 +21,7 @@ export default class BrsApi {
         course: number,
         isModule: boolean
     ) {
-        const cacheName = `${this.brsAuth.login}_getDiscipline_${year}_${termType}_${course}_${isModule}`;
+        const cacheName = `${this.brsAuth.cacheName}_getDiscipline_${year}_${termType}_${course}_${isModule}`;
         const cacheResult = cache.read<Discipline[]>(cacheName, StorageType.Local);
         if (cacheResult) {
             return cacheResult;
@@ -177,7 +177,7 @@ export default class BrsApi {
         cardType: CardType,
         markType: MarkType
     ) {
-        const cacheName = `${this.brsAuth.login}_getControlActions_${discipline.disciplineLoad}` +
+        const cacheName = `${this.brsAuth.cacheName}_getControlActions_${discipline.disciplineLoad}` +
             `_${discipline.isModule}_${discipline.groupHistoryId}_${discipline.groupId}_${cardType}_${markType}`;
         const cacheResult = cache.read<ControlAction[]>(cacheName, StorageType.Local);
         if (cacheResult) {

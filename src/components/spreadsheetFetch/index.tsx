@@ -160,15 +160,15 @@ class SpreadsheetFetch extends React.Component<Props, State> {
         event.preventDefault();
         this.setState({showWorkerButtons: false})
 
-        const login = catchOrReturn(() => this.props.brsApi.brsAuth.login, this.props.onError);
-        if (!login)
+        const userCacheName = catchOrReturn(() => this.props.brsApi.brsAuth.cacheName, this.props.onError);
+        if (!userCacheName)
             return;
 
         const disciplineConfig = this.marksData.spreadsheetData?.disciplineConfig;
         if (!disciplineConfig)
             return;
 
-        const cacheName = cache.buildCacheName(login, "getDiscipline", disciplineConfig);
+        const cacheName = cache.buildCacheName(userCacheName, "getDiscipline", disciplineConfig);
         cache.clear(cacheName, StorageType.Local);
 
         this.loadDisciplines();

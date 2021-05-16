@@ -19,12 +19,12 @@ export default class BrsAuth {
         return this._sid;
     }
 
-    private _login: string | null = null;
+    private _cacheName: string | null = null;
 
-    get login() {
-        if (!this._login)
+    get cacheName() {
+        if (!this._cacheName)
             throw new CustomError(StatusCode.BrsUnauthorized, 'BRS unauthorized');
-        return this._login;
+        return this._cacheName;
     }
 
     private _username?: string = "Anonymous";
@@ -34,16 +34,16 @@ export default class BrsAuth {
     }
 
     checkAuth() {
-        return !!(this._sid && this._login);
+        return !!(this._sid && this._cacheName);
     }
 
     async tryRestoreAsync() {
-        if (!!(this._sid && this._login))
+        if (!!(this._sid && this._cacheName))
             return;
 
         let loginInfo = cache.read<LoginInfo>("loginInfo", StorageType.Session);
         if (loginInfo) {
-            this.saveLoginInfo(loginInfo.sid, loginInfo.login, loginInfo.username);
+            this.saveLoginInfo(loginInfo.sid, loginInfo.username);
             return;
         }
 
@@ -53,7 +53,7 @@ export default class BrsAuth {
 
         const sidCheckResult = await this.checkSidAsync(loginInfo.sid);
         if (sidCheckResult?.success)
-            this.saveLoginInfo(loginInfo.sid, loginInfo.login, loginInfo.username);
+            this.saveLoginInfo(loginInfo.sid, loginInfo.username);
     }
 
     private async checkSidAsync(sid: string): Promise<SidCheckResult | null> {
@@ -98,7 +98,7 @@ export default class BrsAuth {
         if (!checkResult.success)
             return LoginStatus.InvalidCredentials;
 
-        this.saveLoginInfo(sid, login, checkResult.username);
+        this.saveLoginInfo(sid, checkResult.username);
 
         return LoginStatus.Succeed;
     }
@@ -113,21 +113,24 @@ export default class BrsAuth {
         if (!checkResult.success)
             return LoginStatus.InvalidCredentials;
 
-        this.saveLoginInfo(sid, "Anonymous", checkResult.username);
+        this.saveLoginInfo(sid, checkResult.username);
 
         return LoginStatus.Succeed;
     }
 
-    private saveLoginInfo(sid: string, login: string, username: string) {
-        cache.save("loginInfo", {sid, login, username}, StorageType.LocalAndSession);
+    private saveLoginInfo(sid: string, username: string) {
+        const cacheName = username.replaceAll(' ', '_');
+
+        cache.save("loginInfo", {sid, cacheName, username}, StorageType.LocalAndSession);
+
         this._sid = sid;
-        this._login = login;
+        this._cacheName = cacheName;
         this._username = username;
     }
 
     logout() {
         this._sid = null;
-        this._login = null;
+        this._cacheName = null;
         cache.clear("loginInfo", StorageType.LocalAndSession);
     }
 
@@ -153,7 +156,7 @@ export enum LoginStatus {
 
 interface LoginInfo {
     sid: string;
-    login: string;
+    cacheName: string;
     username: string;
 }
 
