@@ -50,7 +50,7 @@ code {
 }
 
 .colored-back {
-    background: #FF7777;
+    background: #FF7777 !important;
 }
 
 .block-header {

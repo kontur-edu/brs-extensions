@@ -1,12 +1,10 @@
 import React from 'react';
-import {Collapse, List, ListItem, ListItemIcon, ListItemText, ListSubheader} from '@material-ui/core';
+import {Collapse, List, ListItem, ListItemIcon, ListItemText, ListSubheader, SvgIcon} from '@material-ui/core';
 import {ExpandLess, ExpandMore} from '@material-ui/icons';
-import GroupIcon from '@material-ui/icons/Group';
-import ViewModuleIcon from '@material-ui/icons/ViewModule';
 import "./styles.css"
 
 export default function NestedList(props: NestedListProps) {
-    const {title, items, collapsed = true} = props;
+    const {title, items, icons} = props;
 
     const listSubheader = (
         <ListSubheader component="div" id="nested-list-subheader" hidden={!title}>
@@ -22,7 +20,7 @@ export default function NestedList(props: NestedListProps) {
             className={"nested-list primary"}>
             {
                 items.length ?
-                    ConstructItems(items, collapsed) :
+                    ConstructItems(items, 0, icons) :
                     <ListItem className={"text-align-center"}>
                         <ListItemText primary="No items"/>
                     </ListItem>
@@ -31,82 +29,64 @@ export default function NestedList(props: NestedListProps) {
     );
 }
 
-function ConstructItems(items: INestedListItem[], collapsed: boolean) {
+function ConstructItems(items: INestedListItem[], level: number, icons?: typeof SvgIcon[]) {
     return items.map((item, index) => (
-        <Item key={index}
-              item={item}
-              collapsed={collapsed}/>
+        <NestedListItem key={index}
+                        item={item}
+                        icons={icons}
+                        level={level}/>
     ));
 }
 
-function Item({item, collapsed}: ItemProps) {
-    const [open, setOpen] = React.useState(!collapsed);
+function NestedListItem({item, level, icons}: NestedListItemProps) {
+    const {title, nestedItems, colored, collapsed} = item;
 
-    const {title, nestedItems} = item;
+    const [open, setOpen] = React.useState(!collapsed);
 
     const hasSubItems = nestedItems && nestedItems.length > 0;
 
+    const color = colored && "colored-back";
+
+    const icon = icons && icons[level];
+    const IconPlace = icon && <ListItemIcon>{icon}</ListItemIcon>;
+
     return (
         <React.Fragment>
-            <ListItem button onClick={() => setOpen(!open)} className={"primary hover"}>
-                <ListItemIcon>
-                    <ViewModuleIcon/>
-                </ListItemIcon>
+            <ListItem button
+                      onClick={() => setOpen(!open)}
+                      style={level ? {paddingLeft: 40 * level} : undefined}
+                      className={"hover " + color}>
+                {IconPlace}
                 <ListItemText primary={title}/>
                 {hasSubItems && (open ? <ExpandLess/> : <ExpandMore/>)}
             </ListItem>
             {
-                nestedItems?.map((nestedItem, index) =>
-                    <NestedItem {...{index, open, title: nestedItem.title, colored: nestedItem.colored}}/>)
+                hasSubItems &&
+                <Collapse in={open} unmountOnExit>
+                    <List component="div" disablePadding>
+                        {nestedItems && ConstructItems(nestedItems, level + 1, icons)}
+                    </List>
+                </Collapse>
             }
         </React.Fragment>
     );
 }
 
-function NestedItem({index, title, open, colored}: NestedItemProps) {
-    const color = colored && "colored-back";
-
-    return (
-        <Collapse key={index} in={open} timeout="auto" unmountOnExit>
-            <List component="div" disablePadding>
-                <ListItem className={"nested-item " + color}>
-                    <ListItemIcon>
-                        <GroupIcon/>
-                    </ListItemIcon>
-                    <ListItemText primary={title}/>
-                </ListItem>
-            </List>
-        </Collapse>
-    );
-}
-
 export interface INestedListItem {
     title: string;
-    nestedItems?: INestedItem[];
-}
-
-export interface INestedItem {
-    title: string;
     colored?: boolean;
+    collapsed?: boolean;
+    nestedItems?: INestedListItem[];
 }
 
-interface ItemsProps {
+interface NestedListProps {
     items: INestedListItem[];
-    collapsed?: boolean;
-}
-
-interface NestedListProps extends ItemsProps {
     title?: string;
+    icons?: typeof SvgIcon[];
 }
 
-interface ItemProps {
+interface NestedListItemProps {
     item: INestedListItem;
-    collapsed?: boolean;
-}
-
-interface NestedItemProps {
-    index: number;
-    title: string;
-    open: boolean;
-    colored?: boolean;
+    level: number;
+    icons?: typeof SvgIcon[];
 }
