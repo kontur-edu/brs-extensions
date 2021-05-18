@@ -11,5 +11,5 @@
 }
 
 .nested-list .hover:hover {
-    background-color: #c4c5c5;
+    background-color: #c4c5c5 !important;
 }
