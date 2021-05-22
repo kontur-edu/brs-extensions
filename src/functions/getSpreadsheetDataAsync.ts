@@ -92,7 +92,7 @@ function buildIndicesBy(header: string[]): Indices {
         disciplineParameterValueColumnIndex !==
         disciplineParameterKeyColumnIndex + 1
     )
-        throw new Error(`Wrong order of columns`);
+        throw new Error(`Неправильный порядок столбцов`);
     const leftIndex = Math.min(groupColumnIndex, fullNameColumnIndex);
     const rightIndex = failureColumnIndex;
 
