@@ -216,22 +216,23 @@ class SpreadsheetFetch extends React.Component<Props, State> {
                 </form>
                 <Collapse in={this.state.showDisciplines} className={"vertical-margin-min"}>
                     <h3>Загруженная дисциплина из Google Таблицы</h3>
-                    <p>Группы, к которым у Вас нет доступа в БРС, <b className={"colored-text"}> подсвечены</b></p>
+                    <p>Группы, к которым у вас нет доступа в БРС, <b className={"colored-text"}> подсвечены</b></p>
 
                     <NestedList items={this.state.disciplines} icons={[<ViewModule/>, <GroupIcon/>]}/>
 
                     {this.state.disciplinesMissed ?
                         <React.Fragment>
-                            <span>У Вас нет доступа ни к одной из перечисленных групп в БРС</span>
+                            <p>У вас нет доступа ни к одной из перечисленных групп в БРС</p>
+                            <span>Возможные действия:</span>
                             <ol className={"no-margin"}>
-                                <li>Убедитесь, что название курса в БРС и в Google Таблицах совпадает</li>
-                                <li>Запросите доступ на курс в БРС</li>
+                                <li>Убедитесь, что название дисциплины в БРС и в Google Таблицах совпадает</li>
+                                <li>Запросите доступ на дисциплину в БРС</li>
                                 <li><a className={"button-link"}
                                        onClick={this.updateCachedDisciplines}>Обновите кэш групп</a></li>
                             </ol>
                         </React.Fragment> :
                         <React.Fragment>
-                            <p>Если Вам доступны не все группы, которые вам доступны в БРС, то <a
+                            <p>Если вам доступны не все группы, которые вам доступны в БРС, то <a
                                 className={"button-link"}
                                 onClick={this.updateCachedDisciplines}>обновите кэш групп</a>
                             </p>
