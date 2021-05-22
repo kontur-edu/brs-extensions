@@ -23,7 +23,6 @@ export default class WorkPage extends React.Component<Props, State> {
             loading: true,
             redirect: false
         }
-
     }
 
     async componentDidMount() {
