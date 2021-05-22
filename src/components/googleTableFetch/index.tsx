@@ -1,8 +1,7 @@
-import React, {FormEvent, memo} from "react";
+import React, {memo} from "react";
 import getSpreadsheetDataAsync, {DisciplineConfig, SpreadsheetData} from "../../functions/getSpreadsheetDataAsync";
 import NestedList, {INestedListItem} from "../nestedList";
-import {Collapse, Container, TextField} from "@material-ui/core";
-import SubmitWithLoading from "../submitWithLoading";
+import {Collapse, Container} from "@material-ui/core";
 import {getSpreadsheetProperties} from "../../apis/googleApi";
 import getSuitableDisciplinesAsync from "../../functions/getSuitableDisciplinesAsync";
 import BrsApi, {Discipline} from "../../apis/brsApi";
@@ -14,13 +13,13 @@ import RunWorkerButtons from "../workPage/worker/RunWorkerButtons";
 import WorkerDialog, {MarksData} from "../workPage/worker/workerDialog";
 import GroupIcon from '@material-ui/icons/Group';
 import {ViewModule} from "@material-ui/icons";
+import GoogleTableFetchForm from "./googleTableFetchForm";
 
-const spreadsheetPattern = "https://docs.google.com/spreadsheets/d/1Owzl3JfmFASIdC7ZMMw-0kkA3pwFSab1QdVO5dhZoxY/edit#gid=675912523";
-const spreadsheetUrlPattern = "https://docs.google.com/spreadsheets/d/sjwa1/edit#gid=0"
-
-class SpreadsheetFetch extends React.Component<Props, State> {
+class GoogleTableFetch extends React.Component<Props, State> {
     marksData: MarksData = {} as any;
     workerSaveMode: boolean = false;
+    spreadsheetId: string = '';
+    sheetId: string | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -38,21 +37,13 @@ class SpreadsheetFetch extends React.Component<Props, State> {
 
     }
 
-    handleTableUrlChanged = (event: React.ChangeEvent<{ name?: string | undefined, value: unknown }>) => {
-        const target = event.target;
-        switch (target.name) {
-            case 'table-url':
-                if (this.state.tableUrlError.error)
-                    this.setState({tableUrlError: {error: false, message: ''}});
-                this.setState({tableUrl: target.value as string});
-        }
-    }
+    loadDisciplines = async (spreadsheetId: string, sheetId: string | null) => {
+        this.spreadsheetId = spreadsheetId;
+        this.sheetId = sheetId;
 
-    loadDisciplines = async (e?: FormEvent) => {
-        e?.preventDefault();
         this.setState({loading: true});
 
-        const spreadsheetData = await this.getActualSpreadsheetDataAsync();
+        const spreadsheetData = await this.getActualSpreadsheetDataAsync(spreadsheetId, sheetId);
         if (!spreadsheetData)
             return;
 
@@ -106,16 +97,16 @@ class SpreadsheetFetch extends React.Component<Props, State> {
             });
     }
 
-    async getActualSpreadsheetDataAsync() {
-        const spreadsheetInfo = await this.getSpreadsheetInfoAsync();
-        if (!spreadsheetInfo) {
+    async getActualSpreadsheetDataAsync(spreadsheetId: string, sheetId: string | null) {
+        const sheetName = await this.getSheetName(spreadsheetId, sheetId);
+        if (!sheetName) {
             this.setState({loading: false});
             return null;
         }
 
         let spreadsheetData: SpreadsheetData;
         try {
-            spreadsheetData = await getSpreadsheetDataAsync(spreadsheetInfo.spreadsheetId, spreadsheetInfo.sheetName);
+            spreadsheetData = await getSpreadsheetDataAsync(spreadsheetId, sheetName);
         } catch (e) {
             this.setState({loading: false})
             this.props.onError(e.message || JSON.stringify(e));
@@ -125,31 +116,17 @@ class SpreadsheetFetch extends React.Component<Props, State> {
         return spreadsheetData;
     }
 
-    async getSpreadsheetInfoAsync(): Promise<{ spreadsheetId: string, sheetName: string } | null> {
-        const regExp = /d\/(?<spreadsheetId>[a-zA-Z0-9-_]+)\/edit(#gid=(?<sheetId>[0-9]+))?/;
-        const result = this.state.tableUrl.match(regExp);
-
-        if (!result?.groups || !result.groups.spreadsheetId) {
-            this.setState({
-                loading: false,
-                tableUrlError: {error: true, message: 'Неверный url-адрес.'}
-            });
-            return null;
-        }
-        const spreadsheetId = result.groups.spreadsheetId;
-        const maybeSheetId = result.groups.sheetId || null;
-
+    async getSheetName(spreadsheetId: string, sheetId: string | null): Promise<string | null> {
         try {
             const spreadsheetProperties = await getSpreadsheetProperties(spreadsheetId);
-            const maybeSheet = maybeSheetId
-                ? spreadsheetProperties.filter(s => s.sheetId.toString() === maybeSheetId)[0]
+            const maybeSheet = sheetId
+                ? spreadsheetProperties.filter(s => s.sheetId.toString() === sheetId)[0]
                 : spreadsheetProperties[0];
             if (!maybeSheet) {
-                this.props.onError('Sheet is not found');
+                this.props.onError('Таблица не найдена');
                 return null;
             }
-            const sheetName = maybeSheet.title;
-            return {spreadsheetId, sheetName};
+            return maybeSheet.title;
         } catch (e) {
             this.props.onError(e.message || JSON.stringify(e));
             return null;
@@ -158,7 +135,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
 
     updateCachedDisciplines = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         event.preventDefault();
-        this.setState({showWorkerButtons: false})
+        this.setState({showDisciplines: false});
 
         const userCacheName = tryInvoke(() => this.props.brsApi.brsAuth.cacheName, this.props.onError);
         if (!userCacheName)
@@ -171,7 +148,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
         const cacheName = cache.buildCacheName(userCacheName, "getDiscipline", disciplineConfig);
         cache.clear(cacheName, StorageType.Local);
 
-        this.loadDisciplines();
+        this.loadDisciplines(this.spreadsheetId, this.sheetId);
     }
 
     runWork = (save: boolean) => {
@@ -189,23 +166,8 @@ class SpreadsheetFetch extends React.Component<Props, State> {
         return (
             <span className={'spreadsheet-fetch'}>
                 <h3 className={'vertical-margin-min'}>Вставьте ссылку на лист Google Таблицы с оценками</h3>
-                <form onSubmit={this.loadDisciplines} className={'vertical-margin-min'}>
-                    <TextField name="table-url"
-                               label={"Ссылка вида " + spreadsheetUrlPattern}
-                               type="text"
-                               className={'tableUrl'}
-                               value={this.state.tableUrl}
-                               onChange={this.handleTableUrlChanged}
-                               error={this.state.tableUrlError.error}
-                               helperText={this.state.tableUrlError.message}
-                               required/>
-                    <SubmitWithLoading title="загрузить"
-                                       loading={this.state.loading}
-                                       className={'submit'}/>
-                    <a href={spreadsheetPattern}
-                       target={"_blank"}
-                       className={"button-link"}>Пример таблицы для экспорта в БРС</a>
-                </form>
+                <GoogleTableFetchForm loading={this.state.loading} onSubmit={this.loadDisciplines}/>
+
                 <Collapse in={this.state.showDisciplines} className={"vertical-margin-min"}>
                     <h3>Загруженная дисциплина из Google Таблицы</h3>
                     <p>Группы, к которым у вас нет доступа в БРС, <b className={"colored-text"}> подсвечены</b></p>
@@ -248,7 +210,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
     }
 }
 
-export default memo(SpreadsheetFetch);
+export default memo(GoogleTableFetch);
 
 interface Props {
     brsApi: BrsApi;

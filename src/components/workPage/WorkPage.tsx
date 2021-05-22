@@ -1,6 +1,6 @@
 import React from 'react';
 import {Button, Container,} from "@material-ui/core";
-import SpreadsheetFetch from "../spreadsheetFetch";
+import SpreadsheetFetch from "../googleTableFetch";
 import BrsApi from "../../apis/brsApi";
 import SessionExpiredAlert from "../SessionExpiredAlert";
 import CustomAlert from "../CustomAlert";
