@@ -9,7 +9,7 @@ import BrsApi, {Discipline} from "../../apis/brsApi";
 import * as cache from "../../helpers/cache"
 import {StorageType} from "../../helpers/cache"
 import './styles.css';
-import catchOrReturn from "../../helpers/catchOrReturn";
+import tryInvoke from "../../helpers/tryInvoke";
 import RunWorkerButtons from "../workPage/worker/RunWorkerButtons";
 import MarksManager, {PutMarksOptions} from "../../marksActions/MarksManager";
 import {Logger} from "../../helpers/logger";
@@ -162,7 +162,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
         event.preventDefault();
         this.setState({showWorkerButtons: false})
 
-        const userCacheName = catchOrReturn(() => this.props.brsApi.brsAuth.cacheName, this.props.onError);
+        const userCacheName = tryInvoke(() => this.props.brsApi.brsAuth.cacheName, this.props.onError);
         if (!userCacheName)
             return;
 
