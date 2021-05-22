@@ -1,6 +1,6 @@
 import GoogleLogin from "react-google-login";
 import React from "react";
-import {Button} from "@material-ui/core";
+import {Button, Container} from "@material-ui/core";
 
 const CLIENT_ID = '122993083593-pacve8csj86voko30ia65raeg0ncrtuv.apps.googleusercontent.com';
 const SCOPES = "profile email https://www.googleapis.com/auth/spreadsheets";
@@ -12,7 +12,7 @@ export default function GoogleLoginButton(props: Props) {
         <React.Fragment>
             {
                 signedIn ?
-                    <React.Fragment>
+                    <Container className={"text-align-center"}>
                         <p>Добро пожаловать, {username}</p>
                         <Button type="button"
                                 fullWidth
@@ -21,9 +21,10 @@ export default function GoogleLoginButton(props: Props) {
                                 color="primary">
                             Выйти из Google
                         </Button>
-                    </React.Fragment> :
-                    <React.Fragment>
-                        <p>Войдите в Google, чтобы сервис мог загружать оценки студентов из ваших Google Таблиц</p>
+                    </Container> :
+                    <Container className={"text-align-center"}>
+                        <p><b>Войдите в Google</b>, чтобы сервис мог загружать оценки студентов из ваших
+                            Google&nbsp;Таблиц</p>
                         <GoogleLogin
                             clientId={CLIENT_ID}
                             buttonText="Войти в аккаунт Google"
@@ -31,7 +32,7 @@ export default function GoogleLoginButton(props: Props) {
                             onFailure={onFailure}
                             scope={SCOPES}
                             isSignedIn={true}/>
-                    </React.Fragment>
+                    </Container>
             }
         </React.Fragment>
     );

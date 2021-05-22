@@ -52,8 +52,9 @@ export default function ({onSubmit, submitting, loading, signedIn, onLogout, use
         ) :
         (
             <div className={"brs-login-form"}>
-                <p>Войдите в БРС, чтобы сервис мог получить информацию о ваших курсах и выставлять оценки от вашего
-                    имени</p>
+                <p><b>Войдите в БРС</b>, чтобы сервис мог получить информацию о ваших курсах и выставлять оценки от
+                    вашего имени</p>
+                <p>Это можно сделать через учетную запись БРС</p>
                 <form className="form" onSubmit={handleSubmit}>
                     <TextField
                         className={"form-component"}
@@ -80,7 +81,8 @@ export default function ({onSubmit, submitting, loading, signedIn, onLogout, use
                         value={password}
                         disabled={loading}
                         onChange={handlePasswordChanged}/>
-                    <p className="text-center form-component">или</p>
+                    <p className="form-component text-align-center">или через JSESSIONID при использовании единой
+                        учетной записи УрФУ</p>
                     <TextField
                         className={"form-component"}
                         variant="outlined"
