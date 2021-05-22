@@ -1,29 +1,26 @@
 import BrsApi, {ControlAction, Discipline, StudentFailure, StudentMark} from '../apis/brsApi';
-import {compareNormalized, parseAnyFloat} from '../helpers/tools';
+import {compareNormalized, groupBy, parseAnyFloat} from '../helpers/tools';
 import * as fio from '../helpers/fio';
 import {ActualStudent} from '../functions/readStudentsAsync';
 import {formatStudentFailure} from '../helpers/brsHelpers';
-import {Logger} from '../helpers/logger';
 import {SpreadsheetData} from "../functions/getSpreadsheetDataAsync";
+import ReportBuilder from "./ReportBuilder";
 
 export default class MarksManager {
     private readonly brsApi: BrsApi;
-    private readonly options: PutMarksOptions;
-    readonly logger: Logger;
+    private readonly save: boolean;
     private cancelPending: boolean = false;
 
-    constructor(brsApi: BrsApi, logger: Logger, options: PutMarksOptions) {
+    readonly reportBuilder: ReportBuilder;
+
+    constructor(brsApi: BrsApi, reportsStore: ReportBuilder, save: boolean) {
         this.brsApi = brsApi;
-        this.logger = logger;
-        this.options = options;
+        this.reportBuilder = reportsStore;
+        this.save = save;
     }
 
     cancel() {
         this.cancelPending = true;
-    }
-
-    getLogger() {
-        return this.logger;
     }
 
     async putMarksToBrsAsync(spreadsheetData: SpreadsheetData, suitableDisciplines: Discipline[]) {
@@ -37,18 +34,21 @@ export default class MarksManager {
             for (const discipline of suitableDisciplines) {
                 await this.putMarksForDisciplineAsync(
                     discipline,
-                    actualStudents.filter((s) =>
-                        compareNormalized(s.groupName, discipline.group)
-                    ),
+                    actualStudents.filter(s => compareNormalized(s.groupName, discipline.group)),
                     disciplineConfig.defaultStudentFailure,
                     controlActionConfigs
                 );
+
                 if (this.cancelPending) {
                     break;
                 }
             }
+
+            this.reportBuilder.finishReport()
+
+            return null;
         } catch (e) {
-            this.logger.error(e);
+            return e;
         }
     }
 
@@ -59,35 +59,24 @@ export default class MarksManager {
         controlActionConfigs: ControlActionConfig[]
     ) {
         if (actualStudents.length === 0) return;
-        this.logger.log(`# Processing group ${discipline.group}`);
-        this.logger.log('');
+        this.reportBuilder.newReport(discipline.group);
 
-        const controlActions = await this.brsApi.getAllControlActionsCachedAsync(
-            discipline
-        );
-        if (
-            !this.checkControlActionsConfiguration(
-                controlActions,
-                controlActionConfigs
-            )
-        ) {
+        const controlActions = await this.brsApi.getAllControlActionsCachedAsync(discipline);
+        if (!this.checkControlActionsConfiguration(controlActions, controlActionConfigs))
             return;
-        }
 
-        const brsStudents = await this.brsApi.getAllStudentMarksAsync(
-            discipline
-        );
+        const brsStudents = await this.brsApi.getAllStudentMarksAsync(discipline);
         const {
             mergedStudents,
             skippedActualStudents,
             skippedBrsStudents,
         } = this.mergeStudents(actualStudents, brsStudents);
+
         this.logMergedStudents(
             mergedStudents,
             skippedActualStudents,
             skippedBrsStudents
         );
-        this.logger.log('');
 
         await this.putMarksForStudentsAsync(
             discipline,
@@ -95,20 +84,17 @@ export default class MarksManager {
             controlActionConfigs,
             controlActions
         );
-        this.logger.log('');
 
         await this.updateFailuresForSkippedStudentsAsync(
             skippedBrsStudents,
             discipline,
             defaultStudentFailure
         );
-        this.logger.log('');
 
-        if (this.options.save) {
+        if (this.save) {
             await this.brsApi.updateAllMarksAsync(discipline);
         }
 
-        this.logger.log('');
     }
 
     checkControlActionsConfiguration(
@@ -129,25 +115,22 @@ export default class MarksManager {
         controlActionConfigs: ControlActionConfig[],
         controlActions: ControlAction[]
     ) {
-        const statusCounters: { [k: string]: number } = {};
-
-        for (const student of students) {
-            const status = await this.putMarksForStudentAsync(
+        const ratingResults = await Promise.all(students.map(async student => {
+            return await this.putMarksForStudentAsync(
                 discipline,
                 student,
                 controlActionConfigs,
                 controlActions
             );
-            if (statusCounters[status] === undefined) {
-                statusCounters[status] = 0;
-            }
-            statusCounters[status]++;
-        }
+        }));
 
-        this.logger.log('Marks update statuses:');
-        for (const k of Object.keys(statusCounters)) {
-            this.logger.log(`- ${k} = ${statusCounters[k]}`);
-        }
+        const groupedResults = Object.entries(groupBy(ratingResults, "status"))
+            .map(([status, rawStudents]) => ({
+                title: status,
+                students: rawStudents.map(s => s.infoString)
+            }));
+
+        this.reportBuilder.currentReport.marks.push(...groupedResults);
     }
 
     async putMarksForStudentAsync(
@@ -188,7 +171,7 @@ export default class MarksManager {
             }
 
             try {
-                if (this.options.save) {
+                if (this.save) {
                     await this.brsApi.putStudentMarkAsync(
                         student.brs.studentUuid,
                         controlAction.uuidWithoutPrefix,
@@ -208,13 +191,13 @@ export default class MarksManager {
             (student.brs.failure as StudentFailure) ?? StudentFailure.NoFailure;
         const actualFailure =
             student.actual.failure ?? StudentFailure.NoFailure;
-        let failureStatus = '';
+        let failureStatus: string;
         if (actualFailure === brsFailureStatus) {
             failureStatus = `${formatStudentFailure(actualFailure)}`;
         } else {
             failureStatus = `${formatStudentFailure(actualFailure)}!`;
             try {
-                if (this.options.save) {
+                if (this.save) {
                     await this.brsApi.putStudentFailureAsync(
                         student.brs.studentUuid,
                         discipline,
@@ -227,40 +210,28 @@ export default class MarksManager {
             }
         }
 
-        const status =
-            failed > 0 ? 'FAILED ' : updated > 0 ? 'UPDATED' : 'SKIPPED';
-        if (this.options.verbose || failed > 0) {
-            const studentName = (
-                student.actual.fullName + '                              '
-            ).substr(0, 30);
-            this.logger.log(
-                `${status} ${studentName} updated: ${updated}, failed: ${failed}, marks: ${marks.join(
-                    ' '
-                )}, failureStatus: ${failureStatus}`
-            );
-        }
-        return status;
+        const status = failed > 0 ? 'FAILED' : updated > 0 ? 'UPDATED' : 'SKIPPED';
+        const studentName = (student.actual.fullName).substr(0, 30);
+        let infoString = `${studentName}, баллы: ${marks.join(' ')}`;
+        if (failureStatus && failureStatus != '-')
+            infoString += `, ${failureStatus}`;
+        return {status, infoString};
     }
 
-    getSuitableControlAction(
-        config: ControlActionConfig,
-        controlActions: ControlAction[]
-    ) {
+    getSuitableControlAction(config: ControlActionConfig, controlActions: ControlAction[]) {
         const suitableControlActions = controlActions.filter((a) =>
-            config.controlActions.some((b) =>
-                compareNormalized(a.controlAction, b)
-            )
-        );
+            config.controlActions.some((b) => compareNormalized(a.controlAction, b)));
+
+        const errorMessages = [];
 
         if (suitableControlActions.length === 0) {
-            this.logger.log(
-                `All of ${config.controlActions.join(', ')} not found`
-            );
-            this.logger.log(
-                `Known actions: ${controlActions
-                    .map((a) => a.controlAction)
-                    .join(', ')}`
-            );
+            errorMessages.push(`Все "${config.controlActions.join(', ')}" не найдены `);
+            errorMessages.push(`Найденные контрольные мероприятия: ${controlActions
+                .map((a) => a.controlAction)
+                .join(', ')}`);
+
+            this.reportBuilder.onInvalidConfiguration(errorMessages);
+
             return null;
         }
 
@@ -274,30 +245,25 @@ export default class MarksManager {
                 suitableControlActions.length !== config.matchCount ||
                 config.matchIndex >= config.matchCount
             ) {
-                this.logger.log(
-                    `Invalid configuration of ${config.controlActions.join(
-                        ', '
-                    )}`
-                );
-                this.logger.log(
-                    `Can't match: ${config.matchIndex}/${config.matchCount} of ${suitableControlActions.length}`
-                );
+                errorMessages.push(`Неверная конфигурация ${config.controlActions.join(', ')}`);
+                errorMessages.push(`Нет соответствий: ${config.matchIndex}/${config.matchCount} 
+                                    и ${suitableControlActions.length}`);
+
+                this.reportBuilder.onInvalidConfiguration(errorMessages);
+
                 return null;
             }
             return suitableControlActions[config.matchIndex];
         }
 
         if (suitableControlActions.length > 1) {
-            this.logger.log(
-                `Several control actions found for ${config.controlActions.join(
-                    ', '
-                )}`
-            );
-            this.logger.log(
-                `Found actions: ${suitableControlActions
-                    .map((a) => a.controlAction)
-                    .join(', ')}`
-            );
+            errorMessages.push(`Несколько контрольных мероприятий найдены для ${config.controlActions.join(', ')}`);
+            errorMessages.push(`Найденные контрольные мероприятия: ${suitableControlActions
+                .map((a) => a.controlAction)
+                .join(', ')}`);
+
+            this.reportBuilder.onInvalidConfiguration(errorMessages);
+
             return null;
         }
 
@@ -309,28 +275,21 @@ export default class MarksManager {
         discipline: Discipline,
         defaultStudentFailure: StudentFailure
     ) {
-        const statusCounters: { [k: string]: number } = {};
-
-        for (const student of students) {
-            const status = await this.updateFailureForStudent(
+        const ratingResults = await Promise.all(students.map(student =>
+            this.updateFailureForStudent(
                 student,
                 discipline,
                 defaultStudentFailure
-            );
-            if (statusCounters[status] === undefined) {
-                statusCounters[status] = 0;
-            }
-            statusCounters[status]++;
-        }
+            )));
 
-        const statusKeys = Object.keys(statusCounters);
-        if (statusKeys.length > 0) {
-            this.logger.log('Failures update statuses:');
-            for (const k of statusKeys) {
-                this.logger.log(`- ${k} = ${statusCounters[k]}`);
-            }
-        } else {
-            this.logger.log('No failures for skipped students');
+        if (ratingResults.length > 0) {
+            const groupedResults = Object.entries(groupBy(ratingResults, "status"))
+                .map(([status, rawStudents]) => ({
+                    title: `${status} = ${rawStudents.length}`,
+                    students: rawStudents.map(s => s.infoString)
+                }));
+
+            this.reportBuilder.currentReport.marks.push(...groupedResults);
         }
     }
 
@@ -339,7 +298,7 @@ export default class MarksManager {
         discipline: Discipline,
         defaultStudentFailure: StudentFailure
     ) {
-        let status = '';
+        let status: string;
         const brsFailureStatus = student.failure
             ? (student.failure as StudentFailure)
             : StudentFailure.NoFailure;
@@ -348,7 +307,7 @@ export default class MarksManager {
             status = 'SKIPPED';
         } else {
             try {
-                if (this.options.save) {
+                if (this.save) {
                     await this.brsApi.putStudentFailureAsync(
                         student.studentUuid,
                         discipline,
@@ -361,19 +320,17 @@ export default class MarksManager {
             }
         }
 
-        if (this.options.verbose || status === 'FAILED') {
-            const studentName = (
-                student.studentFio + '                              '
-            ).substr(0, 30);
-            const description =
-                status !== 'SKIPPED'
-                    ? `${formatStudentFailure(
-                    actualFailure
-                    )} from ${formatStudentFailure(brsFailureStatus)}`
-                    : formatStudentFailure(actualFailure);
-            this.logger.log(`${status} ${studentName} ${description}`);
-        }
-        return status;
+        const studentName = (student.studentFio).substr(0, 30);
+        const description =
+            status !== 'SKIPPED'
+                ? `${formatStudentFailure(
+                actualFailure
+                )} from ${formatStudentFailure(brsFailureStatus)}`
+                : formatStudentFailure(actualFailure);
+
+        const infoString = `${studentName} ${description}`;
+
+        return {status, infoString};
     }
 
     mergeStudents(actualStudents: ActualStudent[], brsStudents: StudentMark[]) {
@@ -414,18 +371,15 @@ export default class MarksManager {
         skippedActualStudents: ActualStudent[],
         skippedBrsStudents: StudentMark[]
     ) {
-        this.logger.log(`Merged students = ${mergedStudents.length}`);
-        this.logger.log(
-            `Can't merge actual students = ${skippedActualStudents.length}`
-        );
-        for (const s of skippedActualStudents) {
-            this.logger.log('- ' + s.fullName);
-        }
-        this.logger.log(
-            `Can't merge BRS students = ${skippedBrsStudents.length}`
-        );
-        for (const s of skippedBrsStudents) {
-            this.logger.log('- ' + s.studentFio);
+        const report = this.reportBuilder.currentReport;
+
+        report.merge.succeed = mergedStudents.length;
+
+        if (skippedActualStudents.length > 0)
+            report.merge.failedActual = skippedActualStudents.map(s => '- ' + s.fullName);
+
+        if (skippedBrsStudents.length > 0) {
+            report.merge.failedBrs = skippedBrsStudents.map(s => '- ' + s.studentFio);
         }
     }
 }
@@ -451,11 +405,6 @@ export interface ControlActionConfig {
     matchIndex?: number;
     matchCount?: number;
     propertyIndex: number;
-}
-
-export interface PutMarksOptions {
-    save: boolean;
-    verbose: boolean;
 }
 
 interface MergedStudent {

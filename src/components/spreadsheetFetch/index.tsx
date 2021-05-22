@@ -11,8 +11,6 @@ import {StorageType} from "../../helpers/cache"
 import './styles.css';
 import tryInvoke from "../../helpers/tryInvoke";
 import RunWorkerButtons from "../workPage/worker/RunWorkerButtons";
-import MarksManager, {PutMarksOptions} from "../../marksActions/MarksManager";
-import {Logger} from "../../helpers/logger";
 import WorkerDialog, {MarksData} from "../workPage/worker/workerDialog";
 import GroupIcon from '@material-ui/icons/Group';
 import {ViewModule} from "@material-ui/icons";
@@ -22,7 +20,7 @@ const spreadsheetUrlPattern = "https://docs.google.com/spreadsheets/d/sjwa1/edit
 
 class SpreadsheetFetch extends React.Component<Props, State> {
     marksData: MarksData = {} as any;
-    marksManager: MarksManager = {} as any;
+    workerSaveMode: boolean = false;
 
     constructor(props: Props) {
         super(props);
@@ -177,13 +175,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
     }
 
     runWork = (save: boolean) => {
-        const logger = new Logger();
-        logger.addErrorHandler(this.props.onError);
-
-        const options: PutMarksOptions = {save, verbose: true};
-
-        this.marksManager = new MarksManager(this.props.brsApi, logger, options);
-
+        this.workerSaveMode = save;
         this.setState({runWorker: true});
     }
 
@@ -247,8 +239,9 @@ class SpreadsheetFetch extends React.Component<Props, State> {
                 {this.state.runWorker &&
                 <WorkerDialog marksData={this.marksData}
                               onClosed={this.handleWorkerClosed}
-                              runWork={this.state.runWorker}
-                              marksManager={this.marksManager}/>
+                              brsApi={this.props.brsApi}
+                              onError={this.props.onError}
+                              save={this.workerSaveMode}/>
                 }
             </span>
         );
