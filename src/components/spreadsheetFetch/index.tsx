@@ -1,6 +1,6 @@
 import React, {FormEvent, memo} from "react";
 import getSpreadsheetDataAsync, {DisciplineConfig, SpreadsheetData} from "../../functions/getSpreadsheetDataAsync";
-import NestedList, {INestedItem, INestedListItem} from "../nestedList";
+import NestedList, {INestedListItem} from "../nestedList";
 import {Collapse, Container, TextField} from "@material-ui/core";
 import SubmitWithLoading from "../submitWithLoading";
 import {getSpreadsheetProperties} from "../../apis/googleApi";
@@ -14,6 +14,8 @@ import RunWorkerButtons from "../workPage/worker/RunWorkerButtons";
 import MarksManager, {PutMarksOptions} from "../../marksActions/MarksManager";
 import {Logger} from "../../helpers/logger";
 import WorkerDialog, {MarksData} from "../workPage/worker/workerDialog";
+import GroupIcon from '@material-ui/icons/Group';
+import {ViewModule} from "@material-ui/icons";
 
 const spreadsheetPattern = "https://docs.google.com/spreadsheets/d/1Owzl3JfmFASIdC7ZMMw-0kkA3pwFSab1QdVO5dhZoxY/edit#gid=675912523";
 const spreadsheetUrlPattern = "https://docs.google.com/spreadsheets/d/sjwa1/edit#gid=0"
@@ -81,7 +83,7 @@ class SpreadsheetFetch extends React.Component<Props, State> {
         const availableGroups = new Set(availableDisciplines.map(s => s.group));
 
         let missedCount = 0;
-        const nestedItems: INestedItem[] = Array.from(actualGroups)
+        const nestedItems: INestedListItem[] = Array.from(actualGroups)
             .map(group => {
                 const groupMissed = !availableGroups.has(group);
                 if (groupMissed)
@@ -215,7 +217,9 @@ class SpreadsheetFetch extends React.Component<Props, State> {
                 <Collapse in={this.state.showDisciplines} className={"vertical-margin-min"}>
                     <h3>Загруженная дисциплина из Google Таблицы</h3>
                     <p>Группы, к которым у Вас нет доступа в БРС, <b className={"colored-text"}> подсвечены</b></p>
-                    <NestedList items={this.state.disciplines} collapsed={false}/>
+
+                    <NestedList items={this.state.disciplines} icons={[<ViewModule/>, <GroupIcon/>]}/>
+
                     {this.state.disciplinesMissed ?
                         <React.Fragment>
                             <span>У Вас нет доступа ни к одной из перечисленных групп в БРС</span>
