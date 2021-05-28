@@ -36,12 +36,12 @@ const useStyles = makeStyles(() =>
     }),
 );
 
-export default function ({loading, onSubmit}: Props) {
+export default function DisciplinesFetchControls({loading, onSubmit}: Props) {
     const classes = useStyles();
 
     const [course, setCourse] = React.useState(1);
-    const [year, setYear] = React.useState(new Date().getFullYear());
-    const [termType, setTermType] = React.useState(getTermType());
+    const [year, setYear] = React.useState(getDefaultYear());
+    const [termType, setTermType] = React.useState(getDefaultTermType());
     const [isModule, setIsModule] = React.useState(false);
 
     function handleChange(event: any) {
@@ -103,15 +103,21 @@ export default function ({loading, onSubmit}: Props) {
     )
 }
 
-function getTermType(): TermType {
+function getDefaultYear(): number {
+    const date = new Date();
+    const month = date.getMonth() + 1;
+    return month >= 9 ? date.getFullYear() : date.getFullYear() - 1;
+}
+
+function getDefaultTermType(): TermType {
     const date = new Date();
     const month = date.getMonth() + 1;
     const day = date.getDate();
 
     return (
-        month >= 9 ||           // September to December
-        month == 1 ||           // January
-        month == 2 && day <= 7) // Until February 7
+        month >= 9 ||              // September to December
+        month === 1 ||             // January
+        (month === 2 && day <= 7)) // Until February 7
         ? "Осенний"
         : "Весенний";
 }

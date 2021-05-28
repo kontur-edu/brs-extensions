@@ -152,22 +152,24 @@ export default class MarksManager {
                 throw new Error();
             }
 
-            const brsMark = parseAnyFloat(
-                student.brs[controlAction.uuid] as string
-            );
-            const actualMark = parseAnyFloat(
-                student.actual.properties[config.propertyIndex]
-            );
+            const brsMarkString = student.brs[controlAction.uuid] as string;
+            const brsMark = parseAnyFloat(brsMarkString);
+            const actualMarkString = student.actual.properties[config.propertyIndex];
+            const actualMark = parseAnyFloat(actualMarkString);
 
-            if (actualMark === brsMark || actualMark === 0) {
+            const needUpdateMark = !isNaN(actualMark)
+                && !(isNaN(brsMark) ? actualMark === 0 : brsMark === actualMark);
+            const actualMarkOutput = !isNaN(actualMark) ? actualMark.toString() : '-';
+            
+            if (needUpdateMark) {
                 marks.push(
-                    `    ${actualMark} `.substr(`${actualMark}`.length - 1)
+                    `    ${actualMarkOutput}!`.substr(`${actualMarkOutput}`.length - 1)
                 );
-                continue;
             } else {
                 marks.push(
-                    `    ${actualMark}!`.substr(`${actualMark}`.length - 1)
+                    `    ${actualMarkOutput} `.substr(`${actualMarkOutput}`.length - 1)
                 );
+                continue;
             }
 
             try {
