@@ -13,7 +13,7 @@ export default class ReportBuilder {
 
     get currentReport() {
         if (!this._currentReport)
-            throw new Error("New report has not created");
+            throw new Error("Построение отчета еще не начато");
         return this._currentReport;
     }
 

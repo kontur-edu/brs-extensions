@@ -2,8 +2,8 @@ import {TextField} from "@material-ui/core";
 import SubmitWithLoading from "../../submitWithLoading";
 import React, {FormEvent, useState} from "react";
 
-const tablePattern = "https://docs.google.com/spreadsheets/d/1Owzl3JfmFASIdC7ZMMw-0kkA3pwFSab1QdVO5dhZoxY/edit#gid=675912523";
-const tablePatternUrl = "https://docs.google.com/spreadsheets/d/sjwa1/edit#gid=0"
+const TABLE_URL_PATTERN = "https://docs.google.com/spreadsheets/d/1Owzl3JfmFASIdC7ZMMw-0kkA3pwFSab1QdVO5dhZoxY/edit#gid=675912523";
+const TABLE_TEMPLATE_URL = "https://docs.google.com/spreadsheets/d/sjwa1/edit#gid=0"
 
 export default function GoogleTableFetchForm({loading, onSubmit}: Props) {
     const [tableUrl, setTableUrl] = useState("");
@@ -36,7 +36,7 @@ export default function GoogleTableFetchForm({loading, onSubmit}: Props) {
     return (
         <form onSubmit={handleSubmit} className={'vertical-margin-min'}>
             <TextField name="table-url"
-                       label={"Ссылка вида " + tablePatternUrl}
+                       label={"Ссылка вида " + TABLE_TEMPLATE_URL}
                        type="text"
                        className={'tableUrl'}
                        value={tableUrl}
@@ -47,7 +47,7 @@ export default function GoogleTableFetchForm({loading, onSubmit}: Props) {
             <SubmitWithLoading title="загрузить"
                                loading={loading}
                                className={'submit'}/>
-            <a href={tablePattern}
+            <a href={TABLE_URL_PATTERN}
                target={"_blank"}
                className={"button-link"}>Пример таблицы для экспорта в БРС</a>
         </form>

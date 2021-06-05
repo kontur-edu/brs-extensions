@@ -6,14 +6,14 @@ const CLIENT_ID = '122993083593-pacve8csj86voko30ia65raeg0ncrtuv.apps.googleuser
 const SCOPES = "profile email https://www.googleapis.com/auth/spreadsheets";
 
 export default function GoogleLoginButton(props: Props) {
-    const {onSignedIn, onFailure, signedIn, username, onLogout} = props;
+    const {onSignedIn, onFailure, signedIn, userName, onLogout} = props;
 
     return (
         <React.Fragment>
             {
                 signedIn ?
                     <Container className={"text-align-center"}>
-                        <p>Добро пожаловать, {username}</p>
+                        <p>Добро пожаловать, {userName}</p>
                         <Button type="button"
                                 fullWidth
                                 variant="contained"
@@ -43,5 +43,5 @@ interface Props {
     onFailure: (error: any) => void;
     onLogout: () => void;
     signedIn: boolean;
-    username?: string;
+    userName?: string;
 }

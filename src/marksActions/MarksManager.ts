@@ -6,6 +6,12 @@ import {formatStudentFailure} from '../helpers/brsHelpers';
 import {SpreadsheetData} from "../functions/getSpreadsheetDataAsync";
 import ReportBuilder from "./ReportBuilder";
 
+enum MarkUpdateStatus {
+    Updated,
+    Failed,
+    Skipped,
+};
+
 export default class MarksManager {
     private readonly brsApi: BrsApi;
     private readonly save: boolean;
@@ -13,9 +19,9 @@ export default class MarksManager {
 
     readonly reportBuilder: ReportBuilder;
 
-    constructor(brsApi: BrsApi, reportsStore: ReportBuilder, save: boolean) {
+    constructor(brsApi: BrsApi, reportBuilder: ReportBuilder, save: boolean) {
         this.brsApi = brsApi;
-        this.reportBuilder = reportsStore;
+        this.reportBuilder = reportBuilder;
         this.save = save;
     }
 
@@ -23,7 +29,7 @@ export default class MarksManager {
         this.cancelPending = true;
     }
 
-    async putMarksToBrsAsync(spreadsheetData: SpreadsheetData, suitableDisciplines: Discipline[]) {
+    async putMarksToBrsAsync(spreadsheetData: SpreadsheetData, disciplines: Discipline[]) {
         const {
             actualStudents,
             disciplineConfig,
@@ -31,7 +37,7 @@ export default class MarksManager {
         } = spreadsheetData;
 
         try {
-            for (const discipline of suitableDisciplines) {
+            for (const discipline of disciplines) {
                 await this.putMarksForDisciplineAsync(
                     discipline,
                     actualStudents.filter(s => compareNormalized(s.groupName, discipline.group)),
@@ -43,12 +49,11 @@ export default class MarksManager {
                     break;
                 }
             }
-
-            this.reportBuilder.finishReport()
-
             return null;
         } catch (e) {
             return e;
+        } finally {
+            this.reportBuilder.finishReport();
         }
     }
 
@@ -125,8 +130,8 @@ export default class MarksManager {
         }));
 
         const groupedResults = Object.entries(groupBy(ratingResults, "status"))
-            .map(([status, rawStudents]) => ({
-                title: status,
+            .map(([groupKey, rawStudents]) => ({
+                title: formatMarkUpdateStatus(rawStudents[0]["status"]),
                 students: rawStudents.map(s => s.infoString)
             }));
 
@@ -149,7 +154,7 @@ export default class MarksManager {
                 controlActions
             );
             if (!controlAction) {
-                throw new Error();
+                throw new Error('Подходящее контрольное мероприятие не найдено');
             }
 
             const brsMarkString = student.brs[controlAction.uuid] as string;
@@ -212,10 +217,10 @@ export default class MarksManager {
             }
         }
 
-        const status = failed > 0 ? 'FAILED' : updated > 0 ? 'UPDATED' : 'SKIPPED';
+        const status = failed > 0 ? MarkUpdateStatus.Failed : updated > 0 ? MarkUpdateStatus.Updated : MarkUpdateStatus.Skipped;
         const studentName = (student.actual.fullName).substr(0, 30);
         let infoString = `${studentName}, баллы: ${marks.join(' ')}`;
-        if (failureStatus && failureStatus != '-')
+        if (failureStatus && failureStatus !== '-')
             infoString += `, ${failureStatus}`;
         return {status, infoString};
     }
@@ -300,13 +305,13 @@ export default class MarksManager {
         discipline: Discipline,
         defaultStudentFailure: StudentFailure
     ) {
-        let status: string;
+        let status: MarkUpdateStatus;
         const brsFailureStatus = student.failure
             ? (student.failure as StudentFailure)
             : StudentFailure.NoFailure;
         const actualFailure = defaultStudentFailure;
         if (actualFailure === brsFailureStatus) {
-            status = 'SKIPPED';
+            status = MarkUpdateStatus.Skipped;
         } else {
             try {
                 if (this.save) {
@@ -316,18 +321,18 @@ export default class MarksManager {
                         actualFailure
                     );
                 }
-                status = 'UPDATED';
+                status = MarkUpdateStatus.Updated;
             } catch (error) {
-                status = 'FAILED';
+                status = MarkUpdateStatus.Failed;
             }
         }
 
         const studentName = (student.studentFio).substr(0, 30);
         const description =
-            status !== 'SKIPPED'
+            status !== MarkUpdateStatus.Skipped
                 ? `${formatStudentFailure(
                 actualFailure
-                )} from ${formatStudentFailure(brsFailureStatus)}`
+                )} из ${formatStudentFailure(brsFailureStatus)}`
                 : formatStudentFailure(actualFailure);
 
         const infoString = `${studentName} ${description}`;
@@ -400,6 +405,19 @@ function areStudentsLike(
     const brsFullName = fio.toKey(brsStudent.studentFio);
     const actualFullName = fio.toKey(actualStudent.fullName);
     return brsFullName.startsWith(actualFullName);
+}
+
+function formatMarkUpdateStatus(status: MarkUpdateStatus) {
+    switch (status) {
+        case MarkUpdateStatus.Updated:
+            return 'ОБНОВЛЕНО';
+        case MarkUpdateStatus.Skipped:
+            return 'ПРОПУЩЕНО';
+        case MarkUpdateStatus.Failed:
+            return 'ПРОВАЛЕНО';
+        default:
+            throw new Error('Неизвестный статус обновления оценок');
+    }
 }
 
 export interface ControlActionConfig {

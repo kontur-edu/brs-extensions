@@ -5,12 +5,12 @@ import "./styles.css"
 
 const sidGainingInstruction = "https://docs.google.com/document/d/1btXePo-5bE8RyX7RFXnBuS-UN9SmwUithpc_UXhAWsg/edit";
 
-export default function ({onSubmit, submitting, loading, signedIn, onLogout, username}: Props) {
+export default function BrsLoginForm({onSubmit, submitting, loading, signedIn, onLogout, userName}: Props) {
     const [login, setLogin] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [sid, setSid] = React.useState('');
 
-    function handleUsernameChanged(e: React.ChangeEvent<HTMLInputElement>) {
+    function handleUserNameChanged(e: React.ChangeEvent<HTMLInputElement>) {
         const value = e.target.value;
         setLogin(value);
         setSid("");
@@ -40,7 +40,7 @@ export default function ({onSubmit, submitting, loading, signedIn, onLogout, use
 
     return signedIn ? (
             <React.Fragment>
-                <p>Добро пожаловать, {username}</p>
+                <p>Добро пожаловать, {userName}</p>
                 <Button type="button"
                         fullWidth
                         variant="contained"
@@ -67,7 +67,7 @@ export default function ({onSubmit, submitting, loading, signedIn, onLogout, use
                         autoFocus
                         value={login}
                         disabled={loading}
-                        onChange={handleUsernameChanged}/>
+                        onChange={handleUserNameChanged}/>
                     <TextField
                         className={"form-component"}
                         variant="outlined"
@@ -116,7 +116,7 @@ interface Props {
     onSubmit: (credentials: Credentials) => void;
     onLogout: () => void;
     signedIn: boolean;
-    username?: string;
+    userName?: string;
 }
 
 export interface Credentials {

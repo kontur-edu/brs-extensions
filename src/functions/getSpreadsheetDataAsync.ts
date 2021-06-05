@@ -1,4 +1,4 @@
-import {Discipline, StudentFailure, TermType} from '../apis/brsApi';
+import {StudentFailure, TermType} from '../apis/brsApi';
 import {ControlActionConfig} from '../marksActions/MarksManager';
 import * as readStudents from './readStudentsAsync';
 import {ActualStudent} from './readStudentsAsync';
@@ -18,8 +18,7 @@ export default async function getSpreadsheetDataAsync(
     const controlActionConfigs = buildControlActionConfig(header, indices);
     const disciplineConfig = buildDisciplineConfig(
         rows,
-        indices,
-        null
+        indices
     );
 
     const actualStudents = await readStudents.fromSpreadsheetAsync(
@@ -50,7 +49,7 @@ async function readRowsFromSpreadsheetAsync(
 
 function getHeader(rows: string[][]) {
     const header = rows && rows[0];
-    if (!header) throw new Error(`Can't read header of spreadsheet`);
+    if (!header) throw new Error(`Лист Google-таблицы не содержит строк`);
     return header;
 }
 
@@ -158,8 +157,7 @@ function buildControlActionConfig(header: string[], indices: Indices) {
 
 function buildDisciplineConfig(
     rows: string[][],
-    indices: Indices,
-    isSuitableDiscipline: ((d: Discipline) => boolean) | null
+    indices: Indices
 ) {
     const result: DisciplineConfig = {
         name: '',
@@ -168,7 +166,6 @@ function buildDisciplineConfig(
         course: 1,
         isModule: false,
         defaultStudentFailure: StudentFailure.NoFailure,
-        isSuitableDiscipline: null,
     };
 
     for (let i = 0; i < rows.length; i++) {
@@ -180,7 +177,6 @@ function buildDisciplineConfig(
         addDisciplineConfigParameter(result, key, value);
     }
 
-    result.isSuitableDiscipline = isSuitableDiscipline;
     return result;
 }
 
@@ -237,7 +233,6 @@ export interface DisciplineConfig {
     course: number;
     isModule: boolean;
     defaultStudentFailure: StudentFailure;
-    isSuitableDiscipline: ((d: Discipline) => boolean) | null;
 }
 
 interface Indices {

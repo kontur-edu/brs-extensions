@@ -20,7 +20,7 @@ export function parseAnyFloat(s: string) {
     return parseFloat(s && s.replace(',', '.'));
 }
 
-export function groupBy<TItem, TKey>(items: TItem[], key: keyof TItem) {
+export function groupBy<TItem>(items: TItem[], key: keyof TItem) {
     const reducer: { [group: string]: TItem[] } = {};
     return items.reduce((reducer, item) => {
         const itemKey = `${item[key]}`;

@@ -1,8 +1,6 @@
 import React from 'react';
 import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Slide} from '@material-ui/core';
 import {TransitionProps} from '@material-ui/core/transitions';
-import {Redirect} from 'react-router-dom';
-import BrsAuth from "../apis/brsAuth";
 
 const Transition = React.forwardRef(function Transition(
     props: TransitionProps & { children?: React.ReactElement<any, any> },
@@ -11,18 +9,9 @@ const Transition = React.forwardRef(function Transition(
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function SessionExpiredAlert({open, sessionName, brsAuth}: Props) {
-    const [redirect, setRedirect] = React.useState(false);
-
-    const handleOk = () => {
-        if (sessionName === "БРС")
-            brsAuth.logout();
-        setRedirect(true);
-    };
-
+export default function SessionExpiredAlert({open, sessionName, onOk}: Props) {
     return (
         <React.Fragment>
-            {redirect && <Redirect to="/"/>}
             <Dialog
                 open={open}
                 TransitionComponent={Transition}
@@ -36,7 +25,7 @@ export default function SessionExpiredAlert({open, sessionName, brsAuth}: Props)
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions style={{display: 'flex', justifyContent: 'space-around'}}>
-                    <Button onClick={handleOk} color="primary">Ок</Button>
+                    <Button onClick={onOk} color="primary">Ок</Button>
                 </DialogActions>
             </Dialog>
         </React.Fragment>
@@ -46,5 +35,5 @@ export default function SessionExpiredAlert({open, sessionName, brsAuth}: Props)
 interface Props {
     open: boolean;
     sessionName: string;
-    brsAuth: BrsAuth;
+    onOk: () => void;
 }

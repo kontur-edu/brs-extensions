@@ -1,14 +1,11 @@
 import React, {memo} from "react";
 import getSpreadsheetDataAsync, {DisciplineConfig, SpreadsheetData} from "../../functions/getSpreadsheetDataAsync";
-import NestedList, {INestedListItem} from "../nestedList";
+import NestedList, {NestedItem} from "../nestedList";
 import {Collapse, Container} from "@material-ui/core";
+import {compareNormalized} from '../../helpers/tools';
 import {getSpreadsheetProperties} from "../../apis/googleApi";
-import getSuitableDisciplinesAsync from "../../functions/getSuitableDisciplinesAsync";
 import BrsApi, {Discipline} from "../../apis/brsApi";
-import * as cache from "../../helpers/cache"
-import {StorageType} from "../../helpers/cache"
 import './styles.css';
-import tryInvoke from "../../helpers/tryInvoke";
 import RunWorkerButtons from "../workPage/worker/RunWorkerButtons";
 import WorkerDialog, {MarksData} from "../workPage/worker/workerDialog";
 import GroupIcon from '@material-ui/icons/Group';
@@ -44,17 +41,21 @@ class GoogleTableFetch extends React.Component<Props, State> {
         this.setState({loading: true});
 
         const spreadsheetData = await this.getActualSpreadsheetDataAsync(spreadsheetId, sheetId);
-        if (!spreadsheetData)
+        if (!spreadsheetData) {
+            this.setState({loading: false});
             return;
+        }
 
-        const availableDisciplines = await this.getAvailableDisciplinesAsync(spreadsheetData.disciplineConfig);
-        if (!availableDisciplines)
+        const disciplines = await this.getActualDisciplinesAsync(spreadsheetData.disciplineConfig);
+        if (!disciplines) {
+            this.setState({loading: false});
             return;
+        }
 
-        const disciplinesInfo = this.disciplinesToListItems(availableDisciplines, spreadsheetData);
+        const disciplinesInfo = this.disciplinesToListItems(disciplines, spreadsheetData);
 
         this.marksData.spreadsheetData = spreadsheetData;
-        this.marksData.suitableDisciplines = availableDisciplines;
+        this.marksData.suitableDisciplines = disciplines;
 
         this.setState({
             loading: false,
@@ -66,13 +67,13 @@ class GoogleTableFetch extends React.Component<Props, State> {
     }
 
     disciplinesToListItems(availableDisciplines: Discipline[], spreadsheetData: SpreadsheetData)
-        : { missed: boolean, disciplines: INestedListItem[] } {
+        : { missed: boolean, disciplines: NestedItem[] } {
 
         const actualGroups = new Set(spreadsheetData.actualStudents.map(s => s.groupName));
         const availableGroups = new Set(availableDisciplines.map(s => s.group));
 
         let missedCount = 0;
-        const nestedItems: INestedListItem[] = Array.from(actualGroups)
+        const nestedItems: NestedItem[] = Array.from(actualGroups)
             .map(group => {
                 const groupMissed = !availableGroups.has(group);
                 if (groupMissed)
@@ -81,7 +82,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
             });
 
         return {
-            missed: missedCount == actualGroups.size,
+            missed: missedCount === actualGroups.size,
             disciplines: [{
                 title: spreadsheetData.disciplineConfig.name,
                 nestedItems
@@ -89,18 +90,24 @@ class GoogleTableFetch extends React.Component<Props, State> {
         };
     }
 
-    async getAvailableDisciplinesAsync(disciplineConfig: DisciplineConfig) {
-        return getSuitableDisciplinesAsync(this.props.brsApi, disciplineConfig)
-            .then(x => x, error => {
-                this.setState({loading: false})
-                this.props.onError(error)
-            });
+    async getActualDisciplinesAsync(disciplineConfig: DisciplineConfig) {
+        try {
+            const allDisciplines = await this.props.brsApi.getDisciplineCachedAsync(
+                disciplineConfig.year,
+                disciplineConfig.termType,
+                disciplineConfig.course,
+                disciplineConfig.isModule
+            );
+        
+            return allDisciplines.filter(d => compareNormalized(d.discipline, disciplineConfig.name));
+        } catch (error) {
+            this.props.onError(error);
+        }
     }
 
     async getActualSpreadsheetDataAsync(spreadsheetId: string, sheetId: string | null) {
         const sheetName = await this.getSheetName(spreadsheetId, sheetId);
         if (!sheetName) {
-            this.setState({loading: false});
             return null;
         }
 
@@ -108,7 +115,6 @@ class GoogleTableFetch extends React.Component<Props, State> {
         try {
             spreadsheetData = await getSpreadsheetDataAsync(spreadsheetId, sheetName);
         } catch (e) {
-            this.setState({loading: false})
             this.props.onError(e.message || JSON.stringify(e));
             return null;
         }
@@ -137,16 +143,18 @@ class GoogleTableFetch extends React.Component<Props, State> {
         event.preventDefault();
         this.setState({showDisciplines: false});
 
-        const userCacheName = tryInvoke(() => this.props.brsApi.brsAuth.cacheName, this.props.onError);
-        if (!userCacheName)
-            return;
-
         const disciplineConfig = this.marksData.spreadsheetData?.disciplineConfig;
         if (!disciplineConfig)
             return;
 
-        const cacheName = cache.buildCacheName(userCacheName, "getDiscipline", disciplineConfig);
-        cache.clear(cacheName, StorageType.Local);
+        this.props.brsApi.clearDisciplineCacheAsync(
+            disciplineConfig.year,
+            disciplineConfig.termType,
+            disciplineConfig.course,
+            disciplineConfig.isModule)
+            .then(x => x, error => {
+                this.props.onError(error)
+            });
 
         this.loadDisciplines(this.spreadsheetId, this.sheetId);
     }
@@ -222,7 +230,7 @@ interface State {
     loading: boolean;
     showDisciplines: boolean;
     tableUrlError: { error: boolean, message: string };
-    disciplines: INestedListItem[];
+    disciplines: NestedItem[];
     disciplinesMissed: boolean;
     showWorkerButtons: boolean;
     runWorker: boolean;

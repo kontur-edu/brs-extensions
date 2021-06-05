@@ -4,7 +4,7 @@ import SpreadsheetFetch from "../googleTableFetch";
 import BrsApi from "../../apis/brsApi";
 import SessionExpiredAlert from "../SessionExpiredAlert";
 import CustomAlert from "../CustomAlert";
-import googleAuth from "../../apis/googleAuth";
+import GoogleAuth from "../../apis/googleAuth";
 import BrsAuth from "../../apis/brsAuth";
 import {StatusCode} from "../../helpers/CustomError";
 import LoadingPane from "./loadingPane/LoadingPane";
@@ -26,11 +26,11 @@ export default class WorkPage extends React.Component<Props, State> {
     }
 
     async componentDidMount() {
-        await googleAuth.init();
+        await this.props.googleAuth.ensureInitializedAsync();
         await this.props.brsAuth.tryRestoreAsync();
 
         const brsAuthorized = this.props.brsAuth.checkAuth();
-        const googleAuthorized = googleAuth.checkAuthorized();
+        const googleAuthorized = this.props.googleAuth.checkAuthorized();
 
         if (!brsAuthorized)
             this.handleSessionExpired("БРС");
@@ -38,10 +38,6 @@ export default class WorkPage extends React.Component<Props, State> {
             this.handleSessionExpired("Google");
         else
             this.setState({loading: false});
-    }
-
-    handleSessionExpired = (sessionName: string) => {
-        this.setState({openSessionExpiredAlert: true, sessionName, loading: false});
     }
 
     handleError = (error: any) => {
@@ -57,6 +53,20 @@ export default class WorkPage extends React.Component<Props, State> {
             this.setState({errorMessage});
     }
 
+    handleSessionExpired = (sessionName: SessionName) => {
+        this.setState({openSessionExpiredAlert: true, sessionName, loading: false});
+    }
+
+    handleSessionExpiredOk = () => {
+        if (this.state.sessionName === "БРС") {
+            this.props.brsAuth.logout();
+            this.returnToLoginPage();
+            this.setState({redirect: true})
+        } else if (this.state.sessionName === "Google") {
+            this.returnToLoginPage();
+        }
+    };
+
     closeError = () => {
         this.setState({errorMessage: ''})
     }
@@ -69,9 +79,9 @@ export default class WorkPage extends React.Component<Props, State> {
         return (
             <React.Fragment>
                 {this.state.loading && <LoadingPane/>}
-                {this.state.openSessionExpiredAlert && <SessionExpiredAlert brsAuth={this.props.brsAuth}
-                                                                            sessionName={this.state.sessionName}
-                                                                            open={this.state.openSessionExpiredAlert}/>}
+                <SessionExpiredAlert open={this.state.openSessionExpiredAlert}
+                                     sessionName={this.state.sessionName}
+                                     onOk={this.handleSessionExpiredOk}/>
                 {this.state.errorMessage && <CustomAlert open={!!this.state.errorMessage}
                                                          message={this.state.errorMessage}
                                                          type={'error'}
@@ -92,10 +102,12 @@ export default class WorkPage extends React.Component<Props, State> {
     }
 }
 
+type SessionName = 'БРС' | 'Google';
+
 interface State {
     showControls: boolean;
     openSessionExpiredAlert: boolean;
-    sessionName: string;
+    sessionName: SessionName | '';
     errorMessage: string;
     runWork: boolean;
     loading: boolean;
@@ -105,4 +117,5 @@ interface State {
 interface Props {
     brsAuth: BrsAuth;
     brsApi: BrsApi;
+    googleAuth: GoogleAuth;
 }

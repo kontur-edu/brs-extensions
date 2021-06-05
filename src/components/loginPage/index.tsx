@@ -4,7 +4,7 @@ import {Redirect} from "react-router-dom";
 import {Button, Container} from "@material-ui/core";
 import BrsAuth, {LoginStatus} from "../../apis/brsAuth";
 import BrsLoginForm, {Credentials} from "./brsLoginForm";
-import googleAuth from "../../apis/googleAuth";
+import GoogleAuth from "../../apis/googleAuth";
 import GoogleLoginButton from "./GoogleLoginButton";
 import CustomAlert from "../CustomAlert";
 
@@ -27,10 +27,10 @@ export default class LoginPage extends React.Component<Props, State> {
 
     async componentDidMount() {
         await this.props.brsAuth.tryRestoreAsync();
-        googleAuth.init();
+        await this.props.googleAuth.ensureInitializedAsync();
 
         const brsAuthorized = this.props.brsAuth.checkAuth();
-        const googleAuthorized = googleAuth.checkAuthorized();
+        const googleAuthorized = this.props.googleAuth.checkAuthorized();
         this.setState({brsLoading: false, brsAuthorized, googleAuthorized});
     }
 
@@ -109,7 +109,7 @@ export default class LoginPage extends React.Component<Props, State> {
     }
 
     handleGoogleLogout = async () => {
-        await googleAuth.logout();
+        await this.props.googleAuth.logout();
         this.setState({
             googleAuthorized: false,
             alertType: "success",
@@ -118,49 +118,73 @@ export default class LoginPage extends React.Component<Props, State> {
         });
     }
 
+    renderGreeting = () => {
+        return (
+            <div style={{width: 700}}>
+                <h1>Добро пожаловать в Расширения БРС</h1>
+                <h3 className={"block-header"}>Как все работает</h3>
+                <p>В Google&nbsp;Таблицах вы заполняете оценки за курс по некоторому шаблону.<br/>
+                    После этого импортируете Google Таблицу в сервис и выполняете пробный запуск выставления
+                    оценок,
+                    чтобы исключить ошибки.<br/>
+                    Наконец делаете запуск с реальным выставлением оценок.</p>
+                <h3 className={"block-header"}>Правила хранения данных</h3>
+                <p>Ваш логин и пароль передаются в БРС и нигде не сохраняются.<br/>
+                    Данные о доступных вам курсах сохраняются только в вашем браузере.</p>
+            </div>
+        );
+    }
+
+    renderBrsLogin = () => {
+        return (
+            <BrsLoginForm onSubmit={this.handleBrsSubmit}
+                          loading={this.state.brsLoading}
+                          signedIn={this.state.brsAuthorized}
+                          onLogout={this.handleBrsLogout}
+                          userName={this.props.brsAuth.userName}
+                          submitting={this.state.submitLoading}/>
+        );
+    }
+
+    renderGoogleLogin = () => {
+        return (
+            <GoogleLoginButton onSignedIn={this.handleGoogleSignedIn}
+                               signedIn={this.state.googleAuthorized}
+                               userName={this.props.googleAuth.getUserName()}
+                               onLogout={this.handleGoogleLogout}
+                               onFailure={this.handleGoogleLoginFailed}/>
+        );
+    }
+
+    renderStartWorkButton = () => {
+        return (
+            <Button variant="contained"
+                    onClick={this.startWork}
+                    disabled={!this.state.brsAuthorized || !this.state.googleAuthorized}
+                    color="secondary">
+                начать работу
+            </Button>
+        );
+    }
+
     render() {
         return (
             <div className="login-page">
                 {this.state.redirect && <Redirect to="/work"/>}
                 <Container component="main" maxWidth="md">
-                    <div style={{width: 700}}>
-                        <h1>Добро пожаловать в Расширения БРС</h1>
-                        <h3 className={"block-header"}>Как все работает</h3>
-                        <p>В Google&nbsp;Таблицах вы заполняете оценки за курс по некоторому шаблону.<br/>
-                            После этого импортируете Google Таблицу в сервис и выполняете пробный запуск выставления
-                            оценок,
-                            чтобы исключить ошибки.<br/>
-                            Наконец делаете запуск с реальным выставлением оценок.</p>
-                        <h3 className={"block-header"}>Правила хранения данных</h3>
-                        <p>Ваш логин и пароль передаются в БРС и нигде не сохраняются.<br/>
-                            Данные о доступных вам курсах сохраняются только в вашем браузере.</p>
-                    </div>
+                    {this.renderGreeting()}
                     <hr/>
                     <Container maxWidth={"xs"}>
                         <Container>
-                            <BrsLoginForm onSubmit={this.handleBrsSubmit}
-                                          loading={this.state.brsLoading}
-                                          signedIn={this.state.brsAuthorized}
-                                          onLogout={this.handleBrsLogout}
-                                          username={this.props.brsAuth.username}
-                                          submitting={this.state.submitLoading}/>
+                            {this.renderBrsLogin()}
                         </Container>
                         <hr className={"vertical-margin-medium"}/>
                         <Container>
-                            <GoogleLoginButton onSignedIn={this.handleGoogleSignedIn}
-                                               signedIn={this.state.googleAuthorized}
-                                               username={googleAuth.getUsername()}
-                                               onLogout={this.handleGoogleLogout}
-                                               onFailure={this.handleGoogleLoginFailed}/>
+                            {this.renderGoogleLogin()}
                         </Container>
                     </Container>
                     <Container className="text-align-center vertical-margin-large">
-                        <Button variant="contained"
-                                onClick={this.startWork}
-                                disabled={!this.state.brsAuthorized || !this.state.googleAuthorized}
-                                color="secondary">
-                            начать работу
-                        </Button>
+                        {this.renderStartWorkButton()}
                     </Container>
                     <CustomAlert open={this.state.openAlert}
                                  message={this.state.alertMessage}
@@ -185,4 +209,5 @@ interface State {
 
 interface Props {
     brsAuth: BrsAuth;
+    googleAuth: GoogleAuth;
 }

@@ -1,6 +1,6 @@
 import React, {memo} from "react";
 import {Collapse, createStyles, makeStyles} from "@material-ui/core";
-import NestedList, {INestedListItem} from "../../nestedList";
+import NestedList, {NestedItem} from "../../nestedList";
 import BrsApi, {Discipline, TermType} from "../../../apis/brsApi";
 import {groupBy} from "../../../helpers/tools";
 import DisciplinesFetchControls, {DisciplinesFetchData} from "./DisciplinesFetchControls";
@@ -21,7 +21,7 @@ function DisciplinesFetch({brsApi, onError}: Props) {
     const classes = useStyles();
 
     const [openDisciplines, setOpenDisciplines] = React.useState(false);
-    const [disciplines, setDisciplines] = React.useState([] as INestedListItem[]);
+    const [disciplines, setDisciplines] = React.useState([] as NestedItem[]);
     const [loading, setLoading] = React.useState(false);
 
     async function loadDisciplines(fetchData: DisciplinesFetchData) {

@@ -9,7 +9,7 @@ import SubmitWithLoading from "../../../submitWithLoading";
 import MarksManager from "../../../../marksActions/MarksManager";
 import BrsApi, {Discipline} from "../../../../apis/brsApi";
 import {SpreadsheetData} from "../../../../functions/getSpreadsheetDataAsync";
-import NestedList, {INestedListItem} from "../../../nestedList";
+import NestedList, {NestedItem} from "../../../nestedList";
 import ReportBuilder, {Report} from "../../../../marksActions/ReportBuilder";
 
 const DialogContent = withStyles(() => ({
@@ -61,12 +61,12 @@ export default class WorkerDialog extends React.Component<Props, State> {
         this.setState({logItems});
     }
 
-    reportToNestedListItems(report: Report): Promise<INestedListItem[]> {
+    reportToNestedListItems(report: Report): Promise<NestedItem[]> {
         const logItems = this.state.logItems;
         return new Promise(resolve => {
             let title = `Группа ${report.group}`
-            const nestedItems: INestedListItem[] = [];
-            const mainItem: INestedListItem = {title, collapsed: true, nestedItems};
+            const nestedItems: NestedItem[] = [];
+            const mainItem: NestedItem = {title, collapsed: true, nestedItems};
 
             let hasErrors = false;
 
@@ -75,7 +75,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
             mergeResultsTitle += `, ${merge.failedActual?.length || 0}`;
             mergeResultsTitle += `, ${merge.failedBrs?.length || 0}`;
 
-            const mergeInfoItem: INestedListItem = {
+            const mergeInfoItem: NestedItem = {
                 title: mergeResultsTitle,
                 collapsed: true,
                 nestedItems: [{title: `Успешно сопоставлено = ${merge.succeed}`}]
@@ -104,7 +104,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
             }
 
             const marks = report.marks;
-            const marksItem: INestedListItem = {title: "Выставление баллов", collapsed: true};
+            const marksItem: NestedItem = {title: "Выставление баллов", collapsed: true};
             marksItem.nestedItems = marks.map(({title, students}) => ({
                 title: this.translateStatus(title) + (students ? ` = ${students.length}` : ''),
                 nestedItems: students?.map(s => ({title: s})),
@@ -131,10 +131,10 @@ export default class WorkerDialog extends React.Component<Props, State> {
 
     startWork = async () => {
         const {spreadsheetData, suitableDisciplines} = this.props.marksData;
-        const result = await this.marksManager.putMarksToBrsAsync(spreadsheetData, suitableDisciplines);
+        const error = await this.marksManager.putMarksToBrsAsync(spreadsheetData, suitableDisciplines);
 
-        if (result)
-            this.props.onError(result);
+        if (error)
+            this.props.onError(error);
 
         this.setState({
             cancelPending: false,
@@ -186,5 +186,5 @@ interface Props {
 interface State {
     okLoading: boolean;
     cancelPending: boolean;
-    logItems: INestedListItem[];
+    logItems: NestedItem[];
 }

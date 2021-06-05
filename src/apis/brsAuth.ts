@@ -4,6 +4,12 @@ import * as cache from "../helpers/cache";
 import {StorageType} from "../helpers/cache";
 import {CustomError, StatusCode} from "../helpers/CustomError";
 
+export enum LoginStatus {
+    Succeed,
+    InvalidCredentials,
+    Error
+}
+
 export default class BrsAuth {
     readonly brsUrlProvider: BrsUrlProvider;
 
@@ -19,31 +25,31 @@ export default class BrsAuth {
         return this._sid;
     }
 
-    private _cacheName: string | null = null;
+    private _safeUserName: string | null = null;
 
-    get cacheName() {
-        if (!this._cacheName)
+    get safeUserName() {
+        if (!this._safeUserName)
             throw new CustomError(StatusCode.BrsUnauthorized, 'BRS unauthorized');
-        return this._cacheName;
+        return this._safeUserName;
     }
 
-    private _username?: string = "Anonymous";
+    private _userName?: string = "Anonymous";
 
-    get username() {
-        return this._username;
+    get userName() {
+        return this._userName;
     }
 
     checkAuth() {
-        return !!(this._sid && this._cacheName);
+        return !!(this._sid && this._safeUserName);
     }
 
     async tryRestoreAsync() {
-        if (!!(this._sid && this._cacheName))
+        if (!!(this._sid && this._safeUserName))
             return;
 
         let loginInfo = cache.read<LoginInfo>("loginInfo", StorageType.Session);
         if (loginInfo) {
-            this.saveLoginInfo(loginInfo.sid, loginInfo.username);
+            this.saveLoginInfo(loginInfo.sid, loginInfo.userName);
             return;
         }
 
@@ -53,7 +59,7 @@ export default class BrsAuth {
 
         const sidCheckResult = await this.checkSidAsync(loginInfo.sid);
         if (sidCheckResult?.success)
-            this.saveLoginInfo(loginInfo.sid, loginInfo.username);
+            this.saveLoginInfo(loginInfo.sid, loginInfo.userName);
     }
 
     private async checkSidAsync(sid: string): Promise<SidCheckResult | null> {
@@ -67,10 +73,10 @@ export default class BrsAuth {
                 },
             });
 
-            const username = response.match(/username">([А-ЯЁа-яё \-]+)</);
-            if (username)
-                return {success: true, username: username[1]};
-            return {success: false, username: "Anonymous"}
+            const userName = response.match(/username">([А-ЯЁа-яё \-]+)</);
+            if (userName)
+                return {success: true, userName: userName[1]};
+            return {success: false, userName: "Anonymous"}
 
         } catch (e) {
             return null;
@@ -98,7 +104,7 @@ export default class BrsAuth {
         if (!checkResult.success)
             return LoginStatus.InvalidCredentials;
 
-        this.saveLoginInfo(sid, checkResult.username);
+        this.saveLoginInfo(sid, checkResult.userName);
 
         return LoginStatus.Succeed;
     }
@@ -113,24 +119,24 @@ export default class BrsAuth {
         if (!checkResult.success)
             return LoginStatus.InvalidCredentials;
 
-        this.saveLoginInfo(sid, checkResult.username);
+        this.saveLoginInfo(sid, checkResult.userName);
 
         return LoginStatus.Succeed;
     }
 
-    private saveLoginInfo(sid: string, username: string) {
-        const cacheName = username.replaceAll(' ', '_');
+    private saveLoginInfo(sid: string, userName: string) {
+        const safeUserName = userName.replaceAll(/[^A-Za-zА-ЯЁа-яё]/, '_');
 
-        cache.save("loginInfo", {sid, cacheName, username}, StorageType.LocalAndSession);
+        cache.save("loginInfo", {sid, safeUserName, userName}, StorageType.LocalAndSession);
 
         this._sid = sid;
-        this._cacheName = cacheName;
-        this._username = username;
+        this._safeUserName = safeUserName;
+        this._userName = userName;
     }
 
     logout() {
         this._sid = null;
-        this._cacheName = null;
+        this._safeUserName = null;
         cache.clear("loginInfo", StorageType.LocalAndSession);
     }
 
@@ -148,19 +154,13 @@ export default class BrsAuth {
     }
 }
 
-export enum LoginStatus {
-    Succeed,
-    InvalidCredentials,
-    Error
-}
-
 interface LoginInfo {
     sid: string;
-    cacheName: string;
-    username: string;
+    safeUserName: string;
+    userName: string;
 }
 
 interface SidCheckResult {
     success: boolean;
-    username: string;
+    userName: string;
 }

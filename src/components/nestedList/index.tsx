@@ -19,23 +19,27 @@ export default function NestedList(props: NestedListProps) {
             subheader={listSubheader}
             className={"nested-list primary"}>
             {
-                items.length ?
-                    ConstructItems(items, 0, icons) :
-                    <ListItem className={"text-align-center"}>
-                        <ListItemText primary="No items"/>
-                    </ListItem>
+                items.length ? renderNestedItems(items, 0, icons) : renderEmpty()
             }
         </List>
     );
 }
 
-function ConstructItems(items: INestedListItem[], level: number, icons?: (JSX.Element | null)[]) {
+function renderNestedItems(items: NestedItem[], level: number, icons?: (JSX.Element | null)[]) {
     return items.map((item, index) => (
         <NestedListItem key={index}
                         item={item}
                         icons={icons}
                         level={level}/>
     ));
+}
+
+function renderEmpty() {
+    return (
+        <ListItem className={"text-align-center"}>
+            <ListItemText primary="Нет элементов"/>
+        </ListItem>
+    );
 }
 
 function NestedListItem({item, level, icons}: NestedListItemProps) {
@@ -64,7 +68,7 @@ function NestedListItem({item, level, icons}: NestedListItemProps) {
                 hasSubItems &&
                 <Collapse in={open} unmountOnExit>
                     <List component="div" disablePadding>
-                        {nestedItems && ConstructItems(nestedItems, level + 1, icons)}
+                        {nestedItems && renderNestedItems(nestedItems, level + 1, icons)}
                     </List>
                 </Collapse>
             }
@@ -72,21 +76,21 @@ function NestedListItem({item, level, icons}: NestedListItemProps) {
     );
 }
 
-export interface INestedListItem {
+export interface NestedItem {
     title: string;
     colored?: boolean;
     collapsed?: boolean;
-    nestedItems?: INestedListItem[];
+    nestedItems?: NestedItem[];
 }
 
 interface NestedListProps {
-    items: INestedListItem[];
+    items: NestedItem[];
     title?: string;
     icons?: (JSX.Element | null)[];
 }
 
 interface NestedListItemProps {
-    item: INestedListItem;
+    item: NestedItem;
     level: number;
     icons?: (JSX.Element | null)[];
 }

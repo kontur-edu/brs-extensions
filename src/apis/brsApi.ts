@@ -21,7 +21,7 @@ export default class BrsApi {
         course: number,
         isModule: boolean
     ) {
-        const cacheName = `${this.brsAuth.cacheName}_getDiscipline_${year}_${termType}_${course}_${isModule}`;
+        const cacheName = this.getDisciplineCacheName(year, termType, course, isModule);
         const cacheResult = cache.read<Discipline[]>(cacheName, StorageType.Local);
         if (cacheResult) {
             return cacheResult;
@@ -66,6 +66,16 @@ export default class BrsApi {
             }
             return disciplines;
         }
+    }
+
+    async clearDisciplineCacheAsync(
+        year: number,
+        termType: TermType,
+        course: number,
+        isModule: boolean
+    ) {
+        const cacheName = this.getDisciplineCacheName(year, termType, course, isModule);
+        cache.clear(cacheName, StorageType.Local);
     }
 
     async getDisciplineTotalAsync(
@@ -177,7 +187,7 @@ export default class BrsApi {
         cardType: CardType,
         markType: MarkType
     ) {
-        const cacheName = `${this.brsAuth.cacheName}_getControlActions_${discipline.disciplineLoad}` +
+        const cacheName = `${this.brsAuth.safeUserName}_getControlActions_${discipline.disciplineLoad}` +
             `_${discipline.isModule}_${discipline.groupHistoryId}_${discipline.groupId}_${cardType}_${markType}`;
         const cacheResult = cache.read<ControlAction[]>(cacheName, StorageType.Local);
         if (cacheResult) {
@@ -339,6 +349,15 @@ export default class BrsApi {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
             }
         );
+    }
+
+    getDisciplineCacheName(
+        year: number,
+        termType: TermType,
+        course: number,
+        isModule: boolean
+    ) {
+        return `${this.brsAuth.safeUserName}_getDiscipline_${year}_${termType}_${course}_${isModule}`;
     }
 
     async requestApiJsonAsync<T>(
