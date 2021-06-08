@@ -28,3 +28,18 @@ export function groupBy<TItem>(items: TItem[], key: keyof TItem) {
     return reducer;
   }, reducer);
 }
+
+export function pluralize(
+  count: number,
+  version1: string,
+  version2: string,
+  version5: string
+) {
+  if (
+    count % 10 === 0 ||
+    count % 10 >= 5 ||
+    (count % 100 > 10 && count % 100 < 20)
+  )
+    return version5;
+  return count % 10 === 1 ? version1 : version2;
+}

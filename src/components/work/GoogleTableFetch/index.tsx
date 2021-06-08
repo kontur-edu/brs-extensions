@@ -240,6 +240,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
                   совпадает
                 </li>
                 <li>Запросите доступ на дисциплину в БРС</li>
+                <li>Убедитесь, что техкарта согласована</li>
                 <li>
                   <button
                     className="button-link"

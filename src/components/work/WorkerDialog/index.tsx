@@ -11,6 +11,7 @@ import BrsApi, { Discipline } from "../../../apis/BrsApi";
 import { SpreadsheetData } from "../../../managers/SpreadsheetManager";
 import NestedList, { NestedItem } from "../../shared/NestedList";
 import ReportManager, { Report } from "../../../managers/ReportManager";
+import { pluralize } from "../../../helpers/tools";
 
 const DialogContent = withStyles(() => ({
   root: {
@@ -86,7 +87,14 @@ export default class WorkerDialog extends React.Component<Props, State> {
 
       if (!!merge.failedActual) {
         hasErrors = true;
-        title = `Не удалось сопоставить ${merge.failedActual.length} студентов из Google Таблицы`;
+        title = `Не удалось сопоставить ${
+          merge.failedActual.length
+        } ${pluralize(
+          merge.failedActual.length,
+          "студента",
+          "студентов",
+          "студентов"
+        )} из Google Таблицы`;
         mergeInfoItem.nestedItems?.push({
           title,
           colored: true,
@@ -96,7 +104,12 @@ export default class WorkerDialog extends React.Component<Props, State> {
       }
       if (!!merge.failedBrs) {
         hasErrors = true;
-        title = `Не удалось сопоставить ${merge.failedBrs.length} студентов из БРС`;
+        title = `Не удалось сопоставить ${merge.failedBrs.length} ${pluralize(
+          merge.failedBrs.length,
+          "студента",
+          "студентов",
+          "студентов"
+        )} из БРС`;
         mergeInfoItem.nestedItems?.push({
           title,
           colored: true,
