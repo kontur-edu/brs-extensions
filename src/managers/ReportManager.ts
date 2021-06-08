@@ -32,6 +32,10 @@ export default class ReportManager {
     if (this._currentReport) this.onReportFinished(this._currentReport);
     this._currentReport = null;
   }
+
+  cancelReport() {
+    this._currentReport = null;
+  }
 }
 
 export interface Report {

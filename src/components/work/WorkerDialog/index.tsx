@@ -54,7 +54,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
     this.marksManager.cancel();
   }
 
-  logConfigurationErrors(errorMessages: string[]) {
+  logConfigurationErrors = (errorMessages: string[]) => {
     const logItems = errorMessages.map((title) => ({ title, colored: true }));
     this.setState({ logItems });
   }
@@ -143,14 +143,14 @@ export default class WorkerDialog extends React.Component<Props, State> {
           "студентов"
         )}`,
         nestedItems: students?.map((s) => ({ title: s })),
-        collapsed: true,
+        collapsed: false,
       }));
       nestedItems.push(marksItem);
 
       const skipped = report.skipped;
       if (skipped.length > 0) {
         const skippedItem: NestedItem = {
-          title: "Остальные студенты из БРС",
+          title: "Неизвестные студенты из БРС",
           collapsed: true,
         };
         skippedItem.nestedItems = skipped.map(({ title, students }) => ({
@@ -161,7 +161,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
             "студентов"
           )}`,
           nestedItems: students?.map((s) => ({ title: s })),
-          collapsed: true,
+          collapsed: false,
         }));
         nestedItems.push(skippedItem);
       }

@@ -42,7 +42,9 @@ export default class MarksManager {
 
     try {
       for (const discipline of disciplines) {
-        await this.putMarksForDisciplineAsync(
+        this.reportManager.newReport(discipline.group);
+
+        var isSuccessful = await this.putMarksForDisciplineAsync(
           discipline,
           actualStudents.filter((s) =>
             compareNormalized(s.groupName, discipline.group)
@@ -51,15 +53,21 @@ export default class MarksManager {
           controlActionConfigs
         );
 
+        if (!isSuccessful) {
+          this.reportManager.cancelReport();
+          break;
+        }
+
+        this.reportManager.finishReport();
+
         if (this.cancelPending) {
           break;
         }
       }
+
       return null;
     } catch (e) {
       return e;
-    } finally {
-      this.reportManager.finishReport();
     }
   }
 
@@ -70,7 +78,6 @@ export default class MarksManager {
     controlActionConfigs: ControlActionConfig[]
   ) {
     if (actualStudents.length === 0) return;
-    this.reportManager.newReport(discipline.group);
 
     const controlActions = await this.brsApi.getAllControlActionsCachedAsync(
       discipline
@@ -81,7 +88,7 @@ export default class MarksManager {
         controlActionConfigs
       )
     )
-      return;
+      return false;
 
     const brsStudents = await this.brsApi.getAllStudentMarksAsync(discipline);
     const { mergedStudents, skippedActualStudents, skippedBrsStudents } =
@@ -109,6 +116,8 @@ export default class MarksManager {
     if (this.save) {
       await this.brsApi.updateAllMarksAsync(discipline);
     }
+
+    return true;
   }
 
   checkControlActionsConfiguration(
