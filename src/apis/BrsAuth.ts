@@ -115,7 +115,7 @@ export default class BrsAuth {
   }
 
   private saveLoginInfo(sid: string, userName: string) {
-    const safeUserName = userName.replaceAll(/[^A-Za-zА-ЯЁа-яё]/, "_");
+    const safeUserName = userName.replaceAll(/[^A-Za-zА-ЯЁа-яё]/g, "_");
 
     cache.save(
       "loginInfo",
