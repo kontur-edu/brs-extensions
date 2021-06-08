@@ -122,24 +122,27 @@ export default class LoginPage extends React.Component<Props, State> {
 
   renderGreeting = () => {
     return (
-      <div style={{ width: 700 }}>
-        <h1>Добро пожаловать в Расширения БРС</h1>
-        <h3 className={"block-header"}>Как все работает</h3>
+      <div className="greeting">
+        <h2>Добро пожаловать в Расширения БРС</h2>
+        <h3 className="block-header">Как все работает</h3>
+        <ol>
+          <li>
+            В Google&nbsp;Таблицах вы заполняете оценки за курс по некоторому
+            шаблону
+          </li>
+          <li>
+            После этого импортируете Google Таблицу в сервис и выполняете
+            пробный запуск выставления оценок, чтобы исключить ошибки
+          </li>
+          <li>Наконец делаете запуск с реальным выставлением оценок</li>
+        </ol>
+        <h3 className="block-header">Правила хранения данных</h3>
         <p>
-          В Google&nbsp;Таблицах вы заполняете оценки за курс по некоторому
-          шаблону.
+          Ваш логин и пароль передаются в БРС и нигде не сохраняются
           <br />
-          После этого импортируете Google Таблицу в сервис и выполняете пробный
-          запуск выставления оценок, чтобы исключить ошибки.
-          <br />
-          Наконец делаете запуск с реальным выставлением оценок.
+          Данные о доступных вам курсах сохраняются только в вашем браузере
         </p>
-        <h3 className={"block-header"}>Правила хранения данных</h3>
-        <p>
-          Ваш логин и пароль передаются в БРС и нигде не сохраняются.
-          <br />
-          Данные о доступных вам курсах сохраняются только в вашем браузере.
-        </p>
+        <hr />
       </div>
     );
   };
@@ -188,10 +191,9 @@ export default class LoginPage extends React.Component<Props, State> {
         {this.state.redirect && <Redirect to="/work" />}
         <Container component="main" maxWidth="md">
           {this.renderGreeting()}
-          <hr />
-          <Container maxWidth={"xs"}>
+          <Container maxWidth="xs">
             <Container>{this.renderBrsLogin()}</Container>
-            <hr className={"vertical-margin-medium"} />
+            <hr className="vertical-margin-medium" />
             <Container>{this.renderGoogleLogin()}</Container>
           </Container>
           <Container className="text-align-center vertical-margin-large">

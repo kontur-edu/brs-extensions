@@ -36,12 +36,12 @@ export default function GoogleTableFetchForm({ loading, onSubmit }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className={"vertical-margin-min"}>
+    <form onSubmit={handleSubmit} className="vertical-margin-min">
       <TextField
         name="table-url"
         label={"Ссылка вида " + TABLE_TEMPLATE_URL}
         type="text"
-        className={"tableUrl"}
+        className="tableUrl"
         value={tableUrl}
         onChange={handleUrlChanged}
         error={!!urlError}
@@ -51,9 +51,14 @@ export default function GoogleTableFetchForm({ loading, onSubmit }: Props) {
       <SubmitWithLoading
         title="загрузить"
         loading={loading}
-        className={"submit"}
+        className="submit"
       />
-      <a href={TABLE_URL_PATTERN} target={"_blank"} className={"button-link"}>
+      <a
+        href={TABLE_URL_PATTERN}
+        target="_blank"
+        rel="noreferrer"
+        className="button-link"
+      >
         Пример таблицы для экспорта в БРС
       </a>
     </form>

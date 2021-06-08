@@ -89,7 +89,7 @@ export default class WorkPage extends React.Component<Props, State> {
           <CustomAlert
             open={!!this.state.errorMessage}
             message={this.state.errorMessage}
-            type={"error"}
+            type="error"
             onClose={this.closeError}
           />
         )}

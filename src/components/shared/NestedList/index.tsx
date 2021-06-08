@@ -24,7 +24,7 @@ export default function NestedList(props: NestedListProps) {
       component="nav"
       aria-labelledby="nested-list-subheader"
       subheader={listSubheader}
-      className={"nested-list primary"}
+      className="nested-list primary"
     >
       {items.length ? renderNestedItems(items, 0, icons) : renderEmpty()}
     </List>
@@ -43,7 +43,7 @@ function renderNestedItems(
 
 function renderEmpty() {
   return (
-    <ListItem className={"text-align-center"}>
+    <ListItem className="text-align-center">
       <ListItemText primary="Нет элементов" />
     </ListItem>
   );

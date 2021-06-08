@@ -12,7 +12,7 @@ export default function GoogleLoginButton(props: Props) {
   return (
     <React.Fragment>
       {signedIn ? (
-        <Container className={"text-align-center"}>
+        <Container className="text-align-center">
           <p>Добро пожаловать, {userName}</p>
           <Button
             type="button"
@@ -25,7 +25,7 @@ export default function GoogleLoginButton(props: Props) {
           </Button>
         </Container>
       ) : (
-        <Container className={"text-align-center"}>
+        <Container className="text-align-center">
           <p>
             <b>Войдите в Google</b>, чтобы сервис мог загружать оценки студентов
             из ваших Google&nbsp;Таблиц

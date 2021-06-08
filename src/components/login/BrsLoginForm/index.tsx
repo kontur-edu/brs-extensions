@@ -59,7 +59,7 @@ export default function BrsLoginForm({
       </Button>
     </React.Fragment>
   ) : (
-    <div className={"brs-login-form"}>
+    <div className="brs-login-form">
       <p>
         <b>Войдите в БРС</b>, чтобы сервис мог получить информацию о ваших
         курсах и выставлять оценки от вашего имени
@@ -67,7 +67,7 @@ export default function BrsLoginForm({
       <p>Это можно сделать через учетную запись БРС</p>
       <form className="form" onSubmit={handleSubmit}>
         <TextField
-          className={"form-component"}
+          className="form-component"
           variant="outlined"
           margin="normal"
           fullWidth
@@ -80,7 +80,7 @@ export default function BrsLoginForm({
           onChange={handleUserNameChanged}
         />
         <TextField
-          className={"form-component"}
+          className="form-component"
           variant="outlined"
           margin="normal"
           fullWidth
@@ -97,7 +97,7 @@ export default function BrsLoginForm({
           или через JSESSIONID при использовании единой учетной записи УрФУ
         </p>
         <TextField
-          className={"form-component"}
+          className="form-component"
           variant="outlined"
           margin="normal"
           fullWidth
@@ -111,13 +111,14 @@ export default function BrsLoginForm({
         />
         <a
           href={sidGainingInstruction}
-          className={"button-link"}
-          target={"_blank"}
+          className="button-link"
+          target="_blank"
+          rel="noreferrer"
         >
           Как получить JSESSIONID
         </a>
         <SubmitWithLoading
-          className={"vertical-margin-medium"}
+          className="vertical-margin-medium"
           title="войти"
           loading={submitting}
           disabled={loading}

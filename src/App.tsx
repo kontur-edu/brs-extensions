@@ -16,7 +16,7 @@ const googleAuth = new GoogleAuth();
 export default function App() {
   return (
     <Context.Provider value={{ brsAuth, brsApi, googleAuth }}>
-      <HashRouter hashType={"noslash"}>
+      <HashRouter hashType="noslash">
         <Switch>
           <Route path="/work" component={WorkPageContainer} />
           <Route exact path="" component={LoginPageContainer} />

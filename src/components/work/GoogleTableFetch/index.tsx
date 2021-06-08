@@ -168,7 +168,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
   }
 
   updateCachedDisciplines = (
-    event: React.MouseEvent<HTMLAnchorElement, MouseEvent>
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
     event.preventDefault();
     this.setState({ showDisciplines: false });
@@ -206,8 +206,8 @@ class GoogleTableFetch extends React.Component<Props, State> {
 
   render() {
     return (
-      <span className={"spreadsheet-fetch"}>
-        <h3 className={"vertical-margin-min"}>
+      <span className="spreadsheet-fetch">
+        <h3 className="vertical-margin-min">
           Вставьте ссылку на лист Google Таблицы с оценками
         </h3>
         <GoogleTableFetchForm
@@ -217,12 +217,12 @@ class GoogleTableFetch extends React.Component<Props, State> {
 
         <Collapse
           in={this.state.showDisciplines}
-          className={"vertical-margin-min"}
+          className="vertical-margin-min"
         >
           <h3>Загруженная дисциплина из Google Таблицы</h3>
           <p>
             Группы, к которым у вас нет доступа в БРС,{" "}
-            <b className={"colored-text"}> подсвечены</b>
+            <b className="colored-text"> подсвечены</b>
           </p>
 
           <NestedList
@@ -234,19 +234,19 @@ class GoogleTableFetch extends React.Component<Props, State> {
             <React.Fragment>
               <p>У вас нет доступа ни к одной из перечисленных групп в БРС</p>
               <span>Возможные действия:</span>
-              <ol className={"no-margin"}>
+              <ol className="no-margin">
                 <li>
                   Убедитесь, что название дисциплины в БРС и в Google Таблицах
                   совпадает
                 </li>
                 <li>Запросите доступ на дисциплину в БРС</li>
                 <li>
-                  <a
-                    className={"button-link"}
+                  <button
+                    className="button-link"
                     onClick={this.updateCachedDisciplines}
                   >
                     Обновите кэш групп
-                  </a>
+                  </button>
                 </li>
               </ol>
             </React.Fragment>
@@ -254,14 +254,14 @@ class GoogleTableFetch extends React.Component<Props, State> {
             <React.Fragment>
               <p>
                 Если вам доступны не все группы, которые вам доступны в БРС, то{" "}
-                <a
-                  className={"button-link"}
+                <button
+                  className="button-link"
                   onClick={this.updateCachedDisciplines}
                 >
                   обновите кэш групп
-                </a>
+                </button>
               </p>
-              <Container className={"vertical-margin-medium"}>
+              <Container className="vertical-margin-medium">
                 <RunWorkerButtons
                   enabled={this.state.showWorkerButtons}
                   onRunWorkSafe={this.handleRunWorkSafe}
