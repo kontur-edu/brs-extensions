@@ -5,13 +5,15 @@ import WorkPage from "./WorkPage";
 export default function WorkPageContainer() {
   return (
     <Context.Consumer>
-      {(context) => (
-        <WorkPage
-          brsAuth={context.brsAuth}
-          brsApi={context.brsApi}
-          googleAuth={context.googleAuth}
-        />
-      )}
+      {(context) =>
+        context && (
+          <WorkPage
+            brsAuth={context.brsAuth}
+            brsApi={context.brsApi}
+            googleAuth={context.googleAuth}
+          />
+        )
+      }
     </Context.Consumer>
   );
 }

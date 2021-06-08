@@ -5,9 +5,14 @@ import LoginPage from "./LoginPage";
 export default function LoginPageContainer() {
   return (
     <Context.Consumer>
-      {({ brsAuth, googleAuth }) => (
-        <LoginPage brsAuth={brsAuth} googleAuth={googleAuth} />
-      )}
+      {(context) =>
+        context && (
+          <LoginPage
+            brsAuth={context.brsAuth}
+            googleAuth={context.googleAuth}
+          />
+        )
+      }
     </Context.Consumer>
   );
 }
