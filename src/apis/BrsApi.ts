@@ -45,7 +45,7 @@ export default class BrsApi {
       course,
       isModule
     );
-    const cacheResult = cache.read<Discipline[]>(cacheName, StorageType.Local);
+    const cacheResult = cache.read<Discipline[]>(cacheName, StorageType.Session);
     if (cacheResult) {
       return cacheResult;
     }
@@ -63,7 +63,7 @@ export default class BrsApi {
       isModule,
       total
     );
-    cache.save(cacheName, result, StorageType.Local);
+    cache.save(cacheName, result, StorageType.Session);
     return result;
   }
 
@@ -108,7 +108,7 @@ export default class BrsApi {
       course,
       isModule
     );
-    cache.clear(cacheName, StorageType.Local);
+    cache.clear(cacheName, StorageType.Session);
   }
 
   async getDisciplineTotalAsync(
@@ -242,7 +242,7 @@ export default class BrsApi {
       `_${discipline.isModule}_${discipline.groupHistoryId}_${discipline.groupId}_${cardType}_${markType}`;
     const cacheResult = cache.read<ControlAction[]>(
       cacheName,
-      StorageType.Local
+      StorageType.Session
     );
     if (cacheResult) {
       return cacheResult;
@@ -256,7 +256,7 @@ export default class BrsApi {
       cardType,
       markType
     );
-    cache.save(cacheName, result, StorageType.Local);
+    cache.save(cacheName, result, StorageType.Session);
     return result;
   }
 
