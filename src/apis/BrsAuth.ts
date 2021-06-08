@@ -71,7 +71,7 @@ export default class BrsAuth {
         },
       });
 
-      const userName = response.match(/username">([А-ЯЁа-яё \-]+)</);
+      const userName = response.match(/username">([А-ЯЁа-яё -]+)</);
       if (userName) return { success: true, userName: userName[1] };
       return { success: false, userName: "Anonymous" };
     } catch (e) {
