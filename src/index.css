@@ -1,62 +1,62 @@
 body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
 
 .vertical-margin-medium {
-    margin-bottom: 20px;
-    margin-top: 20px;
+  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
 .vertical-margin-min {
-    margin-bottom: 8px;
-    margin-top: 8px;
+  margin-bottom: 8px;
+  margin-top: 8px;
 }
 
 .vertical-margin-large {
-    margin-bottom: 40px;
-    margin-top: 40px;
+  margin-bottom: 40px;
+  margin-top: 40px;
 }
 
 .no-margin {
-    margin: 0;
+  margin: 0;
 }
 
 .text-align-center {
-    text-align: center;
+  text-align: center;
 }
 
 .button-link {
-    color: blue;
-    text-decoration: none;
+  color: blue;
+  text-decoration: none;
 }
 
 .button-link:hover {
-    text-decoration: underline;
-    cursor: pointer;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .colored-text {
-    color: #FF7777;
+  color: #ff7777;
 }
 
 .colored-back {
-    background: #FF7777 !important;
+  background: #ff7777 !important;
 }
 
 .block-header {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 .block-header ~ p {
-    margin-top: 5px;
+  margin-top: 5px;
 }

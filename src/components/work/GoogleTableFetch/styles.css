@@ -1,9 +1,9 @@
 .spreadsheet-fetch .submit {
-    display: inline-block;
-    top: 10px;
+  display: inline-block;
+  top: 10px;
 }
 
 .spreadsheet-fetch .tableUrl {
-    margin-right: 10px;
-    width: 85%;
+  margin-right: 10px;
+  width: 85%;
 }

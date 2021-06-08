@@ -1,10 +1,10 @@
 .submit-with-loading {
-    position: relative;
+  position: relative;
 }
 
 .submit-with-loading .button-progress {
-    color: #0000ff;
-    position: absolute;
-    top: calc(50% - 12px);
-    left: calc(50% - 12px);
+  color: #0000ff;
+  position: absolute;
+  top: calc(50% - 12px);
+  left: calc(50% - 12px);
 }
