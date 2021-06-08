@@ -6,11 +6,11 @@ import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
 import MuiDialogActions from '@material-ui/core/DialogActions';
 import SubmitWithLoading from "../../../submitWithLoading";
-import MarksManager from "../../../../marksActions/MarksManager";
+import MarksManager from "../../../../managers/MarksManager";
 import BrsApi, {Discipline} from "../../../../apis/brsApi";
-import {SpreadsheetData} from "../../../../functions/getSpreadsheetDataAsync";
+import {SpreadsheetData} from "../../../../managers/SpreadsheetManager";
 import NestedList, {NestedItem} from "../../../nestedList";
-import ReportBuilder, {Report} from "../../../../marksActions/ReportBuilder";
+import ReportManager, {Report} from "../../../../managers/ReportManager";
 
 const DialogContent = withStyles(() => ({
     root: {
@@ -32,15 +32,14 @@ export default class WorkerDialog extends React.Component<Props, State> {
         super(props);
 
         const {brsApi, save} = props;
-        const reportsStore = new ReportBuilder(this.logMessage, this.logConfigurationErrors);
-        this.marksManager = new MarksManager(brsApi, reportsStore, save);
+        const reportManager = new ReportManager(this.logMessage, this.logConfigurationErrors);
+        this.marksManager = new MarksManager(brsApi, reportManager, save);
 
         this.state = {
             okLoading: true,
             cancelPending: false,
             logItems: [],
         };
-
     }
 
     componentDidMount() {

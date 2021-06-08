@@ -1,4 +1,4 @@
-export default class ReportBuilder {
+export default class ReportManager {
     private _currentReport: Report | null = null;
     private readonly onReportFinished: (report: Report) => void;
 

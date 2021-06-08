@@ -1,5 +1,5 @@
 import React, {memo} from "react";
-import getSpreadsheetDataAsync, {DisciplineConfig, SpreadsheetData} from "../../functions/getSpreadsheetDataAsync";
+import SpreadsheetManager, {DisciplineConfig, SpreadsheetData} from "../../managers/SpreadsheetManager";
 import NestedList, {NestedItem} from "../nestedList";
 import {Collapse, Container} from "@material-ui/core";
 import {compareNormalized} from '../../helpers/tools';
@@ -113,7 +113,8 @@ class GoogleTableFetch extends React.Component<Props, State> {
 
         let spreadsheetData: SpreadsheetData;
         try {
-            spreadsheetData = await getSpreadsheetDataAsync(spreadsheetId, sheetName);
+            const spreadsheetManager = new SpreadsheetManager(spreadsheetId);
+            spreadsheetData = await spreadsheetManager.getSpreadsheetDataAsync(sheetName);
         } catch (e) {
             this.props.onError(e.message || JSON.stringify(e));
             return null;

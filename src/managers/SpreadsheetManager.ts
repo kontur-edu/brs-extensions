@@ -1,40 +1,102 @@
 import {StudentFailure, TermType} from '../apis/brsApi';
-import {ControlActionConfig} from '../marksActions/MarksManager';
-import * as readStudents from './readStudentsAsync';
-import {ActualStudent} from './readStudentsAsync';
+import {ControlActionConfig} from './MarksManager';
 import * as googleApi from '../apis/googleApi';
 import {compareNormalized, normalizeString} from '../helpers/tools';
 import {parseStudentFailure} from '../helpers/brsHelpers';
 
-export default async function getSpreadsheetDataAsync(
+export interface ActualStudent {
+    fullName: string;
+    groupName: string;
+    id: string | null;
+    failure: StudentFailure | null;
+    properties: string[];
+}
+
+export interface SpreadsheetData {
+    actualStudents: ActualStudent[];
+    disciplineConfig: DisciplineConfig;
+    controlActionConfigs: ControlActionConfig[];
+}
+
+export interface DisciplineConfig {
+    name: string;
+    year: number;
+    termType: number;
+    course: number;
+    isModule: boolean;
+    defaultStudentFailure: StudentFailure;
+}
+
+export default class SpreadsheetManager {
+    private readonly spreadsheetId: string;
+
+    constructor(spreadsheetId: string) {
+        this.spreadsheetId = spreadsheetId;
+    }
+
+    async getSpreadsheetDataAsync(
+        sheetName: string,): Promise<SpreadsheetData> {
+    
+        const rows = await readRowsFromSpreadsheetAsync(this.spreadsheetId, sheetName);
+        const header = getHeader(rows);
+    
+        const indices = buildIndicesBy(header);
+        const dataRange = buildDataRange(sheetName, indices);
+        const controlActionConfigs = buildControlActionConfig(header, indices);
+        const disciplineConfig = buildDisciplineConfig(
+            rows,
+            indices
+        );
+    
+        const actualStudents = await readStudentsAsync(
+            this.spreadsheetId,
+            dataRange,
+            indices.fullNameColumn - indices.left,
+            indices.groupColumn - indices.left,
+            null,
+            indices.failureColumn - indices.left
+        );
+    
+        return {
+            actualStudents,
+            disciplineConfig,
+            controlActionConfigs,
+        };
+    }
+}
+
+async function readStudentsAsync(
     spreadsheetId: string,
-    sheetName: string,): Promise<SpreadsheetData> {
+    readRange: string,
+    fullNameIndex: number = 0,
+    groupNameIndex: number = 1,
+    idIndex: number | null = null,
+    failureIndex: number | null = null
+) {
+    const sheet = googleApi.getSpreadsheet(spreadsheetId);
 
-    const rows = await readRowsFromSpreadsheetAsync(spreadsheetId, sheetName);
-    const header = getHeader(rows);
+    const rows = (await sheet.readAsync(readRange)).values || [];
 
-    const indices = buildIndicesBy(header);
-    const dataRange = buildDataRange(sheetName, indices);
-    const controlActionConfigs = buildControlActionConfig(header, indices);
-    const disciplineConfig = buildDisciplineConfig(
-        rows,
-        indices
-    );
-
-    const actualStudents = await readStudents.fromSpreadsheetAsync(
-        spreadsheetId,
-        dataRange,
-        indices.fullNameColumn - indices.left,
-        indices.groupColumn - indices.left,
-        null,
-        indices.failureColumn - indices.left
-    );
-
-    return {
-        actualStudents,
-        disciplineConfig,
-        controlActionConfigs,
-    };
+    const result: ActualStudent[] = [];
+    for (const row of rows) {
+        const fullName = row[fullNameIndex];
+        const groupName = row[groupNameIndex];
+        const id = idIndex !== null ? row[idIndex] : null;
+        const failure =
+            failureIndex !== null
+                ? parseStudentFailure(row[failureIndex])
+                : null;
+        if (fullName && groupName) {
+            result.push({
+                fullName,
+                groupName,
+                id: id,
+                failure: failure,
+                properties: row,
+            });
+        }
+    }
+    return result;
 }
 
 async function readRowsFromSpreadsheetAsync(
@@ -218,21 +280,6 @@ function addDisciplineConfigParameter(
         config.defaultStudentFailure =
             parseStudentFailure(value) ?? StudentFailure.NoFailure;
     }
-}
-
-export interface SpreadsheetData {
-    actualStudents: ActualStudent[];
-    disciplineConfig: DisciplineConfig;
-    controlActionConfigs: ControlActionConfig[];
-}
-
-export interface DisciplineConfig {
-    name: string;
-    year: number;
-    termType: number;
-    course: number;
-    isModule: boolean;
-    defaultStudentFailure: StudentFailure;
 }
 
 interface Indices {

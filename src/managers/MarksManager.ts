@@ -1,10 +1,9 @@
 import BrsApi, {ControlAction, Discipline, StudentFailure, StudentMark} from '../apis/brsApi';
 import {compareNormalized, groupBy, parseAnyFloat} from '../helpers/tools';
 import * as fio from '../helpers/fio';
-import {ActualStudent} from '../functions/readStudentsAsync';
+import {ActualStudent, SpreadsheetData} from './SpreadsheetManager';
 import {formatStudentFailure} from '../helpers/brsHelpers';
-import {SpreadsheetData} from "../functions/getSpreadsheetDataAsync";
-import ReportBuilder from "./ReportBuilder";
+import ReportManager from "./ReportManager";
 
 enum MarkUpdateStatus {
     Updated,
@@ -17,11 +16,11 @@ export default class MarksManager {
     private readonly save: boolean;
     private cancelPending: boolean = false;
 
-    readonly reportBuilder: ReportBuilder;
+    readonly reportManager: ReportManager;
 
-    constructor(brsApi: BrsApi, reportBuilder: ReportBuilder, save: boolean) {
+    constructor(brsApi: BrsApi, reportManager: ReportManager, save: boolean) {
         this.brsApi = brsApi;
-        this.reportBuilder = reportBuilder;
+        this.reportManager = reportManager;
         this.save = save;
     }
 
@@ -53,7 +52,7 @@ export default class MarksManager {
         } catch (e) {
             return e;
         } finally {
-            this.reportBuilder.finishReport();
+            this.reportManager.finishReport();
         }
     }
 
@@ -64,7 +63,7 @@ export default class MarksManager {
         controlActionConfigs: ControlActionConfig[]
     ) {
         if (actualStudents.length === 0) return;
-        this.reportBuilder.newReport(discipline.group);
+        this.reportManager.newReport(discipline.group);
 
         const controlActions = await this.brsApi.getAllControlActionsCachedAsync(discipline);
         if (!this.checkControlActionsConfiguration(controlActions, controlActionConfigs))
@@ -135,7 +134,7 @@ export default class MarksManager {
                 students: rawStudents.map(s => s.infoString)
             }));
 
-        this.reportBuilder.currentReport.marks.push(...groupedResults);
+        this.reportManager.currentReport.marks.push(...groupedResults);
     }
 
     async putMarksForStudentAsync(
@@ -237,7 +236,7 @@ export default class MarksManager {
                 .map((a) => a.controlAction)
                 .join(', ')}`);
 
-            this.reportBuilder.onInvalidConfiguration(errorMessages);
+            this.reportManager.onInvalidConfiguration(errorMessages);
 
             return null;
         }
@@ -256,7 +255,7 @@ export default class MarksManager {
                 errorMessages.push(`Нет соответствий: ${config.matchIndex}/${config.matchCount} 
                                     и ${suitableControlActions.length}`);
 
-                this.reportBuilder.onInvalidConfiguration(errorMessages);
+                this.reportManager.onInvalidConfiguration(errorMessages);
 
                 return null;
             }
@@ -269,7 +268,7 @@ export default class MarksManager {
                 .map((a) => a.controlAction)
                 .join(', ')}`);
 
-            this.reportBuilder.onInvalidConfiguration(errorMessages);
+            this.reportManager.onInvalidConfiguration(errorMessages);
 
             return null;
         }
@@ -296,7 +295,7 @@ export default class MarksManager {
                     students: rawStudents.map(s => s.infoString)
                 }));
 
-            this.reportBuilder.currentReport.marks.push(...groupedResults);
+            this.reportManager.currentReport.marks.push(...groupedResults);
         }
     }
 
@@ -378,7 +377,7 @@ export default class MarksManager {
         skippedActualStudents: ActualStudent[],
         skippedBrsStudents: StudentMark[]
     ) {
-        const report = this.reportBuilder.currentReport;
+        const report = this.reportManager.currentReport;
 
         report.merge.succeed = mergedStudents.length;
 
