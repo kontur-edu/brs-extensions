@@ -249,6 +249,11 @@ function addDisciplineConfigParameter(
     if (value) {
       config.year = parseInt(value.toLowerCase(), 10);
     }
+  } else if (compareNormalized(key, "Учебный год")) {
+    if (value) {
+      const yearParts = value.toLowerCase().split("/");
+      config.year = parseInt(yearParts[0], 10);
+    }
   } else if (compareNormalized(key, "Семестр")) {
     if (value) {
       if (value.toLowerCase() === "осенний") {
