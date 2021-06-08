@@ -1,5 +1,5 @@
 import request from "request-promise";
-import BrsUrlProvider from "./brsUrlProvider";
+import BrsUrlProvider from "./BrsUrlProvider";
 import * as cache from "../helpers/cache";
 import {StorageType} from "../helpers/cache";
 import {CustomError, StatusCode} from "../helpers/CustomError";

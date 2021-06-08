@@ -1,6 +1,6 @@
-import {StudentFailure, TermType} from '../apis/brsApi';
+import {StudentFailure, TermType} from '../apis/BrsApi';
 import {ControlActionConfig} from './MarksManager';
-import * as googleApi from '../apis/googleApi';
+import * as googleApi from '../apis/GoogleApi';
 import {compareNormalized, normalizeString} from '../helpers/tools';
 import {parseStudentFailure} from '../helpers/brsHelpers';
 

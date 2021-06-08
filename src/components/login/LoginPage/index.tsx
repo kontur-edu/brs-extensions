@@ -2,11 +2,11 @@ import React from 'react';
 import "./styles.css";
 import {Redirect} from "react-router-dom";
 import {Button, Container} from "@material-ui/core";
-import BrsAuth, {LoginStatus} from "../../apis/brsAuth";
-import BrsLoginForm, {Credentials} from "./brsLoginForm";
-import GoogleAuth from "../../apis/googleAuth";
-import GoogleLoginButton from "./GoogleLoginButton";
-import CustomAlert from "../CustomAlert";
+import BrsAuth, {LoginStatus} from "../../../apis/BrsAuth";
+import BrsLoginForm, {Credentials} from "../BrsLoginForm";
+import GoogleAuth from "../../../apis/GoogleAuth";
+import GoogleLoginButton from "../GoogleLoginButton";
+import CustomAlert from "../../shared/CustomAlert";
 
 export default class LoginPage extends React.Component<Props, State> {
     constructor(props: Props) {

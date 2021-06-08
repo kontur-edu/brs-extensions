@@ -1,11 +1,11 @@
 import React from 'react';
 import {HashRouter, Route, Switch} from 'react-router-dom';
-import BrsUrlProvider from "./apis/brsUrlProvider";
-import BrsAuth from "./apis/brsAuth";
-import GoogleAuth from "./apis/googleAuth";
-import LoginPageWrapper from "./components/loginPage/LoginPageWrapper";
-import WorkPageWrapper from "./components/workPage/WorkPageWrapper";
-import BrsApi from "./apis/brsApi";
+import BrsUrlProvider from "./apis/BrsUrlProvider";
+import BrsAuth from "./apis/BrsAuth";
+import GoogleAuth from "./apis/GoogleAuth";
+import LoginPageContainer from "./components/login/LoginPageContainer";
+import WorkPageContainer from "./components/work/WorkPageContainer";
+import BrsApi from "./apis/BrsApi";
 import Context from './Context';
 
 const urlProvider = new BrsUrlProvider(true);
@@ -18,8 +18,8 @@ export default function App() {
         <Context.Provider value={{brsAuth, brsApi, googleAuth}}>
             <HashRouter hashType={"noslash"}>
                 <Switch>
-                    <Route path="/work" component={WorkPageWrapper}/>
-                    <Route exact path="" component={LoginPageWrapper}/>
+                    <Route path="/work" component={WorkPageContainer}/>
+                    <Route exact path="" component={LoginPageContainer}/>
                 </Switch>
             </HashRouter>
         </Context.Provider>

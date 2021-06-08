@@ -1,7 +1,7 @@
 import React, {memo} from "react";
 import {Collapse, createStyles, makeStyles} from "@material-ui/core";
-import NestedList, {NestedItem} from "../../nestedList";
-import BrsApi, {Discipline, TermType} from "../../../apis/brsApi";
+import NestedList, {NestedItem} from "../../shared/NestedList";
+import BrsApi, {Discipline, TermType} from "../../../apis/BrsApi";
 import {groupBy} from "../../../helpers/tools";
 import DisciplinesFetchControls, {DisciplinesFetchData} from "./DisciplinesFetchControls";
 

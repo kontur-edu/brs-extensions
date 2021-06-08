@@ -1,8 +1,8 @@
 import React from 'react';
 import Context from '../../Context';
-import LoginPage from './index';
+import LoginPage from './LoginPage';
 
-export default function LoginPageWrapper() {
+export default function LoginPageContainer() {
     return (
         <Context.Consumer>
             {({ brsAuth, googleAuth }) => (

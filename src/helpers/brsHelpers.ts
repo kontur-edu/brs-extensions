@@ -1,4 +1,4 @@
-import {StudentFailure} from '../apis/brsApi';
+import {StudentFailure} from '../apis/BrsApi';
 import {compareNormalized} from './tools';
 
 const failureMapping: { [key: string]: StudentFailure } = {

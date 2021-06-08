@@ -1,13 +1,13 @@
 import React from 'react';
 import {Button, Container,} from "@material-ui/core";
-import SpreadsheetFetch from "../googleTableFetch";
-import BrsApi from "../../apis/brsApi";
-import SessionExpiredAlert from "../SessionExpiredAlert";
-import CustomAlert from "../CustomAlert";
-import GoogleAuth from "../../apis/googleAuth";
-import BrsAuth from "../../apis/brsAuth";
-import {StatusCode} from "../../helpers/CustomError";
-import LoadingPane from "./loadingPane/LoadingPane";
+import GoogleTableFetch from "../GoogleTableFetch";
+import BrsApi from "../../../apis/BrsApi";
+import SessionExpiredAlert from "../../shared/SessionExpiredAlert";
+import CustomAlert from "../../shared/CustomAlert";
+import GoogleAuth from "../../../apis/GoogleAuth";
+import BrsAuth from "../../../apis/BrsAuth";
+import {StatusCode} from "../../../helpers/CustomError";
+import LoadingPane from "../LoadingPane";
 import {Redirect} from "react-router-dom";
 
 export default class WorkPage extends React.Component<Props, State> {
@@ -94,7 +94,7 @@ export default class WorkPage extends React.Component<Props, State> {
                                 onClick={this.returnToLoginPage}>
                             Вернуться на страницу входа
                         </Button>
-                        <SpreadsheetFetch brsApi={this.props.brsApi} onError={this.handleError}/>
+                        <GoogleTableFetch brsApi={this.props.brsApi} onError={this.handleError}/>
                     </Container>
                 </div>
             </React.Fragment>

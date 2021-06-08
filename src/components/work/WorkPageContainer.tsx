@@ -2,7 +2,7 @@ import React from 'react';
 import Context from '../../Context';
 import WorkPage from './WorkPage';
 
-export default function WorkPageWrapper() {
+export default function WorkPageContainer() {
     return (
         <Context.Consumer>
             {(context) => (

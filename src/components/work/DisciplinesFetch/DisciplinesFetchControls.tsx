@@ -10,7 +10,7 @@ import {
     Select,
     TextField
 } from "@material-ui/core";
-import SubmitWithLoading from "../../submitWithLoading";
+import SubmitWithLoading from "../../shared/SubmitWithLoading";
 
 const useStyles = makeStyles(() =>
     createStyles({

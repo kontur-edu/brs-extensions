@@ -1,4 +1,4 @@
-import BrsApi, {ControlAction, Discipline, StudentFailure, StudentMark} from '../apis/brsApi';
+import BrsApi, {ControlAction, Discipline, StudentFailure, StudentMark} from '../apis/BrsApi';
 import {compareNormalized, groupBy, parseAnyFloat} from '../helpers/tools';
 import * as fio from '../helpers/fio';
 import {ActualStudent, SpreadsheetData} from './SpreadsheetManager';

@@ -1,16 +1,16 @@
 import React, {memo} from "react";
-import SpreadsheetManager, {DisciplineConfig, SpreadsheetData} from "../../managers/SpreadsheetManager";
-import NestedList, {NestedItem} from "../nestedList";
+import SpreadsheetManager, {DisciplineConfig, SpreadsheetData} from "../../../managers/SpreadsheetManager";
+import NestedList, {NestedItem} from "../../shared/NestedList";
 import {Collapse, Container} from "@material-ui/core";
-import {compareNormalized} from '../../helpers/tools';
-import {getSpreadsheetProperties} from "../../apis/googleApi";
-import BrsApi, {Discipline} from "../../apis/brsApi";
+import {compareNormalized} from '../../../helpers/tools';
+import {getSpreadsheetProperties} from "../../../apis/GoogleApi";
+import BrsApi, {Discipline} from "../../../apis/BrsApi";
 import './styles.css';
-import RunWorkerButtons from "../workPage/worker/RunWorkerButtons";
-import WorkerDialog, {MarksData} from "../workPage/worker/workerDialog";
+import RunWorkerButtons from "../RunWorkerButtons";
+import WorkerDialog, {MarksData} from "../WorkerDialog";
 import GroupIcon from '@material-ui/icons/Group';
 import {ViewModule} from "@material-ui/icons";
-import GoogleTableFetchForm from "./googleTableFetchForm";
+import GoogleTableFetchForm from "./GoogleTableFetchForm";
 
 class GoogleTableFetch extends React.Component<Props, State> {
     marksData: MarksData = {} as any;

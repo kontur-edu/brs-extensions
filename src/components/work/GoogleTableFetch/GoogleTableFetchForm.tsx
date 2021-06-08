@@ -1,5 +1,5 @@
 import {TextField} from "@material-ui/core";
-import SubmitWithLoading from "../../submitWithLoading";
+import SubmitWithLoading from "../../shared/SubmitWithLoading";
 import React, {FormEvent, useState} from "react";
 
 const TABLE_URL_PATTERN = "https://docs.google.com/spreadsheets/d/1Owzl3JfmFASIdC7ZMMw-0kkA3pwFSab1QdVO5dhZoxY/edit#gid=675912523";

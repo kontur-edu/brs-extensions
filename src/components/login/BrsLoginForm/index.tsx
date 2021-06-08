@@ -1,5 +1,5 @@
 import {Button, CircularProgress, TextField} from "@material-ui/core";
-import SubmitWithLoading from "../../submitWithLoading";
+import SubmitWithLoading from "../../shared/SubmitWithLoading";
 import React, {FormEvent} from "react";
 import "./styles.css"
 

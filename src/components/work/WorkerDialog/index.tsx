@@ -5,12 +5,12 @@ import {Dialog} from "@material-ui/core";
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
 import MuiDialogActions from '@material-ui/core/DialogActions';
-import SubmitWithLoading from "../../../submitWithLoading";
-import MarksManager from "../../../../managers/MarksManager";
-import BrsApi, {Discipline} from "../../../../apis/brsApi";
-import {SpreadsheetData} from "../../../../managers/SpreadsheetManager";
-import NestedList, {NestedItem} from "../../../nestedList";
-import ReportManager, {Report} from "../../../../managers/ReportManager";
+import SubmitWithLoading from "../../shared/SubmitWithLoading";
+import MarksManager from "../../../managers/MarksManager";
+import BrsApi, {Discipline} from "../../../apis/BrsApi";
+import {SpreadsheetData} from "../../../managers/SpreadsheetManager";
+import NestedList, {NestedItem} from "../../shared/NestedList";
+import ReportManager, {Report} from "../../../managers/ReportManager";
 
 const DialogContent = withStyles(() => ({
     root: {
