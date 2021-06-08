@@ -1,12 +1,13 @@
 import 'bluebird';
 import request from 'request-promise';
 import * as cache from '../helpers/cache';
+import {StorageType} from '../helpers/cache';
 import BrsAuth from "./brsAuth";
 import BrsUrlProvider from "./brsUrlProvider";
 import {CustomError, StatusCode} from "../helpers/CustomError";
 
 export default class BrsApi {
-    private readonly brsAuth: BrsAuth;
+    readonly brsAuth: BrsAuth;
     private readonly brsUrlProvider: BrsUrlProvider;
 
     constructor(brsAuth: BrsAuth, brsUrlProvider: BrsUrlProvider) {
@@ -20,19 +21,21 @@ export default class BrsApi {
         course: number,
         isModule: boolean
     ) {
-        const cacheName = `${this.brsAuth.login}_getDiscipline_${year}_${termType}_${course}_${isModule}`;
-        const cacheResult = cache.read<Discipline[]>(cacheName);
+        const cacheName = this.getDisciplineCacheName(year, termType, course, isModule);
+        const cacheResult = cache.read<Discipline[]>(cacheName, StorageType.Local);
         if (cacheResult) {
             return cacheResult;
         }
 
+        const total = await this.getDisciplineTotalAsync(year, termType, course, isModule);
         const result = await this.getDisciplineInternalAsync(
             year,
             termType,
             course,
-            isModule
+            isModule,
+            total
         );
-        cache.save(cacheName, result);
+        cache.save(cacheName, result, StorageType.Local);
         return result;
     }
 
@@ -40,13 +43,15 @@ export default class BrsApi {
         year: number,
         termType: TermType,
         course: number,
-        isModule: boolean
+        isModule: boolean,
+        total: number
     ) {
-        const queryString = `?year=${year}&termType=${termType}&course=${course}&total=0&page=1&pageSize=1000&search=`;
+        const queryString = `?year=${year}&termType=${termType}&course=${course}&total=${total}&page=1&pageSize=${total}&search=`;
         if (isModule) {
-            const disciplines = await this.requestApiJsonAsync<Discipline[]>(
+            const paging = await this.requestApiJsonAsync<Paging<Discipline>>(
                 '/mvc/mobile/module/fetch' + queryString
             );
+            const disciplines = paging.content;
             for (const d of disciplines) {
                 d.isModule = true;
             }
@@ -61,6 +66,30 @@ export default class BrsApi {
             }
             return disciplines;
         }
+    }
+
+    async clearDisciplineCacheAsync(
+        year: number,
+        termType: TermType,
+        course: number,
+        isModule: boolean
+    ) {
+        const cacheName = this.getDisciplineCacheName(year, termType, course, isModule);
+        cache.clear(cacheName, StorageType.Local);
+    }
+
+    async getDisciplineTotalAsync(
+        year: number,
+        termType: TermType,
+        course: number,
+        isModule: boolean
+    ) {
+        const moduleParameter = isModule ? '&its=true' : '';
+        const queryString = `?year=${year}&termType=${termType}&course=${course}` + moduleParameter;
+        const total = await this.requestApiJsonAsync<number>(
+            '/mvc/mobile/discipline/amount' + queryString
+        );
+        return total;
     }
 
     async getAllStudentMarksAsync(discipline: Discipline) {
@@ -158,9 +187,9 @@ export default class BrsApi {
         cardType: CardType,
         markType: MarkType
     ) {
-        const cacheName = `${this.brsAuth.login}_getControlActions_${discipline.disciplineLoad}` +
+        const cacheName = `${this.brsAuth.safeUserName}_getControlActions_${discipline.disciplineLoad}` +
             `_${discipline.isModule}_${discipline.groupHistoryId}_${discipline.groupId}_${cardType}_${markType}`;
-        const cacheResult = cache.read<ControlAction[]>(cacheName);
+        const cacheResult = cache.read<ControlAction[]>(cacheName, StorageType.Local);
         if (cacheResult) {
             return cacheResult;
         }
@@ -173,7 +202,7 @@ export default class BrsApi {
             cardType,
             markType
         );
-        cache.save(cacheName, result);
+        cache.save(cacheName, result, StorageType.Local);
         return result;
     }
 
@@ -320,6 +349,15 @@ export default class BrsApi {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
             }
         );
+    }
+
+    getDisciplineCacheName(
+        year: number,
+        termType: TermType,
+        course: number,
+        isModule: boolean
+    ) {
+        return `${this.brsAuth.safeUserName}_getDiscipline_${year}_${termType}_${course}_${isModule}`;
     }
 
     async requestApiJsonAsync<T>(

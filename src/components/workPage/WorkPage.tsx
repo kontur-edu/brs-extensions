@@ -1,27 +1,18 @@
 import React from 'react';
-import {Container,} from "@material-ui/core";
-import DisciplinesFetch from "../DisciplinesFetch";
-import SpreadsheetFetch from "../spreadsheetFetch";
-import WorkerDialog from "../WorkerDialog";
-import MarksManager, {MarksData, PutMarksOptions} from "../../marksActions/MarksManager";
+import {Button, Container,} from "@material-ui/core";
+import SpreadsheetFetch from "../googleTableFetch";
 import BrsApi from "../../apis/brsApi";
 import SessionExpiredAlert from "../SessionExpiredAlert";
 import CustomAlert from "../CustomAlert";
-import googleAuth from "../../apis/googleAuth";
-import {Logger} from "../../helpers/logger";
+import GoogleAuth from "../../apis/googleAuth";
 import BrsAuth from "../../apis/brsAuth";
-import RunWorkerButtons from "../RunWorkerButtons";
 import {StatusCode} from "../../helpers/CustomError";
+import LoadingPane from "./loadingPane/LoadingPane";
+import {Redirect} from "react-router-dom";
 
 export default class WorkPage extends React.Component<Props, State> {
-    marksData: MarksData;
-    marksManager: MarksManager
-
     constructor(props: Props) {
         super(props);
-
-        this.marksData = {} as any;
-        this.marksManager = {} as any;
 
         this.state = {
             showControls: false,
@@ -29,54 +20,24 @@ export default class WorkPage extends React.Component<Props, State> {
             openSessionExpiredAlert: false,
             sessionName: '',
             errorMessage: '',
+            loading: true,
+            redirect: false
         }
-
     }
 
     async componentDidMount() {
-        await googleAuth.init();
+        await this.props.googleAuth.ensureInitializedAsync();
+        await this.props.brsAuth.tryRestoreAsync();
 
         const brsAuthorized = this.props.brsAuth.checkAuth();
-        const googleAuthorized = googleAuth.checkAuthorized();
+        const googleAuthorized = this.props.googleAuth.checkAuthorized();
 
         if (!brsAuthorized)
             this.handleSessionExpired("БРС");
         else if (!googleAuthorized)
             this.handleSessionExpired("Google");
-    }
-
-    handleDataLoaded = (data: MarksData) => {
-        this.marksData = data;
-        this.setState({showControls: true});
-    }
-
-    runWork = (save: boolean) => {
-        const logger = new Logger();
-        logger.addErrorHandler(this.handleError);
-
-        const options: PutMarksOptions = {save, verbose: true};
-
-        const brsAuth: BrsAuth = this.props.brsAuth;
-        const brsApi = new BrsApi(brsAuth, brsAuth.brsUrlProvider);
-        this.marksManager = new MarksManager(brsApi, logger, options);
-
-        this.setState({runWork: true});
-    }
-
-    handleRunWorkSafe = () => {
-        this.runWork(false);
-    }
-
-    handleRunWorkUnsafe = () => {
-        this.runWork(true);
-    }
-
-    handleClosed = () => {
-        this.setState({runWork: false});
-    }
-
-    handleSessionExpired = (sessionName: string) => {
-        this.setState({openSessionExpiredAlert: true, sessionName});
+        else
+            this.setState({loading: false});
     }
 
     handleError = (error: any) => {
@@ -92,38 +53,48 @@ export default class WorkPage extends React.Component<Props, State> {
             this.setState({errorMessage});
     }
 
+    handleSessionExpired = (sessionName: SessionName) => {
+        this.setState({openSessionExpiredAlert: true, sessionName, loading: false});
+    }
+
+    handleSessionExpiredOk = () => {
+        if (this.state.sessionName === "БРС") {
+            this.props.brsAuth.logout();
+            this.returnToLoginPage();
+            this.setState({redirect: true})
+        } else if (this.state.sessionName === "Google") {
+            this.returnToLoginPage();
+        }
+    };
+
     closeError = () => {
         this.setState({errorMessage: ''})
+    }
+
+    returnToLoginPage = () => {
+        this.setState({redirect: true})
     }
 
     render() {
         return (
             <React.Fragment>
-                {this.state.openSessionExpiredAlert && <SessionExpiredAlert brsAuth={this.props.brsAuth}
-                                                                            sessionName={this.state.sessionName}
-                                                                            open={this.state.openSessionExpiredAlert}/>}
+                {this.state.loading && <LoadingPane/>}
+                <SessionExpiredAlert open={this.state.openSessionExpiredAlert}
+                                     sessionName={this.state.sessionName}
+                                     onOk={this.handleSessionExpiredOk}/>
                 {this.state.errorMessage && <CustomAlert open={!!this.state.errorMessage}
                                                          message={this.state.errorMessage}
                                                          type={'error'}
                                                          onClose={this.closeError}/>}
+                {this.state.redirect && <Redirect to="/"/>}
                 <div className="work-page">
                     <Container maxWidth="md">
-                        <DisciplinesFetch brsApi={this.props.brsApi}
-                                          onError={this.handleError}/>
-                        <hr/>
-                        <SpreadsheetFetch onDataLoaded={this.handleDataLoaded}
-                                          onError={this.handleError}/>
-                        <br/>
-                        <RunWorkerButtons show={this.state.showControls}
-                                          onRunWorkUnsafe={this.handleRunWorkUnsafe}
-                                          onRunWorkSafe={this.handleRunWorkSafe}/>
-                        {
-                            this.state.runWork &&
-                            <WorkerDialog runWork={this.state.runWork}
-                                          marksData={this.marksData}
-                                          marksManager={this.marksManager}
-                                          onClosed={this.handleClosed}/>
-                        }
+                        <Button variant="contained"
+                                style={{marginTop: 10}}
+                                onClick={this.returnToLoginPage}>
+                            Вернуться на страницу входа
+                        </Button>
+                        <SpreadsheetFetch brsApi={this.props.brsApi} onError={this.handleError}/>
                     </Container>
                 </div>
             </React.Fragment>
@@ -131,15 +102,20 @@ export default class WorkPage extends React.Component<Props, State> {
     }
 }
 
+type SessionName = 'БРС' | 'Google';
+
 interface State {
     showControls: boolean;
     openSessionExpiredAlert: boolean;
-    sessionName: string;
+    sessionName: SessionName | '';
     errorMessage: string;
     runWork: boolean;
+    loading: boolean;
+    redirect: boolean;
 }
 
 interface Props {
     brsAuth: BrsAuth;
     brsApi: BrsApi;
+    googleAuth: GoogleAuth;
 }

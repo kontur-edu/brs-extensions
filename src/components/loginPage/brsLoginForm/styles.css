@@ -1,0 +1,14 @@
+.brs-login-form {
+    position: relative;
+}
+
+.brs-login-form .progress {
+    position: absolute;
+    top: calc(50% - 75px);
+    left: calc(50% - 75px);
+}
+
+.brs-login-form form .form-component {
+    margin: 0;
+    margin-bottom: 8px;
+}

@@ -1,13 +1,14 @@
 import React, {memo} from "react";
 import {Collapse, createStyles, makeStyles} from "@material-ui/core";
-import NestedList, {NestedListItem} from "./NestedList";
-import BrsApi, {Discipline, TermType} from "../apis/brsApi";
-import {groupBy} from "../helpers/tools";
+import NestedList, {NestedItem} from "../../nestedList";
+import BrsApi, {Discipline, TermType} from "../../../apis/brsApi";
+import {groupBy} from "../../../helpers/tools";
 import DisciplinesFetchControls, {DisciplinesFetchData} from "./DisciplinesFetchControls";
 
 const useStyles = makeStyles(() =>
     createStyles({
         header: {
+            marginTop: 10,
             marginBottom: 10
         },
         disciplinesList: {
@@ -20,7 +21,7 @@ function DisciplinesFetch({brsApi, onError}: Props) {
     const classes = useStyles();
 
     const [openDisciplines, setOpenDisciplines] = React.useState(false);
-    const [disciplines, setDisciplines] = React.useState([] as NestedListItem[]);
+    const [disciplines, setDisciplines] = React.useState([] as NestedItem[]);
     const [loading, setLoading] = React.useState(false);
 
     async function loadDisciplines(fetchData: DisciplinesFetchData) {
@@ -28,8 +29,8 @@ function DisciplinesFetch({brsApi, onError}: Props) {
 
         const termType = fetchData.termType === 'Осенний' ? TermType.Fall : TermType.Spring;
         const {year, course, isModule} = fetchData;
-
         let rawDisciplines: Discipline[];
+
         try {
             rawDisciplines = await brsApi.getDisciplineCachedAsync(year, termType, course, isModule);
         } catch (e) {
@@ -48,7 +49,7 @@ function DisciplinesFetch({brsApi, onError}: Props) {
             .entries(groupBy(disciplines, 'discipline'))
             .map(d => ({
                 title: d[0],
-                nestedItems: d[1].map(x => x.group)
+                nestedItems: d[1].map(x => ({title: x.group}))
             }));
     }
 

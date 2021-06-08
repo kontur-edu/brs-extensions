@@ -1,18 +1,15 @@
-import { TermType, Discipline, StudentFailure } from '../apis/brsApi';
-import { MarksData, DisciplineConfig } from '../marksActions/MarksManager';
+import {StudentFailure, TermType} from '../apis/brsApi';
+import {ControlActionConfig} from '../marksActions/MarksManager';
 import * as readStudents from './readStudentsAsync';
-import { ActualStudent } from './readStudentsAsync';
+import {ActualStudent} from './readStudentsAsync';
 import * as googleApi from '../apis/googleApi';
-import { normalizeString, compareNormalized } from '../helpers/tools';
-import { parseStudentFailure } from '../helpers/brsHelpers';
-import { ControlActionConfig } from '../marksActions/MarksManager';
+import {compareNormalized, normalizeString} from '../helpers/tools';
+import {parseStudentFailure} from '../helpers/brsHelpers';
 
-export default async function buildAutoMarksConfigAsync(
+export default async function getSpreadsheetDataAsync(
     spreadsheetId: string,
-    sheetName: string,
-    isSuitableDiscipline: ((d: Discipline) => boolean) | null = null,
-    isSuitableActualStudent: ((s: ActualStudent) => boolean) | null = null
-): Promise<MarksData> {
+    sheetName: string,): Promise<SpreadsheetData> {
+
     const rows = await readRowsFromSpreadsheetAsync(spreadsheetId, sheetName);
     const header = getHeader(rows);
 
@@ -21,11 +18,10 @@ export default async function buildAutoMarksConfigAsync(
     const controlActionConfigs = buildControlActionConfig(header, indices);
     const disciplineConfig = buildDisciplineConfig(
         rows,
-        indices,
-        isSuitableDiscipline
+        indices
     );
 
-    const allActualStudents = await readStudents.fromSpreadsheetAsync(
+    const actualStudents = await readStudents.fromSpreadsheetAsync(
         spreadsheetId,
         dataRange,
         indices.fullNameColumn - indices.left,
@@ -33,9 +29,6 @@ export default async function buildAutoMarksConfigAsync(
         null,
         indices.failureColumn - indices.left
     );
-    const actualStudents = isSuitableActualStudent
-        ? allActualStudents.filter(isSuitableActualStudent)
-        : allActualStudents;
 
     return {
         actualStudents,
@@ -56,7 +49,7 @@ async function readRowsFromSpreadsheetAsync(
 
 function getHeader(rows: string[][]) {
     const header = rows && rows[0];
-    if (!header) throw new Error(`Can't read header of spreadsheet`);
+    if (!header) throw new Error(`Лист Google-таблицы не содержит строк`);
     return header;
 }
 
@@ -96,9 +89,9 @@ function buildIndicesBy(header: string[]): Indices {
         disciplineParameterKeyColumnIndex <= failureColumnIndex ||
         disciplineParameterValueColumnIndex <= failureColumnIndex ||
         disciplineParameterValueColumnIndex !==
-            disciplineParameterKeyColumnIndex + 1
+        disciplineParameterKeyColumnIndex + 1
     )
-        throw new Error(`Wrong order of columns`);
+        throw new Error(`Неправильный порядок столбцов`);
     const leftIndex = Math.min(groupColumnIndex, fullNameColumnIndex);
     const rightIndex = failureColumnIndex;
 
@@ -164,8 +157,7 @@ function buildControlActionConfig(header: string[], indices: Indices) {
 
 function buildDisciplineConfig(
     rows: string[][],
-    indices: Indices,
-    isSuitableDiscipline: ((d: Discipline) => boolean) | null
+    indices: Indices
 ) {
     const result: DisciplineConfig = {
         name: '',
@@ -174,7 +166,6 @@ function buildDisciplineConfig(
         course: 1,
         isModule: false,
         defaultStudentFailure: StudentFailure.NoFailure,
-        isSuitableDiscipline: null,
     };
 
     for (let i = 0; i < rows.length; i++) {
@@ -186,7 +177,6 @@ function buildDisciplineConfig(
         addDisciplineConfigParameter(result, key, value);
     }
 
-    result.isSuitableDiscipline = isSuitableDiscipline;
     return result;
 }
 
@@ -228,6 +218,21 @@ function addDisciplineConfigParameter(
         config.defaultStudentFailure =
             parseStudentFailure(value) ?? StudentFailure.NoFailure;
     }
+}
+
+export interface SpreadsheetData {
+    actualStudents: ActualStudent[];
+    disciplineConfig: DisciplineConfig;
+    controlActionConfigs: ControlActionConfig[];
+}
+
+export interface DisciplineConfig {
+    name: string;
+    year: number;
+    termType: number;
+    course: number;
+    isModule: boolean;
+    defaultStudentFailure: StudentFailure;
 }
 
 interface Indices {

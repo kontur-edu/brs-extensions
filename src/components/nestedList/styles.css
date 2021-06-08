@@ -1,0 +1,15 @@
+.nested-list .nested-item {
+    padding-left: 40px !important;
+}
+
+.nested-list .dark {
+    background-color: #c4c5c5;
+}
+
+.nested-list .primary {
+    background-color: #E2E3E3;
+}
+
+.nested-list .hover:hover {
+    background-color: #c4c5c5 !important;
+}

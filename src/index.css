@@ -11,3 +11,52 @@ code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.vertical-margin-medium {
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+
+.vertical-margin-min {
+    margin-bottom: 8px;
+    margin-top: 8px;
+}
+
+.vertical-margin-large {
+    margin-bottom: 40px;
+    margin-top: 40px;
+}
+
+.no-margin {
+    margin: 0;
+}
+
+.text-align-center {
+    text-align: center;
+}
+
+.button-link {
+    color: blue;
+    text-decoration: none;
+}
+
+.button-link:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.colored-text {
+    color: #FF7777;
+}
+
+.colored-back {
+    background: #FF7777 !important;
+}
+
+.block-header {
+    margin-bottom: 0;
+}
+
+.block-header ~ p {
+    margin-top: 5px;
+}

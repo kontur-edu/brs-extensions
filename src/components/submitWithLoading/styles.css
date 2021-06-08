@@ -5,7 +5,6 @@
 .submit-with-loading .button-progress {
     color: #0000ff;
     position: absolute;
-    top: 15%;
-    left: 48%;
-    margin-left: -12px;
+    top: calc(50% - 12px);
+    left: calc(50% - 12px);
 }

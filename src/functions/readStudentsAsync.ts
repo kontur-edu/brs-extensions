@@ -1,6 +1,6 @@
-import { StudentFailure } from '../apis/brsApi';
+import {StudentFailure} from '../apis/brsApi';
 import * as googleApi from '../apis/googleApi';
-import { parseStudentFailure } from '../helpers/brsHelpers';
+import {parseStudentFailure} from '../helpers/brsHelpers';
 
 export interface ActualStudent {
     fullName: string;
