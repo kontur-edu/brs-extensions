@@ -44,7 +44,7 @@ function renderNestedItems(
 function renderEmpty() {
   return (
     <ListItem className="text-align-center">
-      <ListItemText primary="Нет элементов" />
+      <ListItemText primary="..." />
     </ListItem>
   );
 }

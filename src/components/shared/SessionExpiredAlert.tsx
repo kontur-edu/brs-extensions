@@ -36,8 +36,9 @@ export default function SessionExpiredAlert({
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-slide-description">
-            Кажется, действие сессии {sessionName} истекло. Необходимо повторно
-            авторизоваться.
+            Кажется, действие сессии {sessionName} истекло.
+            <br />
+            Необходимо повторно авторизоваться.
           </DialogContentText>
         </DialogContent>
         <DialogActions

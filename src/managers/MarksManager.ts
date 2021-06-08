@@ -319,14 +319,14 @@ export default class MarksManager {
     );
 
     if (ratingResults.length > 0) {
-      const groupedResults = Object.entries(
-        groupBy(ratingResults, "status")
-      ).map(([status, rawStudents]) => ({
-        title: `${status} = ${rawStudents.length}`,
-        students: rawStudents.map((s) => s.infoString),
-      }));
+      const groupedResults = Object.entries(groupBy(ratingResults, "status")).map(
+        ([groupKey, rawStudents]) => ({
+          title: formatMarkUpdateStatus(rawStudents[0]["status"]),
+          students: rawStudents.map((s) => s.infoString),
+        })
+      );
 
-      this.reportManager.currentReport.marks.push(...groupedResults);
+      this.reportManager.currentReport.skipped.push(...groupedResults);
     }
   }
 
@@ -360,9 +360,9 @@ export default class MarksManager {
     const studentName = student.studentFio.substr(0, 30);
     const description =
       status !== MarkUpdateStatus.Skipped
-        ? `${formatStudentFailure(actualFailure)} из ${formatStudentFailure(
+        ? `выставлено «${formatStudentFailure(actualFailure)}», было «${formatStudentFailure(
             brsFailureStatus
-          )}`
+          )}»`
         : formatStudentFailure(actualFailure);
 
     const infoString = `${studentName} ${description}`;

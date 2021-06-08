@@ -24,6 +24,7 @@ export default class ReportManager {
       group,
       merge: { succeed: 0 },
       marks: [],
+      skipped: [],
     };
   }
 
@@ -41,6 +42,7 @@ export interface Report {
     failedBrs?: string[];
   };
   marks: Section[];
+  skipped: Section[];
 }
 
 export interface Section {

@@ -74,14 +74,26 @@ export default class WorkerDialog extends React.Component<Props, State> {
       let hasErrors = false;
 
       const merge = report.merge;
-      let mergeResultsTitle = `Сопоставление = ${merge.succeed}`;
-      mergeResultsTitle += `, ${merge.failedActual?.length || 0}`;
-      mergeResultsTitle += `, ${merge.failedBrs?.length || 0}`;
+      let mergeResultsTitle = `Сопоставление: ${merge.succeed} успешно`;
+      const failedActualCount = merge.failedActual?.length || 0;
+      mergeResultsTitle += `, ${failedActualCount} ${pluralize(
+        failedActualCount,
+        "неизвестный",
+        "неизвестных",
+        "неизвестных"
+      )} в таблице`;
+      const failedBrsCount = merge.failedBrs?.length || 0;
+      mergeResultsTitle += `, ${failedBrsCount} ${pluralize(
+        failedBrsCount,
+        "неизвестный",
+        "неизвестных",
+        "неизвестных"
+      )} в БРС`;
 
       const mergeInfoItem: NestedItem = {
         title: mergeResultsTitle,
         collapsed: true,
-        nestedItems: [{ title: `Успешно сопоставлено = ${merge.succeed}` }],
+        nestedItems: [],
       };
       nestedItems.push(mergeInfoItem);
 
@@ -98,7 +110,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
         mergeInfoItem.nestedItems?.push({
           title,
           colored: true,
-          collapsed: true,
+          collapsed: false,
           nestedItems: merge.failedActual.map((s) => ({ title: s })),
         });
       }
@@ -113,7 +125,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
         mergeInfoItem.nestedItems?.push({
           title,
           colored: true,
-          collapsed: true,
+          collapsed: false,
           nestedItems: merge.failedBrs.map((s) => ({ title: s })),
         });
       }
@@ -124,29 +136,43 @@ export default class WorkerDialog extends React.Component<Props, State> {
         collapsed: true,
       };
       marksItem.nestedItems = marks.map(({ title, students }) => ({
-        title:
-          this.translateStatus(title) +
-          (students ? ` = ${students.length}` : ""),
+        title: `${title}: ${students?.length ?? 0} ${pluralize(
+          students?.length ?? 0,
+          "студент",
+          "студента",
+          "студентов"
+        )}`,
         nestedItems: students?.map((s) => ({ title: s })),
         collapsed: true,
       }));
       nestedItems.push(marksItem);
 
+      const skipped = report.skipped;
+      if (skipped.length > 0) {
+        const skippedItem: NestedItem = {
+          title: "Остальные студенты из БРС",
+          collapsed: true,
+        };
+        skippedItem.nestedItems = skipped.map(({ title, students }) => ({
+          title: `${title}: ${students?.length ?? 0} ${pluralize(
+            students?.length ?? 0,
+            "студент",
+            "студента",
+            "студентов"
+          )}`,
+          nestedItems: students?.map((s) => ({ title: s })),
+          collapsed: true,
+        }));
+        nestedItems.push(skippedItem);
+      }
+
       if (hasErrors) {
         mainItem.colored = true;
-        mergeInfoItem.colored = true;
       }
       logItems.push(mainItem);
 
       resolve(logItems);
     });
-  }
-
-  translateStatus(status: string) {
-    return status
-      .replace("SKIPPED", "Пропущено")
-      .replace("UPDATED", "Обновлено")
-      .replace("FAILED", "Ошибки");
   }
 
   startWork = async () => {

@@ -30,7 +30,8 @@ class GoogleTableFetch extends React.Component<Props, State> {
       showDisciplines: false,
       tableUrlError: { error: false, message: "" },
       disciplines: [],
-      disciplinesMissed: false,
+      allDisciplinesMissed: false,
+      missedDisciplinesCount: 0,
       showWorkerButtons: false,
       runWorker: false,
     };
@@ -71,15 +72,16 @@ class GoogleTableFetch extends React.Component<Props, State> {
       loading: false,
       disciplines: disciplinesInfo.disciplines,
       showDisciplines: true,
-      disciplinesMissed: disciplinesInfo.missed,
-      showWorkerButtons: !disciplinesInfo.missed,
+      allDisciplinesMissed: disciplinesInfo.allMissed,
+      missedDisciplinesCount: disciplinesInfo.missedCount,
+      showWorkerButtons: !disciplinesInfo.allMissed,
     });
   };
 
   disciplinesToListItems(
     availableDisciplines: Discipline[],
     spreadsheetData: SpreadsheetData
-  ): { missed: boolean; disciplines: NestedItem[] } {
+  ): { allMissed: boolean; missedCount: number; disciplines: NestedItem[] } {
     const actualGroups = new Set(
       spreadsheetData.actualStudents.map((s) => s.groupName)
     );
@@ -93,7 +95,8 @@ class GoogleTableFetch extends React.Component<Props, State> {
     });
 
     return {
-      missed: missedCount === actualGroups.size,
+      allMissed: missedCount === actualGroups.size,
+      missedCount,
       disciplines: [
         {
           title: spreadsheetData.disciplineConfig.name,
@@ -220,17 +223,19 @@ class GoogleTableFetch extends React.Component<Props, State> {
           className="vertical-margin-min"
         >
           <h3>Загруженная дисциплина из Google Таблицы</h3>
-          <p>
-            Группы, к которым у вас нет доступа в БРС,{" "}
-            <b className="colored-text"> подсвечены</b>
-          </p>
+          {this.state.missedDisciplinesCount > 0 && (
+            <p>
+              Группы, к которым у вас нет доступа в БРС,{" "}
+              <b className="colored-text"> подсвечены</b>
+            </p>
+          )}
 
           <NestedList
             items={this.state.disciplines}
             icons={[<ViewModule />, <GroupIcon />]}
           />
 
-          {this.state.disciplinesMissed ? (
+          {this.state.allDisciplinesMissed ? (
             <React.Fragment>
               <p>У вас нет доступа ни к одной из перечисленных групп в БРС</p>
               <span>Возможные действия:</span>
@@ -240,7 +245,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
                   совпадает
                 </li>
                 <li>Запросите доступ на дисциплину в БРС</li>
-                <li>Убедитесь, что техкарта согласована</li>
+                <li>Убедитесь, что техкарта согласована в БРС</li>
                 <li>
                   <button
                     className="button-link"
@@ -299,7 +304,8 @@ interface State {
   showDisciplines: boolean;
   tableUrlError: { error: boolean; message: string };
   disciplines: NestedItem[];
-  disciplinesMissed: boolean;
+  allDisciplinesMissed: boolean;
+  missedDisciplinesCount: number;
   showWorkerButtons: boolean;
   runWorker: boolean;
 }
