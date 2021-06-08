@@ -15,7 +15,7 @@ export default function RunWorkerButtons({
           onClick={onRunWorkSafe}
           color="primary"
         >
-          Попробуй сделать хорошо
+          Попробовать сделать хорошо
         </Button>
       </Grid>
       <Grid item>
@@ -25,7 +25,7 @@ export default function RunWorkerButtons({
           onClick={onRunWorkUnsafe}
           color="secondary"
         >
-          Сделай хорошо
+          Сделать хорошо
         </Button>
       </Grid>
     </Grid>
