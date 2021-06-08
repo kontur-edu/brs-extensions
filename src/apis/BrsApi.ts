@@ -282,7 +282,7 @@ export default class BrsApi {
       .filter((s) => s.startsWith(prefix));
     if (linesWithId.length !== 1) {
       throw new Error(
-        "Control actions page should contain single line target line with techcard identifier"
+        "Не удалось разобрать страницу БРС со списком контрольных мероприятий. Ожидается, что эта страница содержит единственную строчку с идентификатором техкарты."
       );
     }
 
