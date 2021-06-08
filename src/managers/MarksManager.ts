@@ -369,7 +369,7 @@ export default class MarksManager {
     const studentName = student.studentFio.substr(0, 30);
     const description =
       status !== MarkUpdateStatus.Skipped
-        ? `выставлено «${formatStudentFailure(actualFailure)}», было «${formatStudentFailure(
+        ? `, выставлено «${formatStudentFailure(actualFailure)}», было «${formatStudentFailure(
             brsFailureStatus
           )}»`
         : formatStudentFailure(actualFailure);
