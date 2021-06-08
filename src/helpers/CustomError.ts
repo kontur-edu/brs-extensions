@@ -1,4 +1,9 @@
-export class CustomError {
+export enum StatusCode {
+  BrsUnauthorized = 1,
+  GoogleUnauthorized,
+}
+
+export default class CustomError {
   readonly message: string;
   readonly statusCode: StatusCode;
 
@@ -6,9 +11,4 @@ export class CustomError {
     this.statusCode = statusCode;
     this.message = message;
   }
-}
-
-export enum StatusCode {
-  BrsUnauthorized = 1,
-  GoogleUnauthorized,
 }
