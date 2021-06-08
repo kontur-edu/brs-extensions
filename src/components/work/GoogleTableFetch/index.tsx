@@ -15,6 +15,12 @@ import GroupIcon from "@material-ui/icons/Group";
 import { ViewModule } from "@material-ui/icons";
 import GoogleTableFetchForm from "./GoogleTableFetchForm";
 
+enum LastAction {
+  None,
+  LoadDisciplines,
+  RunWork,
+}
+
 class GoogleTableFetch extends React.Component<Props, State> {
   marksData: MarksData = {} as any;
   workerSaveMode: boolean = false;
@@ -28,6 +34,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
       tableUrl: "",
       loading: false,
       showDisciplines: false,
+      lastAction: LastAction.None,
       tableUrlError: { error: false, message: "" },
       disciplines: [],
       allDisciplinesMissed: false,
@@ -72,6 +79,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
       loading: false,
       disciplines: disciplinesInfo.disciplines,
       showDisciplines: true,
+      lastAction: LastAction.LoadDisciplines,
       allDisciplinesMissed: disciplinesInfo.allMissed,
       missedDisciplinesCount: disciplinesInfo.missedCount,
       showWorkerButtons: !disciplinesInfo.allMissed,
@@ -196,9 +204,15 @@ class GoogleTableFetch extends React.Component<Props, State> {
     this.loadDisciplines(this.spreadsheetId, this.sheetId);
   };
 
-  runWork = (save: boolean) => {
+  runWork = async (save: boolean) => {
+    if (this.state.lastAction !== LastAction.LoadDisciplines) {
+      await this.loadDisciplines(this.spreadsheetId, this.sheetId);
+    }
     this.workerSaveMode = save;
-    this.setState({ runWorker: true });
+    this.setState({
+      lastAction: LastAction.RunWork,
+      runWorker: true
+    });
   };
 
   handleRunWorkSafe = () => this.runWork(false);
@@ -302,6 +316,7 @@ interface State {
   tableUrl: string;
   loading: boolean;
   showDisciplines: boolean;
+  lastAction: LastAction;
   tableUrlError: { error: boolean; message: string };
   disciplines: NestedItem[];
   allDisciplinesMissed: boolean;
