@@ -1,7 +1,12 @@
 import { StudentFailure, TermType } from "../apis/BrsApi";
 import { ControlActionConfig } from "./MarksManager";
 import * as googleApi from "../apis/GoogleApi";
-import { compareNormalized, normalizeString } from "../helpers/tools";
+import {
+  compareNormalized,
+  getKeys,
+  filterNull,
+  normalizeString,
+} from "../helpers/tools";
 import { parseStudentFailure } from "../helpers/brsHelpers";
 
 export interface ActualStudent {
@@ -26,6 +31,10 @@ export interface DisciplineConfig {
   isModule: boolean;
   defaultStudentFailure: StudentFailure;
 }
+
+type DisciplineConfigErrors = {
+  [key in keyof DisciplineConfig]: string | null;
+};
 
 export default class SpreadsheetManager {
   private readonly spreadsheetId: string;
@@ -219,6 +228,14 @@ function buildDisciplineConfig(rows: string[][], indices: Indices) {
     isModule: false,
     defaultStudentFailure: StudentFailure.NoFailure,
   };
+  const errors: DisciplineConfigErrors = {
+    name: "Дисциплина",
+    year: "Учебный год",
+    termType: "Семестр",
+    course: "Курс",
+    isModule: "ИТС",
+    defaultStudentFailure: "Причина отсутствия по умолчанию",
+  };
 
   for (let i = 0; i < rows.length; i++) {
     const key = rows[i][indices.disciplineKeyColumn]?.trim();
@@ -226,7 +243,13 @@ function buildDisciplineConfig(rows: string[][], indices: Indices) {
       break;
     }
     const value = rows[i][indices.disciplineValueColumn]?.trim();
-    addDisciplineConfigParameter(result, key, value);
+    addDisciplineConfigParameter(result, errors, key, value);
+  }
+
+  const errorNames = filterNull(getKeys(errors).map((k) => errors[k]));
+  if (errorNames.length > 0) {
+    const errorNamesString = errorNames.map(n => `«${n}»`).join(", ");
+    throw new Error(`Следующие параметры дисциплины не заданы: ${errorNamesString}`);
   }
 
   return result;
@@ -234,32 +257,39 @@ function buildDisciplineConfig(rows: string[][], indices: Indices) {
 
 function addDisciplineConfigParameter(
   config: DisciplineConfig,
+  errors: DisciplineConfigErrors,
   key: string,
   value: string
 ) {
   if (compareNormalized(key, "Дисциплина")) {
     if (value) {
       config.name = value;
+      errors.name = null;
     }
   } else if (compareNormalized(key, "ИТС")) {
     if (value) {
       config.isModule = value.toLowerCase() === "да";
+      errors.isModule = null;
     }
   } else if (compareNormalized(key, "Год")) {
     if (value) {
       config.year = parseInt(value.toLowerCase(), 10);
+      errors.year = null;
     }
   } else if (compareNormalized(key, "Учебный год")) {
     if (value) {
       const yearParts = value.toLowerCase().split("/");
       config.year = parseInt(yearParts[0], 10);
+      errors.year = null;
     }
   } else if (compareNormalized(key, "Семестр")) {
     if (value) {
       if (value.toLowerCase() === "осенний") {
         config.termType = TermType.Fall;
+        errors.termType = null;
       } else if (value.toLowerCase() === "весенний") {
         config.termType = TermType.Spring;
+        errors.termType = null;
       }
     }
   } else if (compareNormalized(key, "Курс")) {
@@ -267,13 +297,16 @@ function addDisciplineConfigParameter(
       const lowerValue = value.toLowerCase().trim();
       if (lowerValue === "все курсы") {
         config.course = 0;
+        errors.course = null;
       } else {
         config.course = parseInt(value.toLowerCase(), 10);
+        errors.course = null;
       }
     }
   } else if (compareNormalized(key, "Причина отсутствия по умолчанию")) {
     config.defaultStudentFailure =
       parseStudentFailure(value) ?? StudentFailure.NoFailure;
+    errors.defaultStudentFailure = null;
   }
 }
 

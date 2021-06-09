@@ -29,6 +29,21 @@ export function groupBy<TItem>(items: TItem[], key: keyof TItem) {
   }, reducer);
 }
 
+export function getKeys<T>(obj: T): (keyof T)[] {
+  const keys = Object.keys(obj) as (keyof T)[];
+  return keys;
+}
+
+export function filterNull<T>(items: (T | null)[]): T[] {
+  const result: T[] = [];
+  for (const item of items) {
+    if (item !== null) {
+      result.push(item);
+    }
+  }
+  return result;
+}
+
 export function pluralize(
   count: number,
   version1: string,
