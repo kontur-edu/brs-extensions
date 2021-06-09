@@ -21,7 +21,10 @@ export default class BrsAuth {
 
   get sid() {
     if (!this._sid)
-      throw new CustomError(StatusCode.BrsUnauthorized, "Нет авторизации в БРС");
+      throw new CustomError(
+        StatusCode.BrsUnauthorized,
+        "Нет авторизации в БРС"
+      );
     return this._sid;
   }
 
@@ -29,7 +32,10 @@ export default class BrsAuth {
 
   get safeUserName() {
     if (!this._safeUserName)
-      throw new CustomError(StatusCode.BrsUnauthorized, "Нет авторизации в БРС");
+      throw new CustomError(
+        StatusCode.BrsUnauthorized,
+        "Нет авторизации в БРС"
+      );
     return this._safeUserName;
   }
 

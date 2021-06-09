@@ -56,7 +56,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
     );
     if (!spreadsheetData) {
       this.setState({ loading: false });
-      return;
+      return false;
     }
 
     const disciplines = await this.getActualDisciplinesAsync(
@@ -64,7 +64,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
     );
     if (!disciplines) {
       this.setState({ loading: false });
-      return;
+      return false;
     }
 
     const disciplinesInfo = this.disciplinesToListItems(
@@ -84,6 +84,8 @@ class GoogleTableFetch extends React.Component<Props, State> {
       missedDisciplinesCount: disciplinesInfo.missedCount,
       showWorkerButtons: !disciplinesInfo.allMissed,
     });
+
+    return !disciplinesInfo.allMissed;
   };
 
   disciplinesToListItems(
@@ -206,8 +208,12 @@ class GoogleTableFetch extends React.Component<Props, State> {
 
   runWork = async (save: boolean) => {
     if (this.state.lastAction !== LastAction.LoadDisciplines) {
-      await this.loadDisciplines(this.spreadsheetId, this.sheetId);
+      const success = await this.loadDisciplines(this.spreadsheetId, this.sheetId);
+      if (!success) {
+        return;
+      }
     }
+
     this.workerSaveMode = save;
     this.setState({
       lastAction: LastAction.RunWork,
