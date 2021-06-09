@@ -8,18 +8,19 @@ const SCOPES = "profile email https://www.googleapis.com/auth/spreadsheets";
 export default class GoogleAuth {
   async ensureInitializedAsync() {
     if (gapi.client) return;
-    return new Promise<void>((resolve) => {
-      gapi.load("client:auth2", async () => {
-        await gapi.client
-          .init({
-            clientId: CLIENT_ID,
-            discoveryDocs: DISCOVERY_DOCS,
-            scope: SCOPES,
-          })
-          .catch(console.error);
-        resolve();
-      });
+
+    await new Promise<void>((resolve) => {
+      gapi.load("client:auth2", resolve);
     });
+
+    // NOTE: выполнение init не надо ждать
+    gapi.client
+      .init({
+        clientId: CLIENT_ID,
+        discoveryDocs: DISCOVERY_DOCS,
+        scope: SCOPES,
+      })
+      .catch(console.error);
   }
 
   checkAuthorized() {
