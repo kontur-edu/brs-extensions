@@ -7,6 +7,7 @@ import BrsLoginForm, { Credentials } from "../BrsLoginForm";
 import GoogleAuth from "../../../apis/GoogleAuth";
 import GoogleLoginButton from "../GoogleLoginButton";
 import CustomAlert from "../../shared/CustomAlert";
+import { TABLE_URL_PATTERN } from "../../../Constants";
 
 export default class LoginPage extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -127,8 +128,15 @@ export default class LoginPage extends React.Component<Props, State> {
         <h3 className="block-header">Как все работает</h3>
         <ol>
           <li>
-            В Google&nbsp;Таблицах вы заполняете оценки за курс по некоторому
-            шаблону
+            В Google&nbsp;Таблицах вы заполняете оценки за курс по некоторому{" "}
+            <a
+              href={TABLE_URL_PATTERN}
+              target="_blank"
+              rel="noreferrer"
+              className="button-link"
+            >
+              шаблону
+            </a>
           </li>
           <li>
             После этого импортируете Google Таблицу в сервис и выполняете

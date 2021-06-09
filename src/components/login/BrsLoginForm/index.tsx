@@ -2,9 +2,7 @@ import { Button, CircularProgress, TextField } from "@material-ui/core";
 import SubmitWithLoading from "../../shared/SubmitWithLoading";
 import React, { FormEvent } from "react";
 import "./styles.css";
-
-const sidGainingInstruction =
-  "https://docs.google.com/document/d/1btXePo-5bE8RyX7RFXnBuS-UN9SmwUithpc_UXhAWsg/edit";
+import { SID_GAINING_INSTRUCTION_URL } from "../../../Constants";
 
 export default function BrsLoginForm({
   onSubmit,
@@ -110,7 +108,7 @@ export default function BrsLoginForm({
           onChange={handleSidChanged}
         />
         <a
-          href={sidGainingInstruction}
+          href={SID_GAINING_INSTRUCTION_URL}
           className="button-link"
           target="_blank"
           rel="noreferrer"

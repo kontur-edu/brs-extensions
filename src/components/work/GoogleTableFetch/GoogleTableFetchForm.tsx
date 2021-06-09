@@ -1,11 +1,7 @@
 import { TextField } from "@material-ui/core";
 import SubmitWithLoading from "../../shared/SubmitWithLoading";
 import React, { FormEvent, useState } from "react";
-
-const TABLE_URL_PATTERN =
-  "https://docs.google.com/spreadsheets/d/1Owzl3JfmFASIdC7ZMMw-0kkA3pwFSab1QdVO5dhZoxY/edit#gid=675912523";
-const TABLE_TEMPLATE_URL =
-  "https://docs.google.com/spreadsheets/d/sjwa1/edit#gid=0";
+import { TABLE_URL_PATTERN, TABLE_TEMPLATE_URL } from "../../../Constants";
 
 export default function GoogleTableFetchForm({ loading, onSubmit }: Props) {
   const [tableUrl, setTableUrl] = useState("");
