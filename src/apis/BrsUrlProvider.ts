@@ -1,14 +1,13 @@
-const brsUrl = "https://brs.urfu.ru/mrd";
-const corsProxy = "https://kamikoto-cors-proxy.herokuapp.com";
+import {BRS_URL, CORS_PROXY} from "../Constants";
 
 export default class BrsUrlProvider {
-  private readonly withProxy: boolean;
+    private readonly withProxy: boolean;
 
-  constructor(withProxy: boolean) {
-    this.withProxy = withProxy;
-  }
+    constructor(withProxy: boolean) {
+        this.withProxy = withProxy;
+    }
 
-  get baseUrl() {
-    return this.withProxy ? `${corsProxy}/${brsUrl}` : brsUrl;
-  }
+    get baseUrl() {
+        return this.withProxy ? `${CORS_PROXY}/${BRS_URL}` : BRS_URL;
+    }
 }
