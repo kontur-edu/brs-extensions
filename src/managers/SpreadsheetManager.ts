@@ -191,27 +191,19 @@ function buildControlActionConfig(header: string[], indices: Indices) {
       continue;
     }
     controlActionConfigs.push({
-      controlActions: [header[index]],
+      controlAction: header[index],
       propertyIndex: index - indices.left,
     });
   }
 
   for (const config of controlActionConfigs) {
-    if (config.controlActions.length === 1) {
-      const sameColumns = controlActionConfigs.filter(
-        (c) =>
-          c.controlActions.length === 1 &&
-          compareNormalized(c.controlActions[0], config.controlActions[0])
-      );
-      if (sameColumns.length > 1) {
-        config.matchCount = sameColumns.length;
-        for (
-          let matchIndex = 0;
-          matchIndex < sameColumns.length;
-          matchIndex++
-        ) {
-          sameColumns[matchIndex].matchIndex = matchIndex;
-        }
+    const sameColumns = controlActionConfigs.filter((c) =>
+      compareNormalized(c.controlAction, config.controlAction)
+    );
+    if (sameColumns.length > 1) {
+      config.matchCount = sameColumns.length;
+      for (let matchIndex = 0; matchIndex < sameColumns.length; matchIndex++) {
+        sameColumns[matchIndex].matchIndex = matchIndex;
       }
     }
   }
@@ -248,8 +240,10 @@ function buildDisciplineConfig(rows: string[][], indices: Indices) {
 
   const errorNames = filterNull(getKeys(errors).map((k) => errors[k]));
   if (errorNames.length > 0) {
-    const errorNamesString = errorNames.map(n => `«${n}»`).join(", ");
-    throw new Error(`Следующие параметры дисциплины не заданы: ${errorNamesString}`);
+    const errorNamesString = errorNames.map((n) => `«${n}»`).join(", ");
+    throw new Error(
+      `Следующие параметры дисциплины не заданы: ${errorNamesString}`
+    );
   }
 
   return result;

@@ -4,7 +4,12 @@ import BrsApi, {
   StudentFailure,
   StudentMark,
 } from "../apis/BrsApi";
-import { compareNormalized, groupBy, parseAnyFloat } from "../helpers/tools";
+import {
+  compareNormalized,
+  groupBy,
+  parseAnyFloat,
+  pluralize,
+} from "../helpers/tools";
 import * as fio from "../helpers/fio";
 import { ActualStudent, SpreadsheetData } from "./SpreadsheetManager";
 import { formatStudentFailure } from "../helpers/brsHelpers";
@@ -39,26 +44,30 @@ export default class MarksManager {
   ) {
     const { actualStudents, disciplineConfig, controlActionConfigs } =
       spreadsheetData;
-
     try {
       for (const discipline of disciplines) {
+        const students = actualStudents.filter((s) =>
+          compareNormalized(s.groupName, discipline.group)
+        );
+        if (students.length === 0) {
+          continue;
+        }
+
         this.reportManager.newReport(discipline.group);
 
         var isSuccessful = await this.putMarksForDisciplineAsync(
           discipline,
-          actualStudents.filter((s) =>
-            compareNormalized(s.groupName, discipline.group)
-          ),
+          students,
           disciplineConfig.defaultStudentFailure,
           controlActionConfigs
         );
 
-        if (!isSuccessful) {
+        if (isSuccessful) {
+          this.reportManager.finishReport();
+        } else {
           this.reportManager.cancelReport();
           break;
         }
-
-        this.reportManager.finishReport();
 
         if (this.cancelPending) {
           break;
@@ -77,8 +86,6 @@ export default class MarksManager {
     defaultStudentFailure: StudentFailure,
     controlActionConfigs: ControlActionConfig[]
   ) {
-    if (actualStudents.length === 0) return;
-
     const controlActions = await this.brsApi.getAllControlActionsCachedAsync(
       discipline
     );
@@ -175,7 +182,9 @@ export default class MarksManager {
         controlActions
       );
       if (!controlAction) {
-        throw new Error("Подходящее контрольное мероприятие не найдено");
+        throw new Error(
+          `Подходящее контрольное мероприятие для «${config.controlAction}» не найдено в БРС`
+        );
       }
 
       const brsMarkString = student.brs[controlAction.uuid] as string;
@@ -256,17 +265,17 @@ export default class MarksManager {
     controlActions: ControlAction[]
   ) {
     const suitableControlActions = controlActions.filter((a) =>
-      config.controlActions.some((b) => compareNormalized(a.controlAction, b))
+      compareNormalized(a.controlAction, config.controlAction)
     );
 
     const errorMessages = [];
 
     if (suitableControlActions.length === 0) {
       errorMessages.push(
-        `Все "${config.controlActions.join(", ")}" не найдены `
+        `Контрольное мероприятие «${config.controlAction}» не сопоставлено с БРС`
       );
       errorMessages.push(
-        `Найденные контрольные мероприятия: ${controlActions
+        `Найденные в БРС контрольные мероприятия: ${controlActions
           .map((a) => a.controlAction)
           .join(", ")}`
       );
@@ -284,10 +293,18 @@ export default class MarksManager {
         config.matchIndex >= config.matchCount
       ) {
         errorMessages.push(
-          `Неверная конфигурация ${config.controlActions.join(", ")}`
+          `Неверная конфигурация контрольного мероприятия «${config.controlAction}»`
         );
-        errorMessages.push(`Нет соответствий: ${config.matchIndex}/${config.matchCount} 
-                                    и ${suitableControlActions.length}`);
+        if (suitableControlActions.length !== config.matchCount) {
+          errorMessages.push(
+            `В БРС найдено ${suitableControlActions.length} ${pluralize(
+              suitableControlActions.length,
+              "подходящее контрольное мероприятие",
+              "подходящих контрольных мероприятия",
+              "подходящих контрольных мероприятий"
+            )}, а в таблице указано ${config.matchCount}`
+          );
+        }
 
         this.reportManager.onInvalidConfiguration(errorMessages);
 
@@ -298,9 +315,7 @@ export default class MarksManager {
 
     if (suitableControlActions.length > 1) {
       errorMessages.push(
-        `Несколько контрольных мероприятий найдены для ${config.controlActions.join(
-          ", "
-        )}`
+        `Несколько контрольных мероприятий найдено для «${config.controlAction}»`
       );
       errorMessages.push(
         `Найденные контрольные мероприятия: ${suitableControlActions
@@ -328,12 +343,12 @@ export default class MarksManager {
     );
 
     if (ratingResults.length > 0) {
-      const groupedResults = Object.entries(groupBy(ratingResults, "status")).map(
-        ([groupKey, rawStudents]) => ({
-          title: formatMarkUpdateStatus(rawStudents[0]["status"]),
-          students: rawStudents.map((s) => s.infoString),
-        })
-      );
+      const groupedResults = Object.entries(
+        groupBy(ratingResults, "status")
+      ).map(([groupKey, rawStudents]) => ({
+        title: formatMarkUpdateStatus(rawStudents[0]["status"]),
+        students: rawStudents.map((s) => s.infoString),
+      }));
 
       this.reportManager.currentReport.skipped.push(...groupedResults);
     }
@@ -369,9 +384,9 @@ export default class MarksManager {
     const studentName = student.studentFio.substr(0, 30);
     const description =
       status !== MarkUpdateStatus.Skipped
-        ? `выставлено «${formatStudentFailure(actualFailure)}», было «${formatStudentFailure(
-            brsFailureStatus
-          )}»`
+        ? `выставлено «${formatStudentFailure(
+            actualFailure
+          )}», было «${formatStudentFailure(brsFailureStatus)}»`
         : `«${formatStudentFailure(actualFailure)}»`;
 
     const infoString = `${studentName}, ${description}`;
@@ -464,7 +479,7 @@ function formatMarkUpdateStatus(status: MarkUpdateStatus) {
 }
 
 export interface ControlActionConfig {
-  controlActions: string[];
+  controlAction: string;
   matchIndex?: number;
   matchCount?: number;
   propertyIndex: number;
