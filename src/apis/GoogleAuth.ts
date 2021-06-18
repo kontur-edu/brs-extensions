@@ -23,6 +23,10 @@ export default class GoogleAuth {
       .catch(console.error);
   }
 
+  listenAuthorized(handler: (authorized: boolean) => void) {
+    gapi.auth2?.getAuthInstance()?.isSignedIn?.listen(handler);
+  }
+
   checkAuthorized() {
     return gapi.auth2?.getAuthInstance()?.isSignedIn?.get();
   }

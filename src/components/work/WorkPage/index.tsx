@@ -30,11 +30,18 @@ export default class WorkPage extends React.Component<Props, State> {
     await this.props.brsAuth.tryRestoreAsync();
 
     const brsAuthorized = this.props.brsAuth.checkAuth();
-    const googleAuthorized = this.props.googleAuth.checkAuthorized();
-
     if (!brsAuthorized) this.handleSessionExpired("БРС");
-    else if (!googleAuthorized) this.handleSessionExpired("Google");
-    else this.setState({ loading: false });
+
+    const googleAuthorized = this.props.googleAuth.checkAuthorized();
+    if (!googleAuthorized) {
+      setTimeout(() => {
+        const googleAuthorized = this.props.googleAuth.checkAuthorized();
+        if (!googleAuthorized) this.handleSessionExpired("Google");
+        else this.setState({ loading: false });
+      }, 1000);
+    } else {
+      this.setState({ loading: false });
+    }
   }
 
   handleError = (error: any) => {

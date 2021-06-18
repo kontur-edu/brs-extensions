@@ -26,8 +26,12 @@ export default class LoginPage extends React.Component<Props, State> {
   }
 
   async componentDidMount() {
-    await this.props.brsAuth.tryRestoreAsync();
     await this.props.googleAuth.ensureInitializedAsync();
+    await this.props.brsAuth.tryRestoreAsync();
+
+    this.props.googleAuth.listenAuthorized((authorized) => {
+      this.setState({ googleAuthorized: authorized });
+    });
 
     const brsAuthorized = this.props.brsAuth.checkAuth();
     const googleAuthorized = this.props.googleAuth.checkAuthorized();
