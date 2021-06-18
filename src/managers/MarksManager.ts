@@ -86,9 +86,19 @@ export default class MarksManager {
     defaultStudentFailure: StudentFailure,
     controlActionConfigs: ControlActionConfig[]
   ) {
-    const controlActions = await this.brsApi.getAllControlActionsCachedAsync(
-      discipline
-    );
+    const disciplineMeta = await this.brsApi.getDisciplineMetaAsync(discipline);
+
+    const controlActions = [
+      ...(disciplineMeta.lecture?.currentControlActions || []),
+      ...(disciplineMeta.lecture?.intermediateControlActions || []),
+      ...(disciplineMeta.laboratory?.currentControlActions || []),
+      ...(disciplineMeta.laboratory?.intermediateControlActions || []),
+      ...(disciplineMeta.practice?.currentControlActions || []),
+      ...(disciplineMeta.practice?.intermediateControlActions || []),
+      ...(disciplineMeta.additionalPractice?.currentControlActions || []),
+      ...(disciplineMeta.additionalPractice?.intermediateControlActions || []),
+    ];
+
     if (
       !this.checkControlActionsConfiguration(
         controlActions,

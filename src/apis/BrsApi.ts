@@ -45,7 +45,10 @@ export default class BrsApi {
       course,
       isModule
     );
-    const cacheResult = cache.read<Discipline[]>(cacheName, StorageType.Session);
+    const cacheResult = cache.read<Discipline[]>(
+      cacheName,
+      StorageType.Session
+    );
     if (cacheResult) {
       return cacheResult;
     }
@@ -187,60 +190,77 @@ export default class BrsApi {
     );
   }
 
-  async getAllControlActionsCachedAsync(discipline: Discipline) {
-    return [
-      ...(await this.getControlActionsCachedAsync(
-        discipline,
-        "lecture",
-        "current"
-      )),
-      ...(await this.getControlActionsCachedAsync(
-        discipline,
-        "lecture",
-        "intermediate"
-      )),
-      ...(await this.getControlActionsCachedAsync(
-        discipline,
-        "laboratory",
-        "current"
-      )),
-      ...(await this.getControlActionsCachedAsync(
-        discipline,
-        "laboratory",
-        "intermediate"
-      )),
-      ...(await this.getControlActionsCachedAsync(
-        discipline,
-        "practice",
-        "current"
-      )),
-      ...(await this.getControlActionsCachedAsync(
-        discipline,
-        "practice",
-        "intermediate"
-      )),
-      ...(await this.getControlActionsCachedAsync(
-        discipline,
-        "additionalPractice",
-        "current"
-      )),
-      ...(await this.getControlActionsCachedAsync(
-        discipline,
-        "additionalPractice",
-        "intermediate"
-      )),
-    ];
+  async getDisciplineMetaAsync(
+    discipline: Discipline
+  ): Promise<DisciplineMeta> {
+    const disciplineMeta: DisciplineMeta = {
+      lecture: null,
+      laboratory: null,
+      practice: null,
+      additionalPractice: null,
+    };
+
+    await this.fillCardMetaAsync(disciplineMeta, discipline, "lecture");
+    await this.fillCardMetaAsync(disciplineMeta, discipline, "laboratory");
+    await this.fillCardMetaAsync(disciplineMeta, discipline, "practice");
+    await this.fillCardMetaAsync(
+      disciplineMeta,
+      discipline,
+      "additionalPractice"
+    );
+
+    debugger;
+    return disciplineMeta;
   }
 
-  async getControlActionsCachedAsync(
+  async fillCardMetaAsync(
+    disciplineMeta: DisciplineMeta,
+    discipline: Discipline,
+    cardType: CardType
+  ) {
+    const currentColumns = await this.getControlActionColumnsCachedAsync(
+      discipline,
+      cardType,
+      "current"
+    );
+    const intermediateColumns = await this.getControlActionColumnsCachedAsync(
+      discipline,
+      cardType,
+      "intermediate"
+    );
+    if (currentColumns.length + intermediateColumns.length === 0) {
+      return;
+    }
+
+    const cardMeta = {
+      currentControlActions: this.extractControlActions(currentColumns),
+      currentFactor: 0,
+      intermediateControlActions:
+        this.extractControlActions(intermediateColumns),
+      intermediateFactor: 0,
+      totalFactor: 0,
+    };
+    this.fillFactors(cardMeta, currentColumns);
+    this.fillFactors(cardMeta, intermediateColumns);
+    disciplineMeta[cardType] = cardMeta;
+
+    const totalColumns = await this.getControlActionColumnsCachedAsync(
+      discipline,
+      cardType,
+      "total"
+    );
+    this.fillTotalFactors(disciplineMeta, totalColumns);
+  }
+
+  async getControlActionColumnsCachedAsync(
     discipline: Discipline,
     cardType: CardType,
     markType: MarkType
   ) {
     const cacheName =
-      `${this.brsAuth.safeUserName}_getControlActions_${discipline.disciplineLoad}` +
+      `${this.brsAuth.safeUserName}_getControlActionColumns_${discipline.disciplineLoad}` +
       `_${discipline.isModule}_${discipline.groupHistoryId}_${discipline.groupId}_${cardType}_${markType}`;
-    const cacheResult = cache.read<ControlAction[]>(
+    const cacheResult = cache.read<ControlActionColumn[]>(
       cacheName,
       StorageType.Session
     );
@@ -248,7 +268,7 @@ export default class BrsApi {
       return cacheResult;
     }
 
-    const result = await this.getControlActionsInternalAsync(
+    const result = await this.getControlActionColumnsInternalAsync(
       discipline.disciplineLoad,
       discipline.isModule,
       discipline.groupHistoryId,
@@ -260,7 +280,7 @@ export default class BrsApi {
     return result;
   }
 
-  async getControlActionsInternalAsync(
+  async getControlActionColumnsInternalAsync(
     disciplineLoad: string,
     isModule: boolean,
     groupUuid: string,
@@ -286,7 +306,7 @@ export default class BrsApi {
       );
     }
 
-    const columns: Array<{ controlAction: string; uuid: string }> =
+    const columns: Array<ControlActionColumn> =
       JSON.parse(
         linesWithId[0].substr(
           prefix.length,
@@ -294,15 +314,60 @@ export default class BrsApi {
         )
       ) || [];
 
+    return columns;
+  }
+
+  extractControlActions(columns: ControlActionColumn[]) {
     const uuidPrefix = "technologyCard";
     const result = columns
       .filter((c) => c.uuid && c.uuid.startsWith(uuidPrefix))
       .map((c) => ({
         uuid: c.uuid,
         uuidWithoutPrefix: c.uuid.substr(uuidPrefix.length),
+        maxValue: c.maxValue,
+        isIntermediate: c.intermediate > 0,
         controlAction: c.controlAction,
       }));
+
     return result as ControlAction[];
+  }
+
+  fillFactors(cardMeta: CardMeta, columns: ControlActionColumn[]) {
+    for (const column of columns) {
+      switch (column.uuid) {
+        case "currentWithFactor":
+          cardMeta.currentFactor = typeof column.value === "string" ? parseFloat(column.value) : column.value;
+          break;
+        case "intermediateWithFactor":
+          cardMeta.intermediateFactor = typeof column.value === "string" ? parseFloat(column.value) : column.value;
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  fillTotalFactors(
+    disciplineMeta: DisciplineMeta,
+    columns: ControlActionColumn[]
+  ) {
+    debugger;
+    for (const column of columns) {
+      switch (column.uuid) {
+        case "lecture":
+        case "laboratory":
+        case "practice":
+        case "additionalPractice":
+          const uuid: CardType = column.uuid;
+          const cardMeta = disciplineMeta[uuid];
+          if (cardMeta !== null) {
+            cardMeta.totalFactor = typeof column.value === "string" ? parseFloat(column.value) : column.value;
+          }
+          break;
+        default:
+          break;
+      }
+    }
   }
 
   async putStudentMarkAsync(
@@ -453,7 +518,7 @@ export type CardType =
   | "laboratory"
   | "practice"
   | "additionalPractice";
-export type MarkType = "intermediate" | "current";
+export type MarkType = "current" | "intermediate" | "total";
 
 export interface RegisterInfo {
   registerInfoStr: string;
@@ -515,10 +580,35 @@ export interface StudentMark {
   [props: string]: number | string | boolean | undefined;
 }
 
+export interface DisciplineMeta {
+  lecture: CardMeta | null;
+  laboratory: CardMeta | null;
+  practice: CardMeta | null;
+  additionalPractice: CardMeta | null;
+}
+
+export interface CardMeta {
+  currentFactor: number;
+  currentControlActions: ControlAction[];
+  intermediateFactor: number;
+  intermediateControlActions: ControlAction[];
+  totalFactor: number;
+}
+
 export interface ControlAction {
   uuid: string;
   uuidWithoutPrefix: string;
   controlAction: string;
+  maxValue: number;
+  isIntermediate: boolean;
+}
+
+interface ControlActionColumn {
+  controlAction: string;
+  uuid: string;
+  maxValue: number;
+  intermediate: number;
+  value: number | string;
 }
 
 interface RequestOptions {
