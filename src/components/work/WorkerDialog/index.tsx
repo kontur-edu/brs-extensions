@@ -57,7 +57,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
   logConfigurationErrors = (errorMessages: string[]) => {
     const logItems = errorMessages.map((title) => ({ title, colored: true }));
     this.setState({ logItems });
-  }
+  };
 
   logMessage = async (report: Report) => {
     const logItems = await this.reportToNestedListItems(report);
@@ -67,7 +67,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
   reportToNestedListItems(report: Report): Promise<NestedItem[]> {
     const logItems = this.state.logItems;
     return new Promise((resolve) => {
-      let title = `Группа ${report.group}`;
+      let title = `Группа ${report.group}, преподаватель ${report.teacher}`;
       const nestedItems: NestedItem[] = [];
       const mainItem: NestedItem = { title, collapsed: true, nestedItems };
 

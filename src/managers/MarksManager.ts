@@ -53,7 +53,7 @@ export default class MarksManager {
           continue;
         }
 
-        this.reportManager.newReport(discipline.group);
+        this.reportManager.newReport(discipline.group, discipline.teacherName);
 
         var isSuccessful = await this.putMarksForDisciplineAsync(
           discipline,
@@ -101,6 +101,7 @@ export default class MarksManager {
 
     if (
       !this.checkControlActionsConfiguration(
+        discipline,
         controlActions,
         controlActionConfigs
       )
@@ -138,11 +139,12 @@ export default class MarksManager {
   }
 
   checkControlActionsConfiguration(
+    discipline: Discipline,
     controlActions: ControlAction[],
     controlActionConfigs: ControlActionConfig[]
   ) {
     for (const config of controlActionConfigs) {
-      if (!this.getSuitableControlAction(config, controlActions)) {
+      if (!this.getSuitableControlAction(discipline, config, controlActions)) {
         return false;
       }
     }
@@ -188,6 +190,7 @@ export default class MarksManager {
     const marks = [];
     for (const config of controlActionConfigs) {
       const controlAction = this.getSuitableControlAction(
+        discipline,
         config,
         controlActions
       );
@@ -271,6 +274,7 @@ export default class MarksManager {
   }
 
   getSuitableControlAction(
+    discipline: Discipline,
     config: ControlActionConfig,
     controlActions: ControlAction[]
   ) {
@@ -282,10 +286,13 @@ export default class MarksManager {
 
     if (suitableControlActions.length === 0) {
       errorMessages.push(
-        `Контрольное мероприятие «${config.controlAction}» не сопоставлено с БРС`
+        `Группа ${discipline.group}, преподаватель ${discipline.teacherName}`
       );
       errorMessages.push(
-        `Найденные в БРС контрольные мероприятия: ${controlActions
+        `- контрольное мероприятие «${config.controlAction}» не сопоставлено с БРС`
+      );
+      errorMessages.push(
+        `- найденные в БРС контрольные мероприятия: ${controlActions
           .map((a) => a.controlAction)
           .join(", ")}`
       );

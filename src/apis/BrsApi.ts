@@ -209,7 +209,6 @@ export default class BrsApi {
       "additionalPractice"
     );
 
-    debugger;
     return disciplineMeta;
   }
 
@@ -351,7 +350,6 @@ export default class BrsApi {
     disciplineMeta: DisciplineMeta,
     columns: ControlActionColumn[]
   ) {
-    debugger;
     for (const column of columns) {
       switch (column.uuid) {
         case "lecture":
@@ -520,22 +518,14 @@ export type CardType =
   | "additionalPractice";
 export type MarkType = "current" | "intermediate" | "total";
 
-export interface RegisterInfo {
-  registerInfoStr: string;
-  registerId: number;
-  passDate: any;
-  cardType: string;
-  sheet: string;
-}
-
 export interface Discipline {
   groupId: string;
   discipline: string;
   group: string;
-  registerInfo: RegisterInfo[];
   disciplineLoad: string;
   groupHistoryId: string;
   isModule: boolean;
+  teacherName: string;
 }
 
 // eslint-disable-next-line
