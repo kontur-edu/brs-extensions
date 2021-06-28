@@ -66,7 +66,6 @@ export default class MarksManager {
           this.reportManager.finishReport();
         } else {
           this.reportManager.cancelReport();
-          break;
         }
 
         if (this.cancelPending) {
