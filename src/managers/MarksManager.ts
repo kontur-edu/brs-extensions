@@ -455,12 +455,12 @@ export default class MarksManager {
 
     if (skippedActualStudents.length > 0)
       report.merge.failedActual = skippedActualStudents.map(
-        (s) => "- " + s.fullName
+        (s) => s.fullName
       );
 
     if (skippedBrsStudents.length > 0) {
       report.merge.failedBrs = skippedBrsStudents.map(
-        (s) => "- " + s.studentFio
+        (s) => s.studentFio
       );
     }
   }

@@ -92,8 +92,8 @@ export default class WorkerDialog extends React.Component<Props, State> {
 
       const mergeInfoItem: NestedItem = {
         title: mergeResultsTitle,
-        collapsed: true,
         nestedItems: [],
+        collapsed: true,
       };
       nestedItems.push(mergeInfoItem);
 
@@ -109,9 +109,10 @@ export default class WorkerDialog extends React.Component<Props, State> {
         )} из Google Таблицы`;
         mergeInfoItem.nestedItems?.push({
           title,
+          nestedItems: merge.failedActual.map((s) => ({ title: s })),
           colored: true,
           collapsed: false,
-          nestedItems: merge.failedActual.map((s) => ({ title: s })),
+          renderAsText: true,
         });
       }
       if (!!merge.failedBrs) {
@@ -124,9 +125,10 @@ export default class WorkerDialog extends React.Component<Props, State> {
         )} из БРС`;
         mergeInfoItem.nestedItems?.push({
           title,
+          nestedItems: merge.failedBrs.map((s) => ({ title: s })),
           colored: true,
           collapsed: false,
-          nestedItems: merge.failedBrs.map((s) => ({ title: s })),
+          renderAsText: true,
         });
       }
 
@@ -144,6 +146,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
         )}`,
         nestedItems: students?.map((s) => ({ title: s })),
         collapsed: false,
+        renderAsText: true,
       }));
       nestedItems.push(marksItem);
 
@@ -162,6 +165,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
           )}`,
           nestedItems: students?.map((s) => ({ title: s })),
           collapsed: false,
+          renderAsText: true,
         }));
         nestedItems.push(skippedItem);
       }

@@ -49,8 +49,12 @@ function renderEmpty() {
   );
 }
 
+function renderNestedItemsAsText(items: NestedItem[]) {
+  return items.map((item, index) => <div key={index}>{item.title}</div>);
+}
+
 function NestedListItem({ item, level, icons }: NestedListItemProps) {
-  const { title, nestedItems, colored, collapsed } = item;
+  const { title, nestedItems, colored, collapsed, renderAsText } = item;
 
   const [open, setOpen] = React.useState(!collapsed);
 
@@ -75,9 +79,15 @@ function NestedListItem({ item, level, icons }: NestedListItemProps) {
       </ListItem>
       {hasSubItems && (
         <Collapse in={open} unmountOnExit>
-          <List component="div" disablePadding>
-            {nestedItems && renderNestedItems(nestedItems, level + 1, icons)}
-          </List>
+          {renderAsText ? (
+            <div style={{ paddingLeft: 40 * (level + 1), paddingTop: 10, paddingBottom: 10 }}>
+              {nestedItems && renderNestedItemsAsText(nestedItems)}
+            </div>
+          ) : (
+            <List component="div" disablePadding>
+              {nestedItems && renderNestedItems(nestedItems, level + 1, icons)}
+            </List>
+          )}
         </Collapse>
       )}
     </React.Fragment>
@@ -88,6 +98,7 @@ export interface NestedItem {
   title: string;
   colored?: boolean;
   collapsed?: boolean;
+  renderAsText?: boolean;
   nestedItems?: NestedItem[];
 }
 
@@ -100,5 +111,6 @@ interface NestedListProps {
 interface NestedListItemProps {
   item: NestedItem;
   level: number;
+  renderAsText?: boolean;
   icons?: (JSX.Element | null)[];
 }
