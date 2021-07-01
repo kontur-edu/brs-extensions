@@ -67,7 +67,11 @@ export default class WorkerDialog extends React.Component<Props, State> {
   reportToNestedListItems(report: Report): Promise<NestedItem[]> {
     const logItems = this.state.logItems;
     return new Promise((resolve) => {
-      let title = `Группа ${report.group}, преподаватель ${report.teacher}`;
+      let title =
+        `Группа ${report.group}` +
+        (report.teacher !== undefined
+          ? `, преподаватель ${report.teacher}`
+          : "");
       const nestedItems: NestedItem[] = [];
       const mainItem: NestedItem = { title, collapsed: true, nestedItems };
 

@@ -18,7 +18,7 @@ export default class ReportManager {
     return this._currentReport;
   }
 
-  newReport(group: string, teacher: string) {
+  newReport(group: string, teacher?: string) {
     this.finishReport();
     this._currentReport = {
       group,
@@ -41,7 +41,7 @@ export default class ReportManager {
 
 export interface Report {
   group: string;
-  teacher: string;
+  teacher?: string;
   merge: {
     succeed: number;
     failedActual?: string[];

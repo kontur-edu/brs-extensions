@@ -285,7 +285,10 @@ export default class MarksManager {
 
     if (suitableControlActions.length === 0) {
       errorMessages.push(
-        `Группа ${discipline.group}, преподаватель ${discipline.teacherName}`
+        `Группа ${discipline.group}` +
+          (discipline.teacherName !== undefined
+            ? `, преподаватель ${discipline.teacherName}`
+            : "")
       );
       errorMessages.push(
         `- контрольное мероприятие «${config.controlAction}» не сопоставлено с БРС`
@@ -453,14 +456,10 @@ export default class MarksManager {
     report.merge.succeed = mergedStudents.length;
 
     if (skippedActualStudents.length > 0)
-      report.merge.failedActual = skippedActualStudents.map(
-        (s) => s.fullName
-      );
+      report.merge.failedActual = skippedActualStudents.map((s) => s.fullName);
 
     if (skippedBrsStudents.length > 0) {
-      report.merge.failedBrs = skippedBrsStudents.map(
-        (s) => s.studentFio
-      );
+      report.merge.failedBrs = skippedBrsStudents.map((s) => s.studentFio);
     }
   }
 }

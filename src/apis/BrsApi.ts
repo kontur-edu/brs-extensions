@@ -525,7 +525,7 @@ export interface Discipline {
   disciplineLoad: string;
   groupHistoryId: string;
   isModule: boolean;
-  teacherName: string;
+  teacherName?: string;
 }
 
 // eslint-disable-next-line
