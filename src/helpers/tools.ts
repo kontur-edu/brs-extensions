@@ -58,3 +58,7 @@ export function pluralize(
     return version5;
   return count % 10 === 1 ? version1 : version2;
 }
+
+export function round100(value: number) {
+  return Math.round(value * 100) / 100;
+}

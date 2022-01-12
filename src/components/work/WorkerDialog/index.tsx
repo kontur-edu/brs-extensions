@@ -190,7 +190,13 @@ export default class WorkerDialog extends React.Component<Props, State> {
       suitableDisciplines
     );
 
-    if (error) this.props.onError(error);
+    if (error) {
+      if (typeof error === "object") {
+        this.props.onError(error.toString());
+      } else if (typeof error === "string") {
+        this.props.onError(error);
+      }
+    }
 
     this.setState({
       cancelPending: false,

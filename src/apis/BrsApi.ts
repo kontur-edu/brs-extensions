@@ -413,14 +413,13 @@ export default class BrsApi {
   }
 
   async updateAllMarksAsync(discipline: Discipline) {
-    // Одного вызова достаточно, чтобы обновить все оценки по предмету у группы.
     await this.updateMarksAsync(discipline, "lecture", "intermediate");
-    // await updateMarksAsync(discipline, 'lecture', 'current');
-    // await updateMarksAsync(discipline, 'lecture', 'intermediate');
-    // await updateMarksAsync(discipline, 'laboratory', 'current');
-    // await updateMarksAsync(discipline, 'laboratory', 'intermediate');
-    // await updateMarksAsync(discipline, 'practice', 'current');
-    // await updateMarksAsync(discipline, 'practice', 'intermediate');
+    await this.updateMarksAsync(discipline, 'lecture', 'current');
+    await this.updateMarksAsync(discipline, 'lecture', 'intermediate');
+    await this.updateMarksAsync(discipline, 'laboratory', 'current');
+    await this.updateMarksAsync(discipline, 'laboratory', 'intermediate');
+    await this.updateMarksAsync(discipline, 'practice', 'current');
+    await this.updateMarksAsync(discipline, 'practice', 'intermediate');
   }
 
   async updateMarksAsync(

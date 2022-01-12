@@ -1,6 +1,8 @@
 import BrsApi, {
   ControlAction,
   Discipline,
+  DisciplineMeta,
+  CardMeta,
   StudentFailure,
   StudentMark,
 } from "../apis/BrsApi";
@@ -9,11 +11,14 @@ import {
   groupBy,
   parseAnyFloat,
   pluralize,
+  round100,
 } from "../helpers/tools";
 import * as fio from "../helpers/fio";
 import { ActualStudent, SpreadsheetData } from "./SpreadsheetManager";
 import { formatStudentFailure } from "../helpers/brsHelpers";
 import ReportManager from "./ReportManager";
+
+const autoControlActionName = "auto";
 
 enum MarkUpdateStatus {
   Updated,
@@ -87,21 +92,10 @@ export default class MarksManager {
   ) {
     const disciplineMeta = await this.brsApi.getDisciplineMetaAsync(discipline);
 
-    const controlActions = [
-      ...(disciplineMeta.lecture?.currentControlActions || []),
-      ...(disciplineMeta.lecture?.intermediateControlActions || []),
-      ...(disciplineMeta.laboratory?.currentControlActions || []),
-      ...(disciplineMeta.laboratory?.intermediateControlActions || []),
-      ...(disciplineMeta.practice?.currentControlActions || []),
-      ...(disciplineMeta.practice?.intermediateControlActions || []),
-      ...(disciplineMeta.additionalPractice?.currentControlActions || []),
-      ...(disciplineMeta.additionalPractice?.intermediateControlActions || []),
-    ];
-
     if (
       !this.checkControlActionsConfiguration(
         discipline,
-        controlActions,
+        disciplineMeta,
         controlActionConfigs
       )
     )
@@ -119,9 +113,9 @@ export default class MarksManager {
 
     await this.putMarksForStudentsAsync(
       discipline,
+      disciplineMeta,
       mergedStudents,
-      controlActionConfigs,
-      controlActions
+      controlActionConfigs
     );
 
     await this.updateFailuresForSkippedStudentsAsync(
@@ -139,9 +133,16 @@ export default class MarksManager {
 
   checkControlActionsConfiguration(
     discipline: Discipline,
-    controlActions: ControlAction[],
+    disciplineMeta: DisciplineMeta,
     controlActionConfigs: ControlActionConfig[]
   ) {
+    const autoControlActionConfig =
+      this.tryGetAutoControlActionConfig(controlActionConfigs);
+    if (autoControlActionConfig) {
+      return true;
+    }
+
+    const controlActions = this.getControlActions(disciplineMeta);
     for (const config of controlActionConfigs) {
       if (!this.getSuitableControlAction(discipline, config, controlActions)) {
         return false;
@@ -152,17 +153,17 @@ export default class MarksManager {
 
   async putMarksForStudentsAsync(
     discipline: Discipline,
+    disciplineMeta: DisciplineMeta,
     students: MergedStudent[],
-    controlActionConfigs: ControlActionConfig[],
-    controlActions: ControlAction[]
+    controlActionConfigs: ControlActionConfig[]
   ) {
     const ratingResults = await Promise.all(
       students.map(async (student) => {
         return await this.putMarksForStudentAsync(
           discipline,
+          disciplineMeta,
           student,
-          controlActionConfigs,
-          controlActions
+          controlActionConfigs
         );
       })
     );
@@ -179,62 +180,37 @@ export default class MarksManager {
 
   async putMarksForStudentAsync(
     discipline: Discipline,
+    disciplineMeta: DisciplineMeta,
     student: MergedStudent,
-    controlActionConfigs: ControlActionConfig[],
-    controlActions: ControlAction[]
+    controlActionConfigs: ControlActionConfig[]
   ) {
-    let updated = 0;
-    let failed = 0;
+    const autoControlActionConfig =
+      this.tryGetAutoControlActionConfig(controlActionConfigs);
 
-    const marks = [];
-    for (const config of controlActionConfigs) {
-      const controlAction = this.getSuitableControlAction(
+    const controlActions = this.getControlActions(disciplineMeta);
+
+    const log: PutMarksLog = {
+      failed: 0,
+      updated: 0,
+      marks: [],
+    };
+
+    if (autoControlActionConfig !== null) {
+      await this.putAutoMarksForStudentAsync(
+        log,
         discipline,
-        config,
+        disciplineMeta,
+        student,
+        autoControlActionConfig
+      );
+    } else {
+      await this.putManualMarksForStudentAsync(
+        log,
+        discipline,
+        student,
+        controlActionConfigs,
         controlActions
       );
-      if (!controlAction) {
-        throw new Error(
-          `Подходящее контрольное мероприятие для «${config.controlAction}» не найдено в БРС`
-        );
-      }
-
-      const brsMarkString = student.brs[controlAction.uuid] as string;
-      const brsMark = parseAnyFloat(brsMarkString);
-      const actualMarkString = student.actual.properties[config.propertyIndex];
-      const actualMark = parseAnyFloat(actualMarkString);
-
-      const needUpdateMark =
-        !isNaN(actualMark) &&
-        !(isNaN(brsMark) ? actualMark === 0 : brsMark === actualMark);
-      const actualMarkOutput = !isNaN(actualMark) ? actualMark.toString() : "-";
-
-      if (needUpdateMark) {
-        marks.push(
-          `    ${actualMarkOutput}!`.substr(`${actualMarkOutput}`.length - 1)
-        );
-      } else {
-        marks.push(
-          `    ${actualMarkOutput} `.substr(`${actualMarkOutput}`.length - 1)
-        );
-        continue;
-      }
-
-      try {
-        if (this.save) {
-          await this.brsApi.putStudentMarkAsync(
-            student.brs.studentUuid,
-            controlAction.uuidWithoutPrefix,
-            actualMark,
-            discipline.groupHistoryId,
-            student.brs.cardType,
-            student.brs.disciplineLoad
-          );
-        }
-        updated++;
-      } catch (error) {
-        failed++;
-      }
     }
 
     const brsFailureStatus =
@@ -253,23 +229,234 @@ export default class MarksManager {
             actualFailure
           );
         }
-        updated++;
+        log.updated++;
       } catch (error) {
-        failed++;
+        log.failed++;
       }
     }
 
     const status =
-      failed > 0
+      log.failed > 0
         ? MarkUpdateStatus.Failed
-        : updated > 0
+        : log.updated > 0
         ? MarkUpdateStatus.Updated
         : MarkUpdateStatus.Skipped;
     const studentName = student.actual.fullName.substr(0, 30);
-    let infoString = `${studentName}, баллы: ${marks.join(" ")}`;
+    let infoString = `${studentName} баллы: ${log.marks.join(" ")}`;
     if (failureStatus && failureStatus !== "-")
       infoString += `, ${failureStatus}`;
     return { status, infoString };
+  }
+
+  async putAutoMarksForStudentAsync(
+    log: PutMarksLog,
+    discipline: Discipline,
+    disciplineMeta: DisciplineMeta,
+    student: MergedStudent,
+    autoControlActionConfig: ControlActionConfig
+  ) {
+    const autoMarkString =
+      student.actual.properties[autoControlActionConfig.propertyIndex];
+    const autoMark = parseAnyFloat(autoMarkString);
+
+    const controlActionGroups = this.getControlActionGroups(disciplineMeta);
+
+    const currentControlActionGroups = controlActionGroups.filter(
+      (it) => !it.isIntermediate
+    );
+    const currentFactor = currentControlActionGroups.reduce(
+      (result, it) => result + it.factor,
+      0
+    );
+
+    const intermediateControlActionGroups = controlActionGroups.filter(
+      (it) => it.isIntermediate
+    );
+    const intermediateFactor = intermediateControlActionGroups.reduce(
+      (result, it) => it.factor,
+      0
+    );
+
+    const output = `[auto=${autoMark}]`;
+    log.marks.push(`             ${output}`.substr(`${output}`.length - 1));
+
+    // NOTE: Если баллов достаточно для удовлетворительной оценки, то просто распределяем равномерно.
+    if (40 <= autoMark) {
+      await this.putMarksEvenlyAsync(
+        log,
+        discipline,
+        student,
+        controlActionGroups,
+        autoMark
+      );
+    }
+    // NOTE: Если баллов достаточно, чтобы поставить за сессию 40, то ставим,
+    // ведь преподавателю проще без деканата исправить оценки за семестр.
+    else if (intermediateFactor * 40 <= autoMark) {
+      const intermediateMark = 40;
+      const rawCurrentMark =
+        currentFactor > 0
+          ? (autoMark - intermediateFactor * intermediateMark) / currentFactor
+          : 0;
+      const currentMark = round100(rawCurrentMark);
+
+      await this.putMarksEvenlyAsync(
+        log,
+        discipline,
+        student,
+        currentControlActionGroups,
+        currentMark
+      );
+
+      await this.putMarksEvenlyAsync(
+        log,
+        discipline,
+        student,
+        intermediateControlActionGroups,
+        intermediateMark
+      );
+    }
+    // NOTE: Иначе ставим за сессию все, что возможно, а за семестр 0.
+    else {
+      const currentMark = 0;
+      const rawIntermediateMark =
+        intermediateFactor > 0
+          ? (autoMark - currentFactor * currentMark) / intermediateFactor
+          : 0;
+      const intermediateMark = round100(rawIntermediateMark);
+
+      await this.putMarksEvenlyAsync(
+        log,
+        discipline,
+        student,
+        currentControlActionGroups,
+        currentMark
+      );
+
+      await this.putMarksEvenlyAsync(
+        log,
+        discipline,
+        student,
+        intermediateControlActionGroups,
+        intermediateMark
+      );
+    }
+  }
+
+  async putMarksEvenlyAsync(
+    log: PutMarksLog,
+    discipline: Discipline,
+    student: MergedStudent,
+    controlActionGroups: ControlActionGroup[],
+    mark: number
+  ) {
+    for (const controlActionGroup of controlActionGroups) {
+      const controlActions = controlActionGroup.controlActions;
+
+      let value = mark;
+      let max = controlActions.reduce((result, it) => result + it.maxValue, 0);
+      for (let i = 0; i < controlActions.length; i++) {
+        const controlAction = controlActions[i];
+        const rawActualMark = (value * controlAction.maxValue) / max;
+        const actualMark =
+          i + 1 < controlActions.length
+            ? Math.floor(round100(rawActualMark))
+            : round100(rawActualMark);
+
+        value -= actualMark;
+        max -= controlAction.maxValue;
+
+        await this.putMarkAsync(
+          log,
+          discipline,
+          student,
+          controlAction,
+          actualMark
+        );
+      }
+    }
+  }
+
+  async putManualMarksForStudentAsync(
+    log: PutMarksLog,
+    discipline: Discipline,
+    student: MergedStudent,
+    controlActionConfigs: ControlActionConfig[],
+    controlActions: ControlAction[]
+  ) {
+    for (const config of controlActionConfigs) {
+      const controlAction = this.getSuitableControlAction(
+        discipline,
+        config,
+        controlActions
+      );
+      if (!controlAction) {
+        throw new Error(
+          `Подходящее контрольное мероприятие для «${config.controlAction}» не найдено в БРС`
+        );
+      }
+
+      const actualMarkString = student.actual.properties[config.propertyIndex];
+      const actualMark = parseAnyFloat(actualMarkString);
+
+      await this.putMarkAsync(
+        log,
+        discipline,
+        student,
+        controlAction,
+        actualMark
+      );
+    }
+
+    return log;
+  }
+
+  async putMarkAsync(
+    log: PutMarksLog,
+    discipline: Discipline,
+    student: MergedStudent,
+    controlAction: ControlAction,
+    actualMark: number
+  ) {
+    const brsMarkString = student.brs[controlAction.uuid] as string;
+    const brsMark = parseAnyFloat(brsMarkString);
+
+    const needUpdateMark =
+      !isNaN(actualMark) &&
+      !(isNaN(brsMark) ? actualMark === 0 : brsMark === actualMark);
+    const actualMarkOutput = !isNaN(actualMark) ? actualMark.toString() : "-";
+    const controlActionOutput = controlAction.controlAction.substring(0, 3);
+
+    if (needUpdateMark) {
+      log.marks.push(
+        `       ${controlActionOutput}=${actualMarkOutput}!`.substr(
+          `${actualMarkOutput}`.length - 1
+        )
+      );
+    } else {
+      log.marks.push(
+        `       ${controlActionOutput}=${actualMarkOutput} `.substr(
+          `${actualMarkOutput}`.length - 1
+        )
+      );
+      return;
+    }
+
+    try {
+      if (this.save) {
+        await this.brsApi.putStudentMarkAsync(
+          student.brs.studentUuid,
+          controlAction.uuidWithoutPrefix,
+          actualMark,
+          discipline.groupHistoryId,
+          student.brs.cardType,
+          student.brs.disciplineLoad
+        );
+      }
+      log.updated++;
+    } catch (error) {
+      log.failed++;
+    }
   }
 
   getSuitableControlAction(
@@ -413,6 +600,74 @@ export default class MarksManager {
     return { status, infoString };
   }
 
+  tryGetAutoControlActionConfig(
+    controlActionConfigs: ControlActionConfig[]
+  ): ControlActionConfig | null {
+    const autoConfigs = controlActionConfigs.filter(
+      (it) => it.controlAction.toLowerCase() === autoControlActionName
+    );
+
+    if (autoConfigs.length === 1) {
+      return autoConfigs[0];
+    }
+
+    if (autoConfigs.length > 1) {
+      this.reportManager.onInvalidConfiguration([
+        `Найдено несколько колонок «${autoControlActionName}» с автоитогом`,
+      ]);
+    }
+    return null;
+  }
+
+  getControlActions(disciplineMeta: DisciplineMeta) {
+    const controlActions = [
+      ...(disciplineMeta.lecture?.currentControlActions || []),
+      ...(disciplineMeta.lecture?.intermediateControlActions || []),
+      ...(disciplineMeta.laboratory?.currentControlActions || []),
+      ...(disciplineMeta.laboratory?.intermediateControlActions || []),
+      ...(disciplineMeta.practice?.currentControlActions || []),
+      ...(disciplineMeta.practice?.intermediateControlActions || []),
+      ...(disciplineMeta.additionalPractice?.currentControlActions || []),
+      ...(disciplineMeta.additionalPractice?.intermediateControlActions || []),
+    ];
+
+    return controlActions;
+  }
+
+  getControlActionGroups(disciplineMeta: DisciplineMeta) {
+    const groups: ControlActionGroup[] = [];
+
+    if (disciplineMeta.lecture) {
+      this.pushControlActionGroups(groups, disciplineMeta.lecture);
+    }
+    if (disciplineMeta.laboratory) {
+      this.pushControlActionGroups(groups, disciplineMeta.laboratory);
+    }
+    if (disciplineMeta.practice) {
+      this.pushControlActionGroups(groups, disciplineMeta.practice);
+    }
+    if (disciplineMeta.additionalPractice) {
+      this.pushControlActionGroups(groups, disciplineMeta.additionalPractice);
+    }
+
+    return groups;
+  }
+
+  pushControlActionGroups(groups: ControlActionGroup[], cardMeta: CardMeta) {
+    if (cardMeta.currentControlActions.length > 0) {
+      const factor = round100(cardMeta.currentFactor * cardMeta.totalFactor);
+      const controlActions = cardMeta.currentControlActions;
+      groups.push({ factor, controlActions, isIntermediate: false });
+    }
+    if (cardMeta.intermediateControlActions.length > 0) {
+      const factor = round100(
+        cardMeta.intermediateFactor * cardMeta.totalFactor
+      );
+      const controlActions = cardMeta.intermediateControlActions;
+      groups.push({ factor, controlActions, isIntermediate: true });
+    }
+  }
+
   mergeStudents(actualStudents: ActualStudent[], brsStudents: StudentMark[]) {
     const activeBrsStudents = brsStudents.filter(isStudentActive);
 
@@ -503,4 +758,16 @@ export interface ControlActionConfig {
 interface MergedStudent {
   actual: ActualStudent;
   brs: StudentMark;
+}
+
+interface PutMarksLog {
+  updated: number;
+  failed: number;
+  marks: string[];
+}
+
+interface ControlActionGroup {
+  factor: number;
+  controlActions: ControlAction[];
+  isIntermediate: boolean;
 }
