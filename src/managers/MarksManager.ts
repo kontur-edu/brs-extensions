@@ -11,6 +11,7 @@ import {
   groupBy,
   parseAnyFloat,
   pluralize,
+  round10,
   round100,
 } from "../helpers/tools";
 import * as fio from "../helpers/fio";
@@ -323,7 +324,7 @@ export default class MarksManager {
         intermediateFactor > 0
           ? (autoMark - currentFactor * currentMark) / intermediateFactor
           : 0;
-      const intermediateMark = round100(rawIntermediateMark);
+      const intermediateMark = round10(rawIntermediateMark);
 
       await this.putMarksEvenlyAsync(
         log,
@@ -360,8 +361,8 @@ export default class MarksManager {
         const rawActualMark = (value * controlAction.maxValue) / max;
         const actualMark =
           i + 1 < controlActions.length
-            ? Math.floor(round100(rawActualMark))
-            : round100(rawActualMark);
+            ? Math.floor(round10(rawActualMark))
+            : round10(rawActualMark);
 
         value -= actualMark;
         max -= controlAction.maxValue;

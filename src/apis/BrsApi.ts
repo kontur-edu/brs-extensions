@@ -143,6 +143,22 @@ export default class BrsApi {
         "laboratory",
         "intermediate"
       )),
+      ...(await this.getStudentMarksAsync(discipline, "practice", "current")),
+      ...(await this.getStudentMarksAsync(
+        discipline,
+        "practice",
+        "intermediate"
+      )),
+      ...(await this.getStudentMarksAsync(
+        discipline,
+        "additionalPractice",
+        "current"
+      )),
+      ...(await this.getStudentMarksAsync(
+        discipline,
+        "additionalPractice",
+        "intermediate"
+      )),
     ];
 
     const uniqueStudents: { [id: string]: StudentMark } = {};
@@ -179,6 +195,7 @@ export default class BrsApi {
     isTotal: boolean = false,
     showActiveStudents: boolean = false
   ) {
+    debugger;
     const groupPart = isModule
       ? `techgroup=${techgroup}`
       : `groupUuid=${groupUuid}`;
@@ -335,10 +352,16 @@ export default class BrsApi {
     for (const column of columns) {
       switch (column.uuid) {
         case "currentWithFactor":
-          cardMeta.currentFactor = typeof column.value === "string" ? parseFloat(column.value) : column.value;
+          cardMeta.currentFactor =
+            typeof column.value === "string"
+              ? parseFloat(column.value)
+              : column.value;
           break;
         case "intermediateWithFactor":
-          cardMeta.intermediateFactor = typeof column.value === "string" ? parseFloat(column.value) : column.value;
+          cardMeta.intermediateFactor =
+            typeof column.value === "string"
+              ? parseFloat(column.value)
+              : column.value;
           break;
         default:
           break;
@@ -359,7 +382,10 @@ export default class BrsApi {
           const uuid: CardType = column.uuid;
           const cardMeta = disciplineMeta[uuid];
           if (cardMeta !== null) {
-            cardMeta.totalFactor = typeof column.value === "string" ? parseFloat(column.value) : column.value;
+            cardMeta.totalFactor =
+              typeof column.value === "string"
+                ? parseFloat(column.value)
+                : column.value;
           }
           break;
         default:
@@ -414,12 +440,12 @@ export default class BrsApi {
 
   async updateAllMarksAsync(discipline: Discipline) {
     await this.updateMarksAsync(discipline, "lecture", "intermediate");
-    await this.updateMarksAsync(discipline, 'lecture', 'current');
-    await this.updateMarksAsync(discipline, 'lecture', 'intermediate');
-    await this.updateMarksAsync(discipline, 'laboratory', 'current');
-    await this.updateMarksAsync(discipline, 'laboratory', 'intermediate');
-    await this.updateMarksAsync(discipline, 'practice', 'current');
-    await this.updateMarksAsync(discipline, 'practice', 'intermediate');
+    await this.updateMarksAsync(discipline, "lecture", "current");
+    await this.updateMarksAsync(discipline, "lecture", "intermediate");
+    await this.updateMarksAsync(discipline, "laboratory", "current");
+    await this.updateMarksAsync(discipline, "laboratory", "intermediate");
+    await this.updateMarksAsync(discipline, "practice", "current");
+    await this.updateMarksAsync(discipline, "practice", "intermediate");
   }
 
   async updateMarksAsync(
