@@ -195,7 +195,6 @@ export default class BrsApi {
     isTotal: boolean = false,
     showActiveStudents: boolean = false
   ) {
-    debugger;
     const groupPart = isModule
       ? `techgroup=${techgroup}`
       : `groupUuid=${groupUuid}`;
