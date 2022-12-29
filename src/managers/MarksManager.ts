@@ -281,9 +281,10 @@ export default class MarksManager {
     const output = `[auto=${autoMark}]`;
     log.marks.push(`             ${output}`.substr(`${output}`.length - 1));
 
-    // NOTE: Если баллов достаточно для удовлетворительной оценки, то просто распределяем равномерно.
+    // NOTE: Если баллов достаточно для удовлетворительной оценки, 
+    // то заполняем КМы по возможности максимальными оценками с первого к последнему.
     if (40 <= autoMark) {
-      await this.putMarksEvenlyAsync(
+      await this.putMarksTryFillActionsWithMaxScoreAsync(
         log,
         discipline,
         student,
@@ -301,7 +302,7 @@ export default class MarksManager {
           : 0;
       const currentMark = round100(rawCurrentMark);
 
-      await this.putMarksEvenlyAsync(
+      await this.putMarksTryFillActionsWithMaxScoreAsync(
         log,
         discipline,
         student,
@@ -309,7 +310,7 @@ export default class MarksManager {
         currentMark
       );
 
-      await this.putMarksEvenlyAsync(
+      await this.putMarksTryFillActionsWithMaxScoreAsync(
         log,
         discipline,
         student,
@@ -326,7 +327,7 @@ export default class MarksManager {
           : 0;
       const intermediateMark = round10(rawIntermediateMark);
 
-      await this.putMarksEvenlyAsync(
+      await this.putMarksTryFillActionsWithMaxScoreAsync(
         log,
         discipline,
         student,
@@ -334,7 +335,7 @@ export default class MarksManager {
         currentMark
       );
 
-      await this.putMarksEvenlyAsync(
+      await this.putMarksTryFillActionsWithMaxScoreAsync(
         log,
         discipline,
         student,
@@ -344,7 +345,7 @@ export default class MarksManager {
     }
   }
 
-  async putMarksEvenlyAsync(
+  async putMarksTryFillActionsWithMaxScoreAsync(
     log: PutMarksLog,
     discipline: Discipline,
     student: MergedStudent,
@@ -355,17 +356,13 @@ export default class MarksManager {
       const controlActions = controlActionGroup.controlActions;
 
       let value = mark;
-      let max = controlActions.reduce((result, it) => result + it.maxValue, 0);
       for (let i = 0; i < controlActions.length; i++) {
         const controlAction = controlActions[i];
-        const rawActualMark = (value * controlAction.maxValue) / max;
-        const actualMark =
-          i + 1 < controlActions.length
-            ? Math.floor(round10(rawActualMark))
-            : round10(rawActualMark);
-
+        const actualMark = 
+          controlAction.maxValue < value 
+            ? controlAction.maxValue
+            : round10(value)
         value -= actualMark;
-        max -= controlAction.maxValue;
 
         await this.putMarkAsync(
           log,
