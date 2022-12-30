@@ -9,4 +9,4 @@ export const TABLE_TEMPLATE_URL =
 
 export const BRS_URL = "https://brs.urfu.ru/mrd";
 
-export const CORS_PROXY = "https://kamikoto-cors-proxy.herokuapp.com";
+export const CORS_PROXY = "https://bbamc5stve2edro7t455.containers.yandexcloud.net";

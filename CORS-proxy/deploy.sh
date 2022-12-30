@@ -6,8 +6,8 @@ export FOLDER_ID=b1gupi6tnkioua1397gl
 export SA_ID=aje2oovtau2cioluf9tp
 
 
-docker build -t ${CONTAINER_REPOSITORY_NAME}:latest . ;
-docker push ${CONTAINER_REPOSITORY_NAME}:latest;
+docker build -t ${CONTAINER_REPOSITORY_NAME} . ;
+docker push ${CONTAINER_REPOSITORY_NAME};
 
 yc sls container revisions deploy \
 	--folder-id ${FOLDER_ID} \
@@ -17,4 +17,4 @@ yc sls container revisions deploy \
 	--execution-timeout 30s \
 	--concurrency 8 \
 	--service-account-id ${SA_ID} \
-	--image "${CONTAINER_REPOSITORY_NAME}:latest";
+	--image "${CONTAINER_REPOSITORY_NAME}";
