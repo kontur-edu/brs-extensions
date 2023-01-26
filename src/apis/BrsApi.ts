@@ -59,15 +59,19 @@ export default class BrsApi {
       course,
       isModule
     );
+
     const result = await this.getDisciplineInternalAsync(
       year,
       termType,
       course,
       isModule,
+      1,
+      Math.max(1000, total), // quick fix because total from BRS is not correct
       total
     );
-    cache.save(cacheName, result, StorageType.Session);
-    return result;
+
+    cache.save(cacheName, result.disciplines, StorageType.Session);
+    return result.disciplines;
   }
 
   async getDisciplineInternalAsync(
@@ -75,9 +79,11 @@ export default class BrsApi {
     termType: TermType,
     course: number,
     isModule: boolean,
+    page: number,
+    pageSize: number,
     total: number
   ) {
-    const queryString = `?year=${year}&termType=${termType}&course=${course}&total=${total}&page=1&pageSize=${total}&search=`;
+    const queryString = `?year=${year}&termType=${termType}&course=${course}&total=${total}&page=${page}&pageSize=${pageSize}&search=`;
     if (isModule) {
       const paging = await this.requestApiJsonAsync<Paging<Discipline>>(
         "/mvc/mobile/module/fetch" + queryString
@@ -86,7 +92,7 @@ export default class BrsApi {
       for (const d of disciplines) {
         d.isModule = true;
       }
-      return disciplines;
+      return {disciplines, numberOfElements: paging.numberOfElements};
     } else {
       const paging = await this.requestApiJsonAsync<Paging<Discipline>>(
         "/mvc/mobile/discipline/fetch" + queryString
@@ -95,7 +101,7 @@ export default class BrsApi {
       for (const d of disciplines) {
         d.isModule = false;
       }
-      return disciplines;
+      return {disciplines, numberOfElements: paging.numberOfElements};
     }
   }
 
