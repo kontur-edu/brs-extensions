@@ -185,6 +185,14 @@ export default class MarksManager {
     student: MergedStudent,
     controlActionConfigs: ControlActionConfig[]
   ) {
+    if (student.brs.failure === StudentFailure.AcademicLeave ||
+      student.brs.failure === StudentFailure.DroppedOut) {
+        const status = MarkUpdateStatus.Skipped;
+        const studentName = student.actual.fullName.substr(0, 30);
+        let infoString = `${studentName} имеет статус ${formatStudentFailure(student.brs.failure)}`;
+        return { status, infoString };
+    }
+
     const autoControlActionConfig =
       this.tryGetAutoControlActionConfig(controlActionConfigs);
 
