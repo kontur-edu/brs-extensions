@@ -292,40 +292,14 @@ export default class MarksManager {
         autoMark
       );
     }
-    // NOTE: Если баллов достаточно, чтобы поставить за сессию 40, то ставим,
-    // ведь преподавателю проще без деканата исправить оценки за семестр.
-    else if (intermediateFactor * 40 <= autoMark) {
-      const intermediateMark = 40;
+    // NOTE: Иначе ставим за семестр все, что возможно, а за сессию 0.
+    else {
+      const intermediateMark = 0;
       const rawCurrentMark =
         currentFactor > 0
           ? (autoMark - intermediateFactor * intermediateMark) / currentFactor
           : 0;
       const currentMark = round100(rawCurrentMark);
-
-      await this.putMarksTryFillActionsWithMaxScoreAsync(
-        log,
-        discipline,
-        student,
-        currentControlActionGroups,
-        currentMark
-      );
-
-      await this.putMarksTryFillActionsWithMaxScoreAsync(
-        log,
-        discipline,
-        student,
-        intermediateControlActionGroups,
-        intermediateMark
-      );
-    }
-    // NOTE: Иначе ставим за сессию все, что возможно, а за семестр 0.
-    else {
-      const currentMark = 0;
-      const rawIntermediateMark =
-        intermediateFactor > 0
-          ? (autoMark - currentFactor * currentMark) / intermediateFactor
-          : 0;
-      const intermediateMark = round10(rawIntermediateMark);
 
       await this.putMarksTryFillActionsWithMaxScoreAsync(
         log,
