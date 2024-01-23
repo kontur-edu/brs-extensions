@@ -185,14 +185,6 @@ export default class MarksManager {
     student: MergedStudent,
     controlActionConfigs: ControlActionConfig[]
   ) {
-    if (student.brs.failure === StudentFailure.AcademicLeave ||
-      student.brs.failure === StudentFailure.DroppedOut) {
-        const status = MarkUpdateStatus.Skipped;
-        const studentName = student.actual.fullName.substr(0, 30);
-        let infoString = `${studentName} имеет статус ${formatStudentFailure(student.brs.failure)}`;
-        return { status, infoString };
-    }
-
     const autoControlActionConfig =
       this.tryGetAutoControlActionConfig(controlActionConfigs);
 
@@ -649,7 +641,7 @@ export default class MarksManager {
   }
 
   mergeStudents(actualStudents: ActualStudent[], brsStudents: StudentMark[]) {
-    const activeBrsStudents = brsStudents.filter(isStudentActive);
+    const activeBrsStudents = brsStudents.filter(isStudentActiveAndShouldPass);
 
     const mergedStudents: MergedStudent[] = [];
     const skippedActualStudents: ActualStudent[] = [];
@@ -699,10 +691,13 @@ export default class MarksManager {
   }
 }
 
-function isStudentActive(brsStudent: StudentMark) {
+function isStudentActiveAndShouldPass(brsStudent: StudentMark) {
   return (
     brsStudent.studentStatus !== "Переведен" &&
-    brsStudent.studentStatus !== "Отчислен"
+    brsStudent.studentStatus !== "Отчислен" &&
+    brsStudent.studentStatus !== "Переведен" &&
+    brsStudent.studentStatus !== "Отп.акад." &&
+    brsStudent.failure !== StudentFailure.ShouldNotPass
   );
 }
 
