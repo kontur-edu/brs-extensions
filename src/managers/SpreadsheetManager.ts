@@ -8,6 +8,7 @@ import {
   normalizeString,
 } from "../helpers/tools";
 import { parseStudentFailure } from "../helpers/brsHelpers";
+import { emojiRegex } from "../helpers/emojiRegex";
 
 export interface ActualStudent {
   fullName: string;
@@ -75,9 +76,38 @@ export default class SpreadsheetManager {
       // Получение параметров из таблицы ключей и значений
       const controlActionConfigs = buildControlActionConfig(header, indices);
       const disciplineConfig = buildDisciplineConfig(rows, indices);
-    return {
-      datas: [{ actualStudents, disciplineConfig, controlActionConfigs }],
-    };
+      return {
+        datas: [{ actualStudents, disciplineConfig, controlActionConfigs }],
+      };
+    } else if (indices.courseColumn >= 0) {
+      const controlActionConfigs = buildControlActionConfig(header, indices);
+      const studentGroups: { [course: number]: ActualStudent[] } = {};
+      for (const student of actualStudents) {
+        if (student.course !== null) {
+          if (!studentGroups[student.course]) {
+            studentGroups[student.course] = [];
+          }
+          studentGroups[student.course].push(student);
+        }
+      }
+
+      const courses = getKeys(studentGroups);
+      const disciplineConfigs =
+        await buildDisciplineConfigFromSpreadsheetTitleAsync(
+          this.spreadsheetId,
+          courses
+        );
+
+      const datas = disciplineConfigs.map((config) => ({
+        actualStudents: studentGroups[config.course],
+        disciplineConfig: config,
+        controlActionConfigs,
+      }));
+      debugger
+
+      return {
+        datas,
+      };
     } else {
       throw new Error(`Некорректная структура входной таблицы`);
     }
@@ -129,6 +159,11 @@ async function readRowsFromSpreadsheetAsync(
   return rows || null;
 }
 
+async function readTitleFromSpreadsheetAsync(spreadsheetId: string) {
+  const sheet = googleApi.getSpreadsheet(spreadsheetId);
+  return (await sheet.getMetaAsync()).properties.title;
+}
+
 function getHeader(rows: string[][]) {
   const header = rows && rows[0];
   if (!header) throw new Error(`Лист Google-таблицы не содержит строк`);
@@ -166,15 +201,16 @@ function buildIndicesBy(header: string[]): Indices {
   if (
     failureColumnIndex < 0 ||
     fullNameColumnIndex < 0 ||
-    fullNameColumnIndex > failureColumnIndex ||
+    fullNameColumnIndex >= failureColumnIndex ||
     (groupColumnIndex >= 0 && groupColumnIndex > failureColumnIndex) ||
     (courseColumnIndex >= 0 && courseColumnIndex > failureColumnIndex) ||
     (disciplineParameterKeyColumnIndex >= 0 &&
       disciplineParameterKeyColumnIndex <= failureColumnIndex) ||
     (disciplineParameterValueColumnIndex >= 0 &&
       disciplineParameterValueColumnIndex <= failureColumnIndex) ||
-    disciplineParameterValueColumnIndex !==
-      disciplineParameterKeyColumnIndex + 1
+    (disciplineParameterKeyColumnIndex >= 0 &&
+      disciplineParameterValueColumnIndex !==
+        disciplineParameterKeyColumnIndex + 1)
   )
     throw new Error(`Неправильный порядок столбцов`);
 
@@ -209,6 +245,7 @@ function buildControlActionConfig(header: string[], indices: Indices) {
     if (
       index === indices.groupColumn ||
       index === indices.fullNameColumn ||
+      index === indices.courseColumn ||
       index === indices.failureColumn ||
       !header[index]
     ) {
@@ -233,6 +270,35 @@ function buildControlActionConfig(header: string[], indices: Indices) {
   }
 
   return controlActionConfigs;
+}
+
+async function buildDisciplineConfigFromSpreadsheetTitleAsync(
+  spreadsheetId: string,
+  courses: number[]
+): Promise<DisciplineConfig[]> {
+  const spreadsheetTitle = await readTitleFromSpreadsheetAsync(spreadsheetId);
+
+  const prepared = spreadsheetTitle.replaceAll(emojiRegex, "").trim();
+  const commaIndex = prepared.lastIndexOf(",");
+  const name = prepared.substring(0, commaIndex).trim();
+  const time = prepared.substring(commaIndex + 1).trim();
+  const timeParts = time.split(" ");
+  const termType = compareNormalized(timeParts[0], "весна")
+    ? TermType.Spring
+    : TermType.Fall;
+  const year =
+    parseInt(timeParts[1], 10) + (termType === TermType.Spring ? -1 : 0);
+
+  const configs = courses.map((it) => ({
+    name,
+    year,
+    termType,
+    course: it,
+    isModule: true,
+    defaultStudentFailure: StudentFailure.NoFailure,
+  }));
+
+  return configs;
 }
 
 function buildDisciplineConfig(rows: string[][], indices: Indices) {

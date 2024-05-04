@@ -195,12 +195,10 @@ class GoogleTableFetch extends React.Component<Props, State> {
     sheetId: string | null
   ): Promise<string | null> {
     try {
-      const meta = await googleApi.getSpreadsheet(spreadsheetId).getMetaAsync()
-      const sheets = meta.sheets.map(it => it.properties)
+      const meta = await googleApi.getSpreadsheet(spreadsheetId).getMetaAsync();
+      const sheets = meta.sheets.map((it) => it.properties);
       const maybeSheet = sheetId
-        ? sheets.filter(
-            (s) => s.sheetId.toString() === sheetId
-          )[0]
+        ? sheets.filter((s) => s.sheetId.toString() === sheetId)[0]
         : sheets[0];
       if (!maybeSheet) {
         this.props.onError("Таблица не найдена");
