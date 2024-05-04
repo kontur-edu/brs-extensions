@@ -192,15 +192,15 @@ export default class MarksManager {
       if (this.save && !r.finished) {
         r.rating.status = MarkUpdateStatus.Failed;
       }
-      
+
       ratingResults.push(r.rating);
     }
 
     const groupedResults = Object.entries(groupBy(ratingResults, "status")).map(
       ([groupKey, rawStudents]) => ({
-      title: formatMarkUpdateStatus(rawStudents[0]["status"]),
-      students: rawStudents.map((s) => s.infoString),
-      failed: rawStudents[0]["status"] === MarkUpdateStatus.Failed,
+        title: formatMarkUpdateStatus(rawStudents[0]["status"]),
+        students: rawStudents.map((s) => s.infoString),
+        failed: rawStudents[0]["status"] === MarkUpdateStatus.Failed,
       })
     );
 
@@ -358,7 +358,7 @@ export default class MarksManager {
     const output = `[auto=${autoMark}]`;
     log.marks.push(`             ${output}`.substr(`${output}`.length - 1));
 
-    // NOTE: Если баллов достаточно для удовлетворительной оценки, 
+    // NOTE: Если баллов достаточно для удовлетворительной оценки,
     // то заполняем КМы по возможности максимальными оценками с первого к последнему.
     if (40 <= autoMark) {
       await this.putMarksTryFillActionsWithMaxScoreAsync(
@@ -367,6 +367,31 @@ export default class MarksManager {
         student,
         controlActionGroups,
         autoMark
+      );
+    }
+    // NOTE: Если баллов достаточно, чтобы поставить за семестр 40, то ставим
+    else if (currentFactor * 40 <= autoMark) {
+      const currentMark = 40;
+      const rawIntermediateMark =
+        currentFactor > 0
+          ? (autoMark - currentFactor * currentMark) / intermediateFactor
+          : 0;
+      const intermediateMark = round100(rawIntermediateMark);
+
+      await this.putMarksTryFillActionsWithMaxScoreAsync(
+        log,
+        discipline,
+        student,
+        currentControlActionGroups,
+        currentMark
+      );
+
+      await this.putMarksTryFillActionsWithMaxScoreAsync(
+        log,
+        discipline,
+        student,
+        intermediateControlActionGroups,
+        intermediateMark
       );
     }
     // NOTE: Иначе ставим за семестр все, что возможно, а за сессию 0.
@@ -409,8 +434,8 @@ export default class MarksManager {
       let value = mark;
       for (let i = 0; i < controlActions.length; i++) {
         const controlAction = controlActions[i];
-        const actualMark = 
-          controlAction.maxValue < value 
+        const actualMark =
+          controlAction.maxValue < value
             ? controlAction.maxValue
             : round10(value);
         value -= actualMark;
