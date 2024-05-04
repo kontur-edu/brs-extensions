@@ -6,7 +6,11 @@ import SpreadsheetManager, {
 } from "../../../managers/SpreadsheetManager";
 import NestedList, { NestedItem } from "../../shared/NestedList";
 import { Collapse, Container } from "@material-ui/core";
-import { compareNormalized, filterNull } from "../../../helpers/tools";
+import {
+  compareNormalized,
+  filterNull,
+  normalizeString,
+} from "../../../helpers/tools";
 import { getSpreadsheetProperties } from "../../../apis/GoogleApi";
 import BrsApi, { Discipline, TermType } from "../../../apis/BrsApi";
 import "./styles.css";
@@ -100,17 +104,31 @@ class GoogleTableFetch extends React.Component<Props, State> {
     availableDisciplines: Discipline[],
     spreadsheetData: SpreadsheetData
   ): { allMissed: boolean; missedCount: number; disciplines: NestedItem[] } {
-    const actualGroups = new Set(
-      filterNull(spreadsheetData.actualStudents.map((s) => s.groupName))
+    const actualGroups = Array.from(
+      new Set(
+        filterNull(
+          spreadsheetData.actualStudents.map((s) => s.groupName)
+        ).filter((it) => it.length > 0)
+      )
     );
-    const availableGroups = new Set(availableDisciplines.map((s) => s.group));
+    const availableGroups = Array.from(
+      new Set(availableDisciplines.map((s) => s.group))
+    );
 
     let missedCount = 0;
-    const nestedItems: NestedItem[] = Array.from(actualGroups).map((group) => {
-      const groupMissed = !availableGroups.has(group);
-      if (groupMissed) missedCount++;
-      return { title: group, colored: groupMissed };
-    });
+    const nestedItems: NestedItem[] = actualGroups.map((group) => {
+      const normalizedGroup = normalizeString(group);
+      const availableForActual = availableGroups.filter((it) =>
+        normalizeString(it).startsWith(normalizedGroup)
+      );
+
+      if (availableForActual.length === 0) {
+        missedCount++;
+        return [{ title: group, colored: true }];
+      } else {
+        return availableForActual.map((it) => ({ title: it, colored: false }));
+      }
+    }).flat();
 
     const disciplineConfig = spreadsheetData.disciplineConfig;
     const disciplineTime =
@@ -121,7 +139,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
         : `${disciplineConfig.year}/${disciplineConfig.year + 1}`;
     const disciplineTitle = `${disciplineConfig.name}, ${disciplineTime}, ${disciplineConfig.course} курс`;
     return {
-      allMissed: missedCount === actualGroups.size,
+      allMissed: missedCount === actualGroups.length,
       missedCount,
       disciplines: [
         {

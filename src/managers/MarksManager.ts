@@ -9,6 +9,7 @@ import BrsApi, {
 import {
   compareNormalized,
   groupBy,
+  normalizeString,
   parseAnyFloat,
   pluralize,
   round10,
@@ -817,7 +818,9 @@ function isSuitableDiscipline(
   discipline: Discipline
 ) {
   if (actualStudent.groupName && actualStudent.groupName.length > 0) {
-    return compareNormalized(actualStudent.groupName, discipline.group);
+    const s = normalizeString(actualStudent.groupName)
+    const d = normalizeString(discipline.group)
+    return d.startsWith(s)
   }
 
   return true;
