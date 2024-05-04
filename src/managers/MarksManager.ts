@@ -18,6 +18,7 @@ import * as fio from "../helpers/fio";
 import { ActualStudent, SpreadsheetData } from "./SpreadsheetManager";
 import { formatStudentFailure } from "../helpers/brsHelpers";
 import ReportManager from "./ReportManager";
+import { BrsReport } from "./BrsReport";
 
 const autoControlActionName = "auto";
 
@@ -32,9 +33,13 @@ export default class MarksManager {
   private readonly save: boolean;
   private cancelPending: boolean = false;
 
-  readonly reportManager: ReportManager;
+  readonly reportManager: ReportManager<BrsReport>;
 
-  constructor(brsApi: BrsApi, reportManager: ReportManager, save: boolean) {
+  constructor(
+    brsApi: BrsApi,
+    reportManager: ReportManager<BrsReport>,
+    save: boolean
+  ) {
     this.brsApi = brsApi;
     this.reportManager = reportManager;
     this.save = save;
@@ -59,7 +64,13 @@ export default class MarksManager {
           continue;
         }
 
-        this.reportManager.newReport(discipline.group, discipline.teacherName);
+        this.reportManager.newReport({
+          disciplineConfig: disciplineConfig,
+          discipline: discipline,
+          merge: { succeed: 0 },
+          marks: [],
+          skipped: [],
+        });
 
         var isSuccessful = await this.putMarksForDisciplineAsync(
           discipline,
@@ -159,11 +170,11 @@ export default class MarksManager {
     controlActionConfigs: ControlActionConfig[]
   ) {
     const ratings: Ratings = {};
-    let notFinishedStudents = students
+    let notFinishedStudents = students;
 
     // 3 попытки при реальной записи нужно для проверки успешности 2-ой попытки
     // 2 попытки при отсутствии записи позволяют проверить работоспособность кода
-    const tryCount = this.save ? 3 : 2
+    const tryCount = this.save ? 3 : 2;
     for (let i = 0; i < tryCount; i++) {
       notFinishedStudents = await this.putMarksForStudentsOnceAsync(
         ratings,
@@ -174,24 +185,24 @@ export default class MarksManager {
       );
     }
 
-    const ratingResults: Array<RatingResult> = []
+    const ratingResults: Array<RatingResult> = [];
     for (const studentId in ratings) {
       const r = ratings[studentId];
 
       if (this.save && !r.finished) {
-        r.rating.status = MarkUpdateStatus.Failed
+        r.rating.status = MarkUpdateStatus.Failed;
       }
       
-      ratingResults.push(r.rating)
+      ratingResults.push(r.rating);
     }
 
-    const groupedResults = Object.entries(
-      groupBy(ratingResults, "status")
-    ).map(([groupKey, rawStudents]) => ({
+    const groupedResults = Object.entries(groupBy(ratingResults, "status")).map(
+      ([groupKey, rawStudents]) => ({
       title: formatMarkUpdateStatus(rawStudents[0]["status"]),
       students: rawStudents.map((s) => s.infoString),
       failed: rawStudents[0]["status"] === MarkUpdateStatus.Failed,
-    }));
+      })
+    );
 
     this.reportManager.currentReport.marks.push(...groupedResults);
   }

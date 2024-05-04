@@ -17,6 +17,10 @@ export interface ActualStudent {
   properties: string[];
 }
 
+export interface SpreadsheetDatas {
+  datas: SpreadsheetData[];
+}
+
 export interface SpreadsheetData {
   actualStudents: ActualStudent[];
   disciplineConfig: DisciplineConfig;
@@ -43,7 +47,7 @@ export default class SpreadsheetManager {
     this.spreadsheetId = spreadsheetId;
   }
 
-  async getSpreadsheetDataAsync(sheetName: string): Promise<SpreadsheetData> {
+  async getSpreadsheetDataAsync(sheetName: string): Promise<SpreadsheetDatas> {
     const rows = await readRowsFromSpreadsheetAsync(
       this.spreadsheetId,
       sheetName
@@ -65,9 +69,7 @@ export default class SpreadsheetManager {
     );
 
     return {
-      actualStudents,
-      disciplineConfig,
-      controlActionConfigs,
+      datas: [{ actualStudents, disciplineConfig, controlActionConfigs }],
     };
   }
 }

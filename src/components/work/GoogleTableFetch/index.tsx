@@ -2,12 +2,13 @@ import React, { memo } from "react";
 import SpreadsheetManager, {
   DisciplineConfig,
   SpreadsheetData,
+  SpreadsheetDatas,
 } from "../../../managers/SpreadsheetManager";
 import NestedList, { NestedItem } from "../../shared/NestedList";
 import { Collapse, Container } from "@material-ui/core";
 import { compareNormalized } from "../../../helpers/tools";
 import { getSpreadsheetProperties } from "../../../apis/GoogleApi";
-import BrsApi, { Discipline } from "../../../apis/BrsApi";
+import BrsApi, { Discipline, TermType } from "../../../apis/BrsApi";
 import "./styles.css";
 import RunWorkerButtons from "../RunWorkerButtons";
 import WorkerDialog, { MarksData } from "../WorkerDialog";
@@ -22,7 +23,7 @@ enum LastAction {
 }
 
 class GoogleTableFetch extends React.Component<Props, State> {
-  marksData: MarksData = {} as any;
+  marksDatas: Array<MarksData> = [];
   workerSaveMode: boolean = false;
   spreadsheetId: string = "";
   sheetId: string | null = null;
@@ -50,42 +51,49 @@ class GoogleTableFetch extends React.Component<Props, State> {
 
     this.setState({ loading: true });
 
-    const spreadsheetData = await this.getActualSpreadsheetDataAsync(
+    const spreadsheetDatas = await this.getActualSpreadsheetDataAsync(
       spreadsheetId,
       sheetId
     );
-    if (!spreadsheetData) {
+    if (!spreadsheetDatas?.datas || spreadsheetDatas.datas.length === 0) {
       this.setState({ loading: false });
       return false;
     }
 
-    const disciplines = await this.getActualDisciplinesAsync(
-      spreadsheetData.disciplineConfig
-    );
-    if (!disciplines) {
-      this.setState({ loading: false });
-      return false;
+    this.marksDatas = [];
+    const nestedItems: NestedItem[] = [];
+    let allMissed = true;
+    let missedCount = 0;
+    for (const data of spreadsheetDatas.datas) {
+      const disciplines = await this.getActualDisciplinesAsync(
+        data.disciplineConfig
+      );
+      if (!disciplines) {
+        this.setState({ loading: false });
+        return false;
+      }
+      this.marksDatas.push({
+        spreadsheetData: data,
+        suitableDisciplines: disciplines,
+      });
+
+      const items = this.disciplinesToListItems(disciplines, data);
+      allMissed = allMissed && items.allMissed;
+      missedCount += items.missedCount;
+      nestedItems.push(...items.disciplines);
     }
-
-    const disciplinesInfo = this.disciplinesToListItems(
-      disciplines,
-      spreadsheetData
-    );
-
-    this.marksData.spreadsheetData = spreadsheetData;
-    this.marksData.suitableDisciplines = disciplines;
 
     this.setState({
       loading: false,
-      disciplines: disciplinesInfo.disciplines,
+      disciplines: nestedItems,
       showDisciplines: true,
       lastAction: LastAction.LoadDisciplines,
-      allDisciplinesMissed: disciplinesInfo.allMissed,
-      missedDisciplinesCount: disciplinesInfo.missedCount,
-      showWorkerButtons: !disciplinesInfo.allMissed,
+      allDisciplinesMissed: allMissed,
+      missedDisciplinesCount: missedCount,
+      showWorkerButtons: !allMissed,
     });
 
-    return !disciplinesInfo.allMissed;
+    return !allMissed;
   };
 
   disciplinesToListItems(
@@ -104,12 +112,20 @@ class GoogleTableFetch extends React.Component<Props, State> {
       return { title: group, colored: groupMissed };
     });
 
+    const disciplineConfig = spreadsheetData.disciplineConfig;
+    const disciplineTime =
+      disciplineConfig.termType === TermType.Fall
+        ? `осень ${disciplineConfig.year}`
+        : disciplineConfig.termType === TermType.Spring
+        ? `весна ${disciplineConfig.year + 1}`
+        : `${disciplineConfig.year}/${disciplineConfig.year + 1}`;
+    const disciplineTitle = `${disciplineConfig.name}, ${disciplineTime}, ${disciplineConfig.course} курс`;
     return {
       allMissed: missedCount === actualGroups.size,
       missedCount,
       disciplines: [
         {
-          title: spreadsheetData.disciplineConfig.name,
+          title: disciplineTitle,
           nestedItems,
         },
       ],
@@ -128,7 +144,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
       return allDisciplines.filter((d) =>
         compareNormalized(d.discipline, disciplineConfig.name)
       );
-    } catch (error) {
+    } catch (error: any) {
       this.props.onError(error);
     }
   }
@@ -142,13 +158,13 @@ class GoogleTableFetch extends React.Component<Props, State> {
       return null;
     }
 
-    let spreadsheetData: SpreadsheetData;
+    let spreadsheetData: SpreadsheetDatas;
     try {
       const spreadsheetManager = new SpreadsheetManager(spreadsheetId);
       spreadsheetData = await spreadsheetManager.getSpreadsheetDataAsync(
         sheetName
       );
-    } catch (e) {
+    } catch (e: any) {
       this.props.onError(e.message || JSON.stringify(e));
       return null;
     }
@@ -174,7 +190,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
         return null;
       }
       return maybeSheet.title;
-    } catch (e) {
+    } catch (e: any) {
       this.props.onError(e.message || JSON.stringify(e));
       return null;
     }
@@ -186,29 +202,34 @@ class GoogleTableFetch extends React.Component<Props, State> {
     event.preventDefault();
     this.setState({ showDisciplines: false });
 
-    const disciplineConfig = this.marksData.spreadsheetData?.disciplineConfig;
-    if (!disciplineConfig) return;
+    for (const marksData of this.marksDatas) {
+      const disciplineConfig = marksData.spreadsheetData?.disciplineConfig;
+      if (!disciplineConfig) return;
 
-    this.props.brsApi
-      .clearDisciplineCacheAsync(
-        disciplineConfig.year,
-        disciplineConfig.termType,
-        disciplineConfig.course,
-        disciplineConfig.isModule
-      )
-      .then(
-        (x) => x,
-        (error) => {
-          this.props.onError(error);
-        }
-      );
+      this.props.brsApi
+        .clearDisciplineCacheAsync(
+          disciplineConfig.year,
+          disciplineConfig.termType,
+          disciplineConfig.course,
+          disciplineConfig.isModule
+        )
+        .then(
+          (x) => x,
+          (error) => {
+            this.props.onError(error);
+          }
+        );
+    }
 
     this.loadDisciplines(this.spreadsheetId, this.sheetId);
   };
 
   runWork = async (save: boolean) => {
     if (this.state.lastAction !== LastAction.LoadDisciplines) {
-      const success = await this.loadDisciplines(this.spreadsheetId, this.sheetId);
+      const success = await this.loadDisciplines(
+        this.spreadsheetId,
+        this.sheetId
+      );
       if (!success) {
         return;
       }
@@ -217,7 +238,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
     this.workerSaveMode = save;
     this.setState({
       lastAction: LastAction.RunWork,
-      runWorker: true
+      runWorker: true,
     });
   };
 
@@ -299,7 +320,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
         </Collapse>
         {this.state.runWorker && (
           <WorkerDialog
-            marksData={this.marksData}
+            marksDatas={this.marksDatas}
             onClosed={this.handleWorkerClosed}
             brsApi={this.props.brsApi}
             onError={this.props.onError}

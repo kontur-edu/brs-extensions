@@ -7,11 +7,12 @@ import MuiDialogContent from "@material-ui/core/DialogContent";
 import MuiDialogActions from "@material-ui/core/DialogActions";
 import SubmitWithLoading from "../../shared/SubmitWithLoading";
 import MarksManager from "../../../managers/MarksManager";
-import BrsApi, { Discipline } from "../../../apis/BrsApi";
+import BrsApi, { Discipline, TermType } from "../../../apis/BrsApi";
 import { SpreadsheetData } from "../../../managers/SpreadsheetManager";
 import NestedList, { NestedItem } from "../../shared/NestedList";
-import ReportManager, { Report } from "../../../managers/ReportManager";
+import ReportManager from "../../../managers/ReportManager";
 import { pluralize } from "../../../helpers/tools";
+import { BrsReport } from "../../../managers/BrsReport";
 
 const DialogContent = withStyles(() => ({
   root: {
@@ -59,19 +60,23 @@ export default class WorkerDialog extends React.Component<Props, State> {
     this.setState({ logItems });
   };
 
-  logMessage = async (report: Report) => {
+  logMessage = async (report: BrsReport) => {
     const logItems = await this.reportToNestedListItems(report);
     this.setState({ logItems });
   };
 
-  reportToNestedListItems(report: Report): Promise<NestedItem[]> {
+  reportToNestedListItems(report: BrsReport): Promise<NestedItem[]> {
     const logItems = this.state.logItems;
     return new Promise((resolve) => {
-      let title =
-        `Группа ${report.group}` +
-        (report.teacher !== undefined
-          ? `, преподаватель ${report.teacher}`
-          : "");
+      const disciplineConfig = report.disciplineConfig;
+      const disciplineTime =
+        disciplineConfig.termType === TermType.Fall
+          ? `осень ${disciplineConfig.year}`
+          : disciplineConfig.termType === TermType.Spring
+          ? `весна ${disciplineConfig.year + 1}`
+          : `${disciplineConfig.year}/${disciplineConfig.year + 1}`;
+      let title = `Группа ${report.discipline.group} (${disciplineTime}, ${disciplineConfig.course} курс)`;
+
       const nestedItems: NestedItem[] = [];
       const mainItem: NestedItem = { title, collapsed: true, nestedItems };
 
@@ -154,7 +159,8 @@ export default class WorkerDialog extends React.Component<Props, State> {
         renderAsText: true,
       }));
       nestedItems.push(marksItem);
-      hasErrors = hasErrors || marks.filter(({ failed }) => !!failed).length > 0
+      hasErrors =
+        hasErrors || marks.filter(({ failed }) => !!failed).length > 0;
 
       const skipped = report.skipped;
       if (skipped.length > 0) {
@@ -186,17 +192,20 @@ export default class WorkerDialog extends React.Component<Props, State> {
   }
 
   startWork = async () => {
-    const { spreadsheetData, suitableDisciplines } = this.props.marksData;
-    const error = await this.marksManager.putMarksToBrsAsync(
-      spreadsheetData,
-      suitableDisciplines
-    );
+    for (const marksData of this.props.marksDatas) {
+      const { spreadsheetData, suitableDisciplines } = marksData;
 
-    if (error) {
-      if (typeof error === "object") {
-        this.props.onError(error.toString());
-      } else if (typeof error === "string") {
-        this.props.onError(error);
+      const error = await this.marksManager.putMarksToBrsAsync(
+        spreadsheetData,
+        suitableDisciplines
+      );
+
+      if (error) {
+        if (typeof error === "object") {
+          this.props.onError(error.toString());
+        } else if (typeof error === "string") {
+          this.props.onError(error);
+        }
       }
     }
 
@@ -244,7 +253,7 @@ export interface MarksData {
 }
 
 interface Props {
-  marksData: MarksData;
+  marksDatas: MarksData[];
   brsApi: BrsApi;
   save: boolean;
   onClosed: () => void;

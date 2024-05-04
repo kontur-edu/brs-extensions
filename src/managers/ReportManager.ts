@@ -1,11 +1,11 @@
-export default class ReportManager {
-  private _currentReport: Report | null = null;
-  private readonly onReportFinished: (report: Report) => void;
+export default class ReportManager<TReport> {
+  private _currentReport: TReport | null = null;
+  private readonly onReportFinished: (report: TReport) => void;
 
   readonly onInvalidConfiguration: (errorMessages: string[]) => void;
 
   constructor(
-    onReportFinished: (report: Report) => void,
+    onReportFinished: (report: TReport) => void,
     onInvalidConfiguration: (errorMessages: string[]) => void
   ) {
     this.onReportFinished = onReportFinished;
@@ -18,15 +18,9 @@ export default class ReportManager {
     return this._currentReport;
   }
 
-  newReport(group: string, teacher?: string) {
+  newReport(report: TReport) {
     this.finishReport();
-    this._currentReport = {
-      group,
-      teacher,
-      merge: { succeed: 0 },
-      marks: [],
-      skipped: [],
-    };
+    this._currentReport = report
   }
 
   finishReport() {
@@ -37,22 +31,4 @@ export default class ReportManager {
   cancelReport() {
     this._currentReport = null;
   }
-}
-
-export interface Report {
-  group: string;
-  teacher?: string;
-  merge: {
-    succeed: number;
-    failedActual?: string[];
-    failedBrs?: string[];
-  };
-  marks: Section[];
-  skipped: Section[];
-}
-
-export interface Section {
-  title: string;
-  students?: string[];
-  failed?: boolean;
 }
