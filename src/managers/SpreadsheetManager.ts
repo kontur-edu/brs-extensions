@@ -62,11 +62,7 @@ export default class SpreadsheetManager {
     const actualStudents = await readStudentsAsync(
       this.spreadsheetId,
       dataRange,
-      indices.fullNameColumn - indices.left,
-      indices.groupColumn >= 0 ? indices.groupColumn - indices.left : null,
-      indices.courseColumn >= 0 ? indices.courseColumn - indices.left : null,
-      null,
-      indices.failureColumn - indices.left
+      indices
     );
 
     if (
@@ -79,7 +75,8 @@ export default class SpreadsheetManager {
       return {
         datas: [{ actualStudents, disciplineConfig, controlActionConfigs }],
       };
-    } else if (indices.courseColumn >= 0) {
+    } else if (indices.courseColumn >= 0 || indices.academicGroupColumn >= 0) {
+      // Получение параметров из заголовка таблицы
       const controlActionConfigs = buildControlActionConfig(header, indices);
       const studentGroups: { [course: number]: ActualStudent[] } = {};
       for (const student of actualStudents) {
@@ -103,7 +100,6 @@ export default class SpreadsheetManager {
         disciplineConfig: config,
         controlActionConfigs,
       }));
-      debugger
 
       return {
         datas,
@@ -117,27 +113,61 @@ export default class SpreadsheetManager {
 async function readStudentsAsync(
   spreadsheetId: string,
   readRange: string,
-  fullNameIndex: number = 0,
-  groupNameIndex: number | null = null,
-  courseIndex: number | null = null,
-  idIndex: number | null = null,
-  failureIndex: number | null = null
+  indices: Indices
 ) {
-  const sheet = googleApi.getSpreadsheet(spreadsheetId);
+  const fullNameIndex =
+    indices.fullNameColumn >= 0 ? indices.fullNameColumn - indices.left : null;
+  const surnameIndex =
+    indices.surnameColumn >= 0 ? indices.surnameColumn - indices.left : null;
+  const nameIndex =
+    indices.nameColumn >= 0 ? indices.nameColumn - indices.left : null;
+  const patronymicIndex =
+    indices.patronymicColumn >= 0
+      ? indices.patronymicColumn - indices.left
+      : null;
+  const groupNameIndex =
+    indices.groupColumn >= 0 ? indices.groupColumn - indices.left : null;
+  const courseIndex =
+    indices.courseColumn >= 0 ? indices.courseColumn - indices.left : null;
+  const academicGroupIndex =
+    indices.academicGroupColumn >= 0
+      ? indices.academicGroupColumn - indices.left
+      : null;
+  const idIndex = null;
+  const failureIndex = indices.failureColumn - indices.left;
 
+  const sheet = googleApi.getSpreadsheet(spreadsheetId);
   const rows = (await sheet.readAsync(readRange)).values || [];
 
   const result: ActualStudent[] = [];
   for (const row of rows) {
-    const fullName = row[fullNameIndex];
+    const fullName1 = fullNameIndex !== null ? row[fullNameIndex].trim() : null;
+    const surname = surnameIndex !== null ? row[surnameIndex] : null;
+    const name = nameIndex !== null ? row[nameIndex] : null;
+    const patronymic = patronymicIndex !== null ? row[patronymicIndex] : null;
+    const fullName2 =
+      surname !== null && surname.length > 0
+        ? `${surname.trim()} ${name?.trim() ?? ""} ${
+            patronymic?.trim() ?? ""
+          }`.trim()
+        : null;
+    const fullName =
+      fullName1 !== null && fullName1.length > 0 ? fullName1 : fullName2;
+
     const groupName = groupNameIndex !== null ? row[groupNameIndex] : null;
-    const course = courseIndex !== null ? row[courseIndex] : null;
+
+    const course1 = courseIndex !== null ? row[courseIndex] : null;
+    const academicGroup =
+      academicGroupIndex !== null ? row[academicGroupIndex] : null;
+    const course2 = academicGroup?.match(/\d/)?.[0];
+    const course = course1 !== null && course1.length > 0 ? course1 : course2;
+
     const id = idIndex !== null ? row[idIndex] : null;
     const failure =
       failureIndex !== null ? parseStudentFailure(row[failureIndex]) : null;
-    if (fullName) {
+    if (fullName !== null && fullName.length > 0) {
       result.push({
-        fullName,
+        fullName: fullName,
         groupName,
         id: id,
         course,
@@ -173,7 +203,11 @@ function getHeader(rows: string[][]) {
 function buildIndicesBy(header: string[]): Indices {
   const defaultGroupColumnName = "Группа в БРС";
   const defaultFullNameColumnName = "Фамилия Имя в БРС";
+  const defaultSurnameColumnName = "Фамилия";
+  const defaultNameColumnName = "Имя";
+  const defaultPatronymicColumnName = "Отчество";
   const defaultCourseColumnName = "Год обучения";
+  const defaultAcademicGroupColumnName = "Группа";
   const defaultFailureColumnName = "Причина отсутствия";
   const disciplineParameterKeyColumnPrefix = "Названия параметров";
   const disciplineParameterValueColumnPrefix = "Значения параметров";
@@ -185,8 +219,20 @@ function buildIndicesBy(header: string[]): Indices {
   const fullNameColumnIndex = normalizedHeader.indexOf(
     normalizeString(defaultFullNameColumnName)
   );
+  const surnameColumnIndex = normalizedHeader.indexOf(
+    normalizeString(defaultSurnameColumnName)
+  );
+  const nameColumnIndex = normalizedHeader.indexOf(
+    normalizeString(defaultNameColumnName)
+  );
+  const patronymicColumnIndex = normalizedHeader.indexOf(
+    normalizeString(defaultPatronymicColumnName)
+  );
   const courseColumnIndex = normalizedHeader.indexOf(
     normalizeString(defaultCourseColumnName)
+  );
+  const academicGroupColumnIndex = normalizedHeader.indexOf(
+    normalizeString(defaultAcademicGroupColumnName)
   );
   const failureColumnIndex = normalizedHeader.indexOf(
     normalizeString(defaultFailureColumnName)
@@ -200,10 +246,15 @@ function buildIndicesBy(header: string[]): Indices {
 
   if (
     failureColumnIndex < 0 ||
-    fullNameColumnIndex < 0 ||
+    (fullNameColumnIndex < 0 && surnameColumnIndex < 0) ||
     fullNameColumnIndex >= failureColumnIndex ||
+    surnameColumnIndex >= failureColumnIndex ||
+    nameColumnIndex >= failureColumnIndex ||
+    patronymicColumnIndex >= failureColumnIndex ||
     (groupColumnIndex >= 0 && groupColumnIndex > failureColumnIndex) ||
     (courseColumnIndex >= 0 && courseColumnIndex > failureColumnIndex) ||
+    (academicGroupColumnIndex >= 0 &&
+      academicGroupColumnIndex > failureColumnIndex) ||
     (disciplineParameterKeyColumnIndex >= 0 &&
       disciplineParameterKeyColumnIndex <= failureColumnIndex) ||
     (disciplineParameterValueColumnIndex >= 0 &&
@@ -215,16 +266,26 @@ function buildIndicesBy(header: string[]): Indices {
     throw new Error(`Неправильный порядок столбцов`);
 
   const leftIndex = Math.min(
-    ...[fullNameColumnIndex, groupColumnIndex, courseColumnIndex].filter(
-      (it) => it >= 0
-    )
+    ...[
+      fullNameColumnIndex,
+      surnameColumnIndex,
+      nameColumnIndex,
+      patronymicColumnIndex,
+      groupColumnIndex,
+      courseColumnIndex,
+      academicGroupColumnIndex,
+    ].filter((it) => it >= 0)
   );
   const rightIndex = failureColumnIndex;
 
   return {
     groupColumn: groupColumnIndex,
     fullNameColumn: fullNameColumnIndex,
+    surnameColumn: surnameColumnIndex,
+    nameColumn: nameColumnIndex,
+    patronymicColumn: patronymicColumnIndex,
     courseColumn: courseColumnIndex,
+    academicGroupColumn: academicGroupColumnIndex,
     failureColumn: failureColumnIndex,
     disciplineKeyColumn: disciplineParameterKeyColumnIndex,
     disciplineValueColumn: disciplineParameterValueColumnIndex,
@@ -246,6 +307,7 @@ function buildControlActionConfig(header: string[], indices: Indices) {
       index === indices.groupColumn ||
       index === indices.fullNameColumn ||
       index === indices.courseColumn ||
+      index === indices.academicGroupColumn ||
       index === indices.failureColumn ||
       !header[index]
     ) {
@@ -397,7 +459,11 @@ function addDisciplineConfigParameter(
 interface Indices {
   groupColumn: number;
   fullNameColumn: number;
+  surnameColumn: number;
+  nameColumn: number;
+  patronymicColumn: number;
   courseColumn: number;
+  academicGroupColumn: number;
   failureColumn: number;
   disciplineKeyColumn: number;
   disciplineValueColumn: number;
