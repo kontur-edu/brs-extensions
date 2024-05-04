@@ -230,7 +230,7 @@ export default class MarksManager {
       // 2) US → U stop, UU → U, UF → F, FS → F stop, FU → U, FF → F
       const oldRating = ratings[rating.student.brs.studentUuid]?.rating;
       const newRating =
-        oldRating && rating.status == MarkUpdateStatus.Skipped
+        oldRating && rating.status === MarkUpdateStatus.Skipped
           ? oldRating
           : rating;
       const newFinished = rating.status === MarkUpdateStatus.Skipped;

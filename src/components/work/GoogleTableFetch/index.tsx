@@ -278,7 +278,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
           in={this.state.showDisciplines}
           className="vertical-margin-min"
         >
-          <h3>Загруженная дисциплина из Google Таблицы</h3>
+          <h3>Загруженные дисциплины из Google Таблицы</h3>
           {this.state.missedDisciplinesCount > 0 && (
             <p>
               Группы, к которым у вас нет доступа в БРС,{" "}
