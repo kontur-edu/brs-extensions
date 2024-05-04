@@ -58,7 +58,7 @@ export default class MarksManager {
     try {
       for (const discipline of disciplines) {
         const students = actualStudents.filter((s) =>
-          compareNormalized(s.groupName, discipline.group)
+          isSuitableDiscipline(s, discipline)
         );
         if (students.length === 0) {
           continue;
@@ -810,6 +810,17 @@ function areStudentsLike(
   const brsFullName = fio.toKey(brsStudent.studentFio);
   const actualFullName = fio.toKey(actualStudent.fullName);
   return brsFullName.startsWith(actualFullName);
+}
+
+function isSuitableDiscipline(
+  actualStudent: ActualStudent,
+  discipline: Discipline
+) {
+  if (actualStudent.groupName && actualStudent.groupName.length > 0) {
+    return compareNormalized(actualStudent.groupName, discipline.group);
+  }
+
+  return true;
 }
 
 function formatMarkUpdateStatus(status: MarkUpdateStatus) {

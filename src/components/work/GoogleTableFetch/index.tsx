@@ -6,7 +6,7 @@ import SpreadsheetManager, {
 } from "../../../managers/SpreadsheetManager";
 import NestedList, { NestedItem } from "../../shared/NestedList";
 import { Collapse, Container } from "@material-ui/core";
-import { compareNormalized } from "../../../helpers/tools";
+import { compareNormalized, filterNull } from "../../../helpers/tools";
 import { getSpreadsheetProperties } from "../../../apis/GoogleApi";
 import BrsApi, { Discipline, TermType } from "../../../apis/BrsApi";
 import "./styles.css";
@@ -101,7 +101,7 @@ class GoogleTableFetch extends React.Component<Props, State> {
     spreadsheetData: SpreadsheetData
   ): { allMissed: boolean; missedCount: number; disciplines: NestedItem[] } {
     const actualGroups = new Set(
-      spreadsheetData.actualStudents.map((s) => s.groupName)
+      filterNull(spreadsheetData.actualStudents.map((s) => s.groupName))
     );
     const availableGroups = new Set(availableDisciplines.map((s) => s.group));
 

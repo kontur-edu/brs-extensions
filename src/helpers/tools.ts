@@ -29,7 +29,7 @@ export function groupBy<TItem>(items: TItem[], key: keyof TItem) {
   }, reducer);
 }
 
-export function getKeys<T>(obj: T): (keyof T)[] {
+export function getKeys<T extends object>(obj: T): (keyof T)[] {
   const keys = Object.keys(obj) as (keyof T)[];
   return keys;
 }

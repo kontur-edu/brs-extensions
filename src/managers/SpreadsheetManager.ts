@@ -11,7 +11,8 @@ import { parseStudentFailure } from "../helpers/brsHelpers";
 
 export interface ActualStudent {
   fullName: string;
-  groupName: string;
+  groupName: string | null;
+  course: number | null;
   id: string | null;
   failure: StudentFailure | null;
   properties: string[];
@@ -56,21 +57,30 @@ export default class SpreadsheetManager {
 
     const indices = buildIndicesBy(header);
     const dataRange = buildDataRange(sheetName, indices);
-    const controlActionConfigs = buildControlActionConfig(header, indices);
-    const disciplineConfig = buildDisciplineConfig(rows, indices);
 
     const actualStudents = await readStudentsAsync(
       this.spreadsheetId,
       dataRange,
       indices.fullNameColumn - indices.left,
-      indices.groupColumn - indices.left,
+      indices.groupColumn >= 0 ? indices.groupColumn - indices.left : null,
+      indices.courseColumn >= 0 ? indices.courseColumn - indices.left : null,
       null,
       indices.failureColumn - indices.left
     );
 
+    if (
+      indices.disciplineKeyColumn >= 0 &&
+      indices.disciplineValueColumn >= 0
+    ) {
+      // Получение параметров из таблицы ключей и значений
+      const controlActionConfigs = buildControlActionConfig(header, indices);
+      const disciplineConfig = buildDisciplineConfig(rows, indices);
     return {
       datas: [{ actualStudents, disciplineConfig, controlActionConfigs }],
     };
+    } else {
+      throw new Error(`Некорректная структура входной таблицы`);
+    }
   }
 }
 
@@ -78,7 +88,8 @@ async function readStudentsAsync(
   spreadsheetId: string,
   readRange: string,
   fullNameIndex: number = 0,
-  groupNameIndex: number = 1,
+  groupNameIndex: number | null = null,
+  courseIndex: number | null = null,
   idIndex: number | null = null,
   failureIndex: number | null = null
 ) {
@@ -89,15 +100,17 @@ async function readStudentsAsync(
   const result: ActualStudent[] = [];
   for (const row of rows) {
     const fullName = row[fullNameIndex];
-    const groupName = row[groupNameIndex];
+    const groupName = groupNameIndex !== null ? row[groupNameIndex] : null;
+    const course = courseIndex !== null ? row[courseIndex] : null;
     const id = idIndex !== null ? row[idIndex] : null;
     const failure =
       failureIndex !== null ? parseStudentFailure(row[failureIndex]) : null;
-    if (fullName && groupName) {
+    if (fullName) {
       result.push({
         fullName,
         groupName,
         id: id,
+        course,
         failure: failure,
         properties: row,
       });
@@ -125,6 +138,7 @@ function getHeader(rows: string[][]) {
 function buildIndicesBy(header: string[]): Indices {
   const defaultGroupColumnName = "Группа в БРС";
   const defaultFullNameColumnName = "Фамилия Имя в БРС";
+  const defaultCourseColumnName = "Год обучения";
   const defaultFailureColumnName = "Причина отсутствия";
   const disciplineParameterKeyColumnPrefix = "Названия параметров";
   const disciplineParameterValueColumnPrefix = "Значения параметров";
@@ -135,6 +149,9 @@ function buildIndicesBy(header: string[]): Indices {
   );
   const fullNameColumnIndex = normalizedHeader.indexOf(
     normalizeString(defaultFullNameColumnName)
+  );
+  const courseColumnIndex = normalizedHeader.indexOf(
+    normalizeString(defaultCourseColumnName)
   );
   const failureColumnIndex = normalizedHeader.indexOf(
     normalizeString(defaultFailureColumnName)
@@ -148,25 +165,30 @@ function buildIndicesBy(header: string[]): Indices {
 
   if (
     failureColumnIndex < 0 ||
-    groupColumnIndex < 0 ||
     fullNameColumnIndex < 0 ||
-    groupColumnIndex > failureColumnIndex ||
     fullNameColumnIndex > failureColumnIndex ||
-    Math.abs(fullNameColumnIndex - groupColumnIndex) !== 1 ||
-    disciplineParameterKeyColumnIndex < 0 ||
-    disciplineParameterValueColumnIndex < 0 ||
-    disciplineParameterKeyColumnIndex <= failureColumnIndex ||
-    disciplineParameterValueColumnIndex <= failureColumnIndex ||
+    (groupColumnIndex >= 0 && groupColumnIndex > failureColumnIndex) ||
+    (courseColumnIndex >= 0 && courseColumnIndex > failureColumnIndex) ||
+    (disciplineParameterKeyColumnIndex >= 0 &&
+      disciplineParameterKeyColumnIndex <= failureColumnIndex) ||
+    (disciplineParameterValueColumnIndex >= 0 &&
+      disciplineParameterValueColumnIndex <= failureColumnIndex) ||
     disciplineParameterValueColumnIndex !==
       disciplineParameterKeyColumnIndex + 1
   )
     throw new Error(`Неправильный порядок столбцов`);
-  const leftIndex = Math.min(groupColumnIndex, fullNameColumnIndex);
+
+  const leftIndex = Math.min(
+    ...[fullNameColumnIndex, groupColumnIndex, courseColumnIndex].filter(
+      (it) => it >= 0
+    )
+  );
   const rightIndex = failureColumnIndex;
 
   return {
     groupColumn: groupColumnIndex,
     fullNameColumn: fullNameColumnIndex,
+    courseColumn: courseColumnIndex,
     failureColumn: failureColumnIndex,
     disciplineKeyColumn: disciplineParameterKeyColumnIndex,
     disciplineValueColumn: disciplineParameterValueColumnIndex,
@@ -309,6 +331,7 @@ function addDisciplineConfigParameter(
 interface Indices {
   groupColumn: number;
   fullNameColumn: number;
+  courseColumn: number;
   failureColumn: number;
   disciplineKeyColumn: number;
   disciplineValueColumn: number;
