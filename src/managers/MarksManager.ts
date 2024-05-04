@@ -21,7 +21,7 @@ import { formatStudentFailure } from "../helpers/brsHelpers";
 import ReportManager from "./ReportManager";
 import { BrsReport } from "./BrsReport";
 
-const autoControlActionName = "auto";
+const autoControlActionNames = new Set(["auto", "баллы"])
 
 enum MarkUpdateStatus {
   Updated,
@@ -679,7 +679,7 @@ export default class MarksManager {
     controlActionConfigs: ControlActionConfig[]
   ): ControlActionConfig | null {
     const autoConfigs = controlActionConfigs.filter(
-      (it) => it.controlAction.toLowerCase() === autoControlActionName
+      (it) =>  autoControlActionNames.has(it.controlAction.toLowerCase())
     );
 
     if (autoConfigs.length === 1) {
@@ -688,7 +688,7 @@ export default class MarksManager {
 
     if (autoConfigs.length > 1) {
       this.reportManager.onInvalidConfiguration([
-        `Найдено несколько колонок «${autoControlActionName}» с автоитогом`,
+        `Найдено несколько колонок с автоитогом`,
       ]);
     }
     return null;
