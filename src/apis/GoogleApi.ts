@@ -9,25 +9,21 @@ export function getSpreadsheet(spreadsheetId: string): Spreadsheet {
     return response.result;
   }
 
+  async function getMetaAsync() {
+    const response = await sheets.spreadsheets.get({ spreadsheetId });
+    const meta = JSON.parse(response.body) as SpreadsheetMeta;
+    return meta;
+  }
+
   return {
     readAsync,
+    getMetaAsync
   };
-}
-
-export async function getSpreadsheetProperties(
-  spreadsheetId: string
-): Promise<SpreadsheetProperties[]> {
-  const sheets = gapi.client.sheets;
-
-  const res = await sheets.spreadsheets.get({ spreadsheetId });
-  const sheetProps = JSON.parse(res.body).sheets as [
-    { properties: SpreadsheetProperties }
-  ];
-  return sheetProps.map((s) => s.properties);
 }
 
 export interface Spreadsheet {
   readAsync: (range: string) => Promise<ValueRange>;
+  getMetaAsync: () => Promise<SpreadsheetMeta>
 }
 
 export interface ValueRange {
@@ -36,7 +32,21 @@ export interface ValueRange {
   values?: any[][] | null;
 }
 
+export interface SpreadsheetMeta {
+  spreadsheetId: string;
+  properties: SpreadsheetProperties;
+  sheets: Sheet[];
+}
+
 export interface SpreadsheetProperties {
+  title: string;
+}
+
+export interface Sheet {
+  properties: SheetProperties;
+}
+
+export interface SheetProperties {
   sheetId: number;
   title: string;
 }

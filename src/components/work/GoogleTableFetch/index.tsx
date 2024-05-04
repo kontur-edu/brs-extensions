@@ -11,7 +11,7 @@ import {
   filterNull,
   normalizeString,
 } from "../../../helpers/tools";
-import { getSpreadsheetProperties } from "../../../apis/GoogleApi";
+import * as googleApi from "../../../apis/GoogleApi";
 import BrsApi, { Discipline, TermType } from "../../../apis/BrsApi";
 import "./styles.css";
 import RunWorkerButtons from "../RunWorkerButtons";
@@ -195,14 +195,13 @@ class GoogleTableFetch extends React.Component<Props, State> {
     sheetId: string | null
   ): Promise<string | null> {
     try {
-      const spreadsheetProperties = await getSpreadsheetProperties(
-        spreadsheetId
-      );
+      const meta = await googleApi.getSpreadsheet(spreadsheetId).getMetaAsync()
+      const sheets = meta.sheets.map(it => it.properties)
       const maybeSheet = sheetId
-        ? spreadsheetProperties.filter(
+        ? sheets.filter(
             (s) => s.sheetId.toString() === sheetId
           )[0]
-        : spreadsheetProperties[0];
+        : sheets[0];
       if (!maybeSheet) {
         this.props.onError("Таблица не найдена");
         return null;
