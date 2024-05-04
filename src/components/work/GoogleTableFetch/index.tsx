@@ -105,30 +105,43 @@ class GoogleTableFetch extends React.Component<Props, State> {
     spreadsheetData: SpreadsheetData
   ): { allMissed: boolean; missedCount: number; disciplines: NestedItem[] } {
     const actualGroups = Array.from(
-      new Set(
-        filterNull(
-          spreadsheetData.actualStudents.map((s) => s.groupName)
-        ).filter((it) => it.length > 0)
-      )
+      new Set(spreadsheetData.actualStudents.map((s) => s.groupName || ""))
     );
     const availableGroups = Array.from(
       new Set(availableDisciplines.map((s) => s.group))
     );
 
     let missedCount = 0;
-    const nestedItems: NestedItem[] = actualGroups.map((group) => {
-      const normalizedGroup = normalizeString(group);
-      const availableForActual = availableGroups.filter((it) =>
-        normalizeString(it).startsWith(normalizedGroup)
-      );
+    const nestedItems: NestedItem[] = actualGroups
+      .map((group) => {
+        if (group.length > 0) {
+          const normalizedGroup = normalizeString(group);
+          const availableForActual = availableGroups.filter((it) =>
+            normalizeString(it).startsWith(normalizedGroup)
+          );
 
-      if (availableForActual.length === 0) {
-        missedCount++;
-        return [{ title: group, colored: true }];
-      } else {
-        return availableForActual.map((it) => ({ title: it, colored: false }));
-      }
-    }).flat();
+          if (availableForActual.length === 0) {
+            missedCount++;
+            return [{ title: group, colored: true }];
+          } else {
+            return availableForActual.map((it) => ({
+              title: it,
+              colored: false,
+            }));
+          }
+        } else {
+          if (availableGroups.length === 0) {
+            missedCount++;
+            return [{ title: 'Автоопределение → нет вариантов', colored: true }];
+          } else {
+            return availableGroups.map((it) => ({
+              title: `Автоопределение → ${it}`,
+              colored: false,
+            }));
+          }
+        }
+      })
+      .flat();
 
     const disciplineConfig = spreadsheetData.disciplineConfig;
     const disciplineTime =
