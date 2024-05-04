@@ -141,7 +141,7 @@ export default class WorkerDialog extends React.Component<Props, State> {
         title: "Выставление баллов",
         collapsed: true,
       };
-      marksItem.nestedItems = marks.map(({ title, students }) => ({
+      marksItem.nestedItems = marks.map(({ title, students, failed }) => ({
         title: `${title}: ${students?.length ?? 0} ${pluralize(
           students?.length ?? 0,
           "студент",
@@ -149,10 +149,12 @@ export default class WorkerDialog extends React.Component<Props, State> {
           "студентов"
         )}`,
         nestedItems: students?.map((s) => ({ title: s })),
+        colored: !!failed,
         collapsed: false,
         renderAsText: true,
       }));
       nestedItems.push(marksItem);
+      hasErrors = hasErrors || marks.filter(({ failed }) => !!failed).length > 0
 
       const skipped = report.skipped;
       if (skipped.length > 0) {

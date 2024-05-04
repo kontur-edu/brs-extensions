@@ -54,4 +54,5 @@ export interface Report {
 export interface Section {
   title: string;
   students?: string[];
+  failed?: boolean;
 }

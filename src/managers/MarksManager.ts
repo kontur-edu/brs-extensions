@@ -158,6 +158,51 @@ export default class MarksManager {
     students: MergedStudent[],
     controlActionConfigs: ControlActionConfig[]
   ) {
+    const ratings: Ratings = {};
+    let notFinishedStudents = students
+
+    // 3 попытки при реальной записи нужно для проверки успешности 2-ой попытки
+    // 2 попытки при отсутствии записи позволяют проверить работоспособность кода
+    const tryCount = this.save ? 3 : 2
+    for (let i = 0; i < tryCount; i++) {
+      notFinishedStudents = await this.putMarksForStudentsOnceAsync(
+        ratings,
+        discipline,
+        disciplineMeta,
+        notFinishedStudents,
+        controlActionConfigs
+      );
+    }
+
+    const ratingResults: Array<RatingResult> = []
+    for (const studentId in ratings) {
+      const r = ratings[studentId];
+
+      if (this.save && !r.finished) {
+        r.rating.status = MarkUpdateStatus.Failed
+      }
+      
+      ratingResults.push(r.rating)
+    }
+
+    const groupedResults = Object.entries(
+      groupBy(ratingResults, "status")
+    ).map(([groupKey, rawStudents]) => ({
+      title: formatMarkUpdateStatus(rawStudents[0]["status"]),
+      students: rawStudents.map((s) => s.infoString),
+      failed: rawStudents[0]["status"] === MarkUpdateStatus.Failed,
+    }));
+
+    this.reportManager.currentReport.marks.push(...groupedResults);
+  }
+
+  async putMarksForStudentsOnceAsync(
+    ratings: Ratings,
+    discipline: Discipline,
+    disciplineMeta: DisciplineMeta,
+    students: MergedStudent[],
+    controlActionConfigs: ControlActionConfig[]
+  ) {
     const ratingResults = await Promise.all(
       students.map(async (student) => {
         return await this.putMarksForStudentAsync(
@@ -168,15 +213,35 @@ export default class MarksManager {
         );
       })
     );
+    for (const rating of ratingResults) {
+      // 1) S → S stop
+      // 2) US → U stop, UU → U, UF → F, FS → F stop, FU → U, FF → F
+      const oldRating = ratings[rating.student.brs.studentUuid]?.rating;
+      const newRating =
+        oldRating && rating.status == MarkUpdateStatus.Skipped
+          ? oldRating
+          : rating;
+      const newFinished = rating.status === MarkUpdateStatus.Skipped;
 
-    const groupedResults = Object.entries(groupBy(ratingResults, "status")).map(
-      ([groupKey, rawStudents]) => ({
-        title: formatMarkUpdateStatus(rawStudents[0]["status"]),
-        students: rawStudents.map((s) => s.infoString),
-      })
-    );
+      ratings[rating.student.brs.studentUuid] = {
+        rating: newRating,
+        finished: newFinished,
+      };
+    }
 
-    this.reportManager.currentReport.marks.push(...groupedResults);
+    const brsStudents: { [studentId: string]: StudentMark } = {};
+    for (const s of await this.brsApi.getAllStudentMarksAsync(discipline)) {
+      brsStudents[s.studentUuid] = s;
+    }
+
+    const notFinishedStudents = students
+      .filter((s) => !ratings[s.brs.studentUuid]?.finished)
+      .map((s) => ({
+        actual: s.actual,
+        brs: brsStudents[s.brs.studentUuid] || s.brs,
+      }));
+
+    return notFinishedStudents;
   }
 
   async putMarksForStudentAsync(
@@ -184,7 +249,7 @@ export default class MarksManager {
     disciplineMeta: DisciplineMeta,
     student: MergedStudent,
     controlActionConfigs: ControlActionConfig[]
-  ) {
+  ): Promise<RatingResult> {
     const autoControlActionConfig =
       this.tryGetAutoControlActionConfig(controlActionConfigs);
 
@@ -246,7 +311,8 @@ export default class MarksManager {
     let infoString = `${studentName} баллы: ${log.marks.join(" ")}`;
     if (failureStatus && failureStatus !== "-")
       infoString += `, ${failureStatus}`;
-    return { status, infoString };
+
+    return { student, status, infoString };
   }
 
   async putAutoMarksForStudentAsync(
@@ -335,7 +401,7 @@ export default class MarksManager {
         const actualMark = 
           controlAction.maxValue < value 
             ? controlAction.maxValue
-            : round10(value)
+            : round10(value);
         value -= actualMark;
 
         await this.putMarkAsync(
@@ -745,4 +811,14 @@ interface ControlActionGroup {
   factor: number;
   controlActions: ControlAction[];
   isIntermediate: boolean;
+}
+
+interface RatingResult {
+  student: MergedStudent;
+  status: MarkUpdateStatus;
+  infoString: string;
+}
+
+interface Ratings {
+  [studentId: string]: { rating: RatingResult; finished: boolean };
 }
